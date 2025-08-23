@@ -6,6 +6,14 @@ module.exports = {
     },
     // 本番ビルド最適化
     swcMinify: true,
-    // 静的エクスポート対応
-    trailingSlash: false,
+    // GitHub Pages用静的エクスポート設定
+    trailingSlash: true,
+    output: 'export',
+    distDir: 'out',
+    images: {
+        unoptimized: true // GitHub Pagesでは画像最適化無効
+    },
+    // GitHub Pagesのベースパス設定（リポジトリ名）
+    basePath: process.env.NODE_ENV === 'production' ? '/energy-calc-service' : '',
+    assetPrefix: process.env.NODE_ENV === 'production' ? '/energy-calc-service' : '',
 }
