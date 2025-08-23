@@ -1,0 +1,24 @@
+/* frontend/src/styles/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+  ここから下は、必要に応じて追加するカスタムグローバルスタイルです。
+  最初は上記の @tailwind ディレクティブのみで問題ありません。
+  プロジェクトが進む中で、全体に適用したいスタイルがあれば追加します。
+*/
+
+/* 例：基本的なフォント設定 (任意) */
+/*
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+*/
+
+/* 例：カスタムクラス (任意) */
+/*
+.custom-link {
+  @apply text-blue-600 hover:text-blue-800 underline;
+}
+*/

@@ -1,0 +1,42 @@
+﻿# backend/requirements.txt
+
+# FastAPI 本体
+fastapi
+
+# ASGIサーバー (Uvicorn) とその標準的な依存関係
+uvicorn[standard]
+
+# データバリデーション (FastAPIが内部で使用)
+pydantic[email] # メールアドレスのバリデーションも含む場合
+pydantic-settings
+
+python-multipart
+
+# Excel操作用
+openpyxl # ← これを追加
+
+# PDF生成用
+reportlab # ← これを追加
+
+# データベース (ORM)
+sqlalchemy
+
+# PostgreSQL用アダプター (SQLAlchemyがPostgreSQLと通信するために必要)
+psycopg2-binary
+
+# (オプション) databasesライブラリを使う場合 (非同期DB操作用)
+# databases[postgresql]
+
+# (オプション) 認証・認可関連
+python-jose[cryptography] # JWTトークンの生成・検証
+passlib[bcrypt]           # パスワードハッシュ化
+
+# (オプション) 環境変数管理 (.envファイル読み込みなど)
+# python-dotenv
+
+# (オプション) CORS (Cross-Origin Resource Sharing) 設定
+# python-multipart # フォームデータ処理のため (ファイルアップロードなど)
+
+# (オプション) その他、プロジェクトで利用するライブラリ
+# 例: requests (外部APIとの通信)
+# 例: Pillow (画像処理)
