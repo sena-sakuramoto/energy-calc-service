@@ -5,6 +5,12 @@ import axios from 'axios';
 // 環境変数からAPIのベースURLを取得。NEXT_PUBLIC_ を接頭辞にすること。
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
 
+// GitHub Pages用のモックモード検出
+const isGitHubPages = typeof window !== 'undefined' && 
+  window.location.hostname.includes('github.io');
+
+console.log('API Config:', { API_BASE_URL, isGitHubPages, hostname: typeof window !== 'undefined' ? window.location.hostname : 'server' });
+
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -117,16 +123,31 @@ export const apiRequest = async (requestFn, errorContext = '') => {
 // 認証関連API
 export const authAPI = {
   login: async (credentials) => { // credentials は { email, password }
+    // GitHub Pages用のモック機能
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock login");
+      await new Promise(resolve => setTimeout(resolve, 800)); // 待機
+      return {
+        data: {
+          access_token: "mock_token_" + Date.now(),
+          token_type: "bearer",
+          user: {
+            id: 1,
+            email: credentials.email,
+            full_name: "Demo User",
+            is_active: true
+          }
+        },
+        status: 200
+      };
+    }
+
     // FastAPIのOAuth2準拠のトークンエンドポイントは通常 application/x-www-form-urlencoded を期待
     const params = new URLSearchParams();
     params.append('username', credentials.email); // FastAPI側が username を期待する場合
     params.append('password', credentials.password);
 
     // バックエンドのトークン取得パス (例: /auth/token)
-    // このパスはバックエンドの実際のルーター設定に合わせてください。
-    // senaaさんの元のコードでは /auth/login が多かったので、そちらを使う場合は
-    // headers の 'Content-Type' も 'application/json' に戻し、paramsではなく credentials を直接渡します。
-    // ここではFastAPIの標準的な /token エンドポイントを想定します。
     const response = await apiClient.post('/auth/token', params, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -136,8 +157,26 @@ export const authAPI = {
   },
   register: async (userData) => { // userData は { email, password, full_name }
     console.log("Submitting to API /users/ with data (from api.js):", JSON.stringify(userData));
-    // バックエンドのユーザー作成エンドポイントが /users/ の場合
-    const response = await apiClient.post('/users/', userData); // userDataを直接リクエストボディとして送信
+    
+    // GitHub Pages用のモック機能
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock registration");
+      // モック成功レスポンス
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒のフェイク待機
+      return {
+        data: {
+          id: Math.floor(Math.random() * 1000),
+          email: userData.email,
+          full_name: userData.full_name,
+          is_active: true,
+          created_at: new Date().toISOString()
+        },
+        status: 201
+      };
+    }
+    
+    // 通常のAPIリクエスト
+    const response = await apiClient.post('/users/', userData);
     return response;
   },
   getCurrentUser: async () => {

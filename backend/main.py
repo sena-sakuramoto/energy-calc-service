@@ -60,6 +60,15 @@ app.include_router(api_router, prefix=settings.API_PREFIX)
 async def read_root():
     return {"message": f"Welcome to {settings.PROJECT_NAME} API"}
 
+# ヘルスチェックエンドポイント（Railway用）
+@app.get("/api/v1/health", tags=["Health"])
+async def health_check():
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "version": "1.0.0"
+    }
+
 
 if __name__ == "__main__":
     print(f"Starting Uvicorn server for: {settings.PROJECT_NAME}")
