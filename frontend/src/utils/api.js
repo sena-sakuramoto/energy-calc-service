@@ -34,21 +34,84 @@ apiClient.interceptors.request.use(
   }
 );
 
-// レスポンスインターセプター（例：認証エラー時のリダイレクトなど）
+// レスポンスインターセプター（エラーハンドリング強化）
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // エラーロギング
+    console.error('API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      message: error.response?.data?.detail || error.message,
+    });
+
     if (error.response?.status === 401) {
-      // 認証エラー時の処理 (例: ログアウトしてログインページへ)
+      // 認証エラー時の処理
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('authToken'); // トークンをクリア
-        // window.location.href = '/login'; // AuthContextで処理する方が望ましい場合もある
+        localStorage.removeItem('authToken');
         console.error("API request 401 Unauthorized. Token might be invalid or expired.");
       }
+    } else if (error.response?.status === 403) {
+      console.error("API request 403 Forbidden. Access denied.");
+    } else if (error.response?.status >= 500) {
+      console.error("Server error occurred. Please try again later.");
     }
+    
     return Promise.reject(error);
   }
 );
+
+// エラーハンドリングヘルパー関数
+export const handleApiError = (error) => {
+  if (error.response) {
+    // サーバーからのレスポンスがある場合
+    const status = error.response.status;
+    const detail = error.response.data?.detail || error.response.data?.message || 'Unknown error';
+    
+    switch (status) {
+      case 400:
+        return `入力データに問題があります: ${detail}`;
+      case 401:
+        return '認証が必要です。再度ログインしてください。';
+      case 403:
+        return 'このリソースにアクセスする権限がありません。';
+      case 404:
+        return '要求されたリソースが見つかりません。';
+      case 422:
+        return `データの形式が正しくありません: ${detail}`;
+      case 500:
+        return 'サーバーでエラーが発生しました。しばらく待ってから再度お試しください。';
+      case 503:
+        return 'サービスが一時的に利用できません。しばらく待ってから再度お試しください。';
+      default:
+        return `エラーが発生しました (${status}): ${detail}`;
+    }
+  } else if (error.request) {
+    // ネットワークエラー
+    return 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+  } else {
+    // その他のエラー
+    return `予期しないエラーが発生しました: ${error.message}`;
+  }
+};
+
+// APIリクエストのラッパー関数（エラーハンドリング付き）
+export const apiRequest = async (requestFn, errorContext = '') => {
+  try {
+    const response = await requestFn();
+    return { success: true, data: response.data, response };
+  } catch (error) {
+    const errorMessage = handleApiError(error);
+    console.error(`${errorContext} Error:`, errorMessage);
+    return { 
+      success: false, 
+      error: errorMessage, 
+      originalError: error,
+      status: error.response?.status 
+    };
+  }
+};
 
 
 // 認証関連API

@@ -1,18 +1,32 @@
 ﻿# backend/main.py
 # -*- coding: utf-8 -*-
+import os
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+# 環境変数ファイル読み込み
+load_dotenv()
 
 # アプリケーションモジュールからのインポート
-# (settings より先に app をインポートすると循環参照になる可能性があるので注意)
-from app.core.config import settings # configを先にインポート
-from app.api.api import api_router   # 次にapi_router
+from app.core.config import settings
+from app.api.api import api_router
+from app.middleware.security import SecurityMiddleware, RateLimitMiddleware, LoggingMiddleware
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_PREFIX}/openapi.json" # OpenAPIのパスもプレフィックスを考慮
+    openapi_url=f"{settings.API_PREFIX}/openapi.json",
+    description="建築物省エネ法対応計算サービス API",
+    version="1.0.0",
+    docs_url=f"{settings.API_PREFIX}/docs" if settings.ENVIRONMENT == "development" else None,
+    redoc_url=f"{settings.API_PREFIX}/redoc" if settings.ENVIRONMENT == "development" else None,
 )
+
+# セキュリティミドルウェア追加
+app.add_middleware(SecurityMiddleware)
+app.add_middleware(RateLimitMiddleware, calls=100, period=60)  # 1分間に100リクエスト
+app.add_middleware(LoggingMiddleware)
 
 # CORSミドルウェア設定
 # settings.CORS_ORIGINS がリストであり、中身が存在する場合にのみ設定を適用

@@ -9,15 +9,15 @@ class Project(Base):
     __tablename__ = "projects"
     
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(String, nullable=True)
-    owner_id = Column(Integer, ForeignKey("users.id"))
+    name = Column(String(255), nullable=False, index=True)
+    description = Column(String(1000), nullable=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
-    # “ü—Íƒf[ƒ^‚ÆŒvZŒ‹‰Ê‚ğJSONŒ`®‚Å•Û‘¶
+    # ï¿½ï¿½ï¿½Íƒfï¿½[ï¿½^ï¿½ÆŒvï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½JSONï¿½`ï¿½ï¿½ï¿½Å•Û‘ï¿½
     input_data = Column(JSON)
     result_data = Column(JSON)
     
-    # ƒ†[ƒU[‚Æ‚ÌƒŠƒŒ[ƒVƒ‡ƒ“
+    # ï¿½ï¿½ï¿½[ï¿½Uï¿½[ï¿½Æ‚Ìƒï¿½ï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½
     owner = relationship("User", back_populates="projects")
