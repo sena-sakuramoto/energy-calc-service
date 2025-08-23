@@ -180,6 +180,22 @@ export const authAPI = {
     return response;
   },
   getCurrentUser: async () => {
+    // GitHub Pages用のモック機能
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock getCurrentUser");
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return {
+        data: {
+          id: 1,
+          email: "demo@example.com",
+          full_name: "Demo User",
+          is_active: true,
+          created_at: new Date().toISOString()
+        },
+        status: 200
+      };
+    }
+    
     // バックエンドの現在ユーザー情報取得エンドポイント (例: /users/me)
     const response = await apiClient.get('/users/me');
     return response; // レスポンス全体を返す
@@ -197,12 +213,110 @@ export const authAPI = {
 
 // プロジェクト関連API (以前のものをベースに)
 export const projectsAPI = {
-  getAll: () => apiClient.get('/projects/'),
-  getById: (id) => apiClient.get(`/projects/${id}/`), // 末尾スラッシュはFastAPIの慣習
-  create: (data) => apiClient.post('/projects/', data),
-  update: (id, data) => apiClient.put(`/projects/${id}/`, data),
-  delete: (id) => apiClient.delete(`/projects/${id}/`),
-  calculate: (projectId, inputData) => apiClient.post(`/projects/${projectId}/calculate/`, inputData),
+  getAll: async () => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock getAll projects");
+      await new Promise(resolve => setTimeout(resolve, 600));
+      return {
+        data: [
+          {
+            id: 1,
+            name: "サンプル建物計算",
+            description: "省エネ法に基づく計算のサンプルプロジェクト",
+            owner_id: 1,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 2,
+            name: "オフィスビル省エネ計算",
+            description: "大規模オフィスビルの省エネ法計算",
+            owner_id: 1,
+            created_at: new Date().toISOString()
+          }
+        ],
+        status: 200
+      };
+    }
+    return apiClient.get('/projects/');
+  },
+  getById: async (id) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock getById project");
+      await new Promise(resolve => setTimeout(resolve, 400));
+      return {
+        data: {
+          id: parseInt(id),
+          name: `プロジェクト ${id}`,
+          description: "デモ用のプロジェクト説明",
+          owner_id: 1,
+          created_at: new Date().toISOString()
+        },
+        status: 200
+      };
+    }
+    return apiClient.get(`/projects/${id}/`);
+  },
+  create: async (data) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock create project");
+      await new Promise(resolve => setTimeout(resolve, 800));
+      return {
+        data: {
+          id: Math.floor(Math.random() * 1000),
+          ...data,
+          owner_id: 1,
+          created_at: new Date().toISOString()
+        },
+        status: 201
+      };
+    }
+    return apiClient.post('/projects/', data);
+  },
+  update: async (id, data) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock update project");
+      await new Promise(resolve => setTimeout(resolve, 600));
+      return {
+        data: { id: parseInt(id), ...data, updated_at: new Date().toISOString() },
+        status: 200
+      };
+    }
+    return apiClient.put(`/projects/${id}/`, data);
+  },
+  delete: async (id) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock delete project");
+      await new Promise(resolve => setTimeout(resolve, 400));
+      return { status: 204 };
+    }
+    return apiClient.delete(`/projects/${id}/`);
+  },
+  calculate: async (projectId, inputData) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock calculate");
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 計算時間をシミュレート
+      return {
+        data: {
+          project_id: parseInt(projectId),
+          results: {
+            primary_energy_consumption: 1250.5,
+            energy_efficiency_ratio: 0.78,
+            co2_emissions: 245.3,
+            compliance_status: "適合",
+            detailed_results: {
+              heating_energy: 450.2,
+              cooling_energy: 380.1,
+              lighting_energy: 220.8,
+              ventilation_energy: 199.4
+            }
+          },
+          calculation_date: new Date().toISOString()
+        },
+        status: 200
+      };
+    }
+    return apiClient.post(`/projects/${projectId}/calculate/`, inputData);
+  },
 };
 
 // レポート関連API (以前のものをベースに)
