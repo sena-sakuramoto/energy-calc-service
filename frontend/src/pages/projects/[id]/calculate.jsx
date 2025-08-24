@@ -176,7 +176,24 @@ export default function Calculate() {
   return (
     <Layout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">省エネ計算 - {project.name}</h1>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">建築物省エネ法計算</h1>
+            <p className="text-lg text-gray-600 mt-1">{project.name}</p>
+            <div className="flex items-center mt-2 text-sm text-gray-500">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                モデル建物法
+              </span>
+              <span className="ml-2">国土交通省告示準拠</span>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-sm text-gray-500">最終更新</div>
+            <div className="text-sm text-gray-900">
+              {new Date().toLocaleDateString('ja-JP')}
+            </div>
+          </div>
+        </div>
       </div>
 
       {error && (
@@ -231,17 +248,30 @@ export default function Calculate() {
                       <Field
                         as="select"
                         name="building.building_type"
-                        className="w-full px-3 py-2 border rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="住宅">住宅</option>
-                        <option value="事務所">事務所</option>
-                        <option value="学校">学校</option>
-                        <option value="物販店舗">物販店舗</option>
-                        <option value="飲食店">飲食店</option>
-                        <option value="ホテル">ホテル</option>
-                        <option value="病院">病院</option>
-                        <option value="集会所">集会所</option>
-                        <option value="工場">工場</option>
+                        <option value="">-- 建物用途を選択してください --</option>
+                        <optgroup label="住宅系">
+                          <option value="住宅">一戸建住宅</option>
+                          <option value="共同住宅">共同住宅（マンション等）</option>
+                        </optgroup>
+                        <optgroup label="事務所系">
+                          <option value="事務所">事務所等</option>
+                          <option value="工場">工場等</option>
+                        </optgroup>
+                        <optgroup label="商業系">
+                          <option value="百貨店">百貨店等</option>
+                          <option value="スーパーマーケット">スーパーマーケット</option>
+                          <option value="飲食店">飲食店等</option>
+                        </optgroup>
+                        <optgroup label="宿泊・医療系">
+                          <option value="ホテル">ホテル等</option>
+                          <option value="病院">病院等</option>
+                        </optgroup>
+                        <optgroup label="教育・文化系">
+                          <option value="学校">学校等（小中学校）</option>
+                          <option value="集会所">集会所等</option>
+                        </optgroup>
                       </Field>
                       <ErrorMessage
                         name="building.building_type"
@@ -273,13 +303,17 @@ export default function Calculate() {
                       <Field
                         as="select"
                         name="building.climate_zone"
-                        className="w-full px-3 py-2 border rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                       >
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map(zone => (
-                          <option key={zone} value={zone}>
-                            {zone}区分
-                          </option>
-                        ))}
+                        <option value="">-- 地域区分を選択してください --</option>
+                        <option value={1}>1地域（旭川、帯広等）- 極寒冷地</option>
+                        <option value={2}>2地域（札幌、青森等）- 寒冷地</option>
+                        <option value={3}>3地域（盛岡、山形等）- 寒冷地</option>
+                        <option value={4}>4地域（仙台、新潟等）- 温暖地</option>
+                        <option value={5}>5地域（宇都宮、長野等）- 温暖地</option>
+                        <option value={6}>6地域（東京、大阪等）- 温暖地</option>
+                        <option value={7}>7地域（鹿児島、宮崎等）- 温暖地</option>
+                        <option value={8}>8地域（沖縄県）- 温暖地</option>
                       </Field>
                       <ErrorMessage
                         name="building.climate_zone"
