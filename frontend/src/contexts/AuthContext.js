@@ -4,7 +4,15 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import { authAPI } from '../utils/api'; // ← この行を確認・追加！
 
-const AuthContext = createContext(undefined);
+const AuthContext = createContext({
+  user: null,
+  setUser: () => {},
+  login: async () => false,
+  register: async () => {},
+  logout: () => {},
+  isAuthenticated: false,
+  loading: true,
+});
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -13,17 +21,31 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        // authAPI.setAuthToken(token); // utils/api.js のインターセプタがlocalStorageから読むので不要かも
-        try {
-          const response = await authAPI.getCurrentUser(); // authAPI を使用
-          setUser(response.data);
-        } catch (error) {
-          console.error("Failed to fetch current user, token might be invalid.", error);
-          localStorage.removeItem('authToken');
-          // authAPI.setAuthToken(null); // localStorageから削除すればインターセプタも追従
-          setUser(null);
+      // GitHub Pages用のモックユーザー設定
+      if (typeof window !== 'undefined' && window.location.hostname.includes('github.io')) {
+        console.log("GitHub Pages mode: Setting mock user");
+        setUser({
+          id: 1,
+          email: "demo@example.com",
+          full_name: "Demo User",
+          is_active: true
+        });
+        setLoading(false);
+        return;
+      }
+      
+      // 通常の認証フロー
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          try {
+            const response = await authAPI.getCurrentUser();
+            setUser(response.data);
+          } catch (error) {
+            console.error("Failed to fetch current user, token might be invalid.", error);
+            localStorage.removeItem('authToken');
+            setUser(null);
+          }
         }
       }
       setLoading(false);
@@ -32,19 +54,35 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
+    // GitHub Pages用のモックログイン
+    if (typeof window !== 'undefined' && window.location.hostname.includes('github.io')) {
+      console.log("GitHub Pages mode: Mock login");
+      setUser({
+        id: 1,
+        email: email,
+        full_name: "Demo User",
+        is_active: true
+      });
+      router.push('/');
+      return true;
+    }
+    
+    // 通常のログイン処理
     try {
-      const response = await authAPI.login({ email, password }); // authAPI を使用
+      const response = await authAPI.login({ email, password });
       const { access_token } = response.data;
-      authAPI.setAuthToken(access_token); // localStorageにトークン保存
+      authAPI.setAuthToken(access_token);
 
-      const userResponse = await authAPI.getCurrentUser(); // authAPI を使用
+      const userResponse = await authAPI.getCurrentUser();
       setUser(userResponse.data);
 
       router.push('/');
       return true;
     } catch (error) {
       console.error('Login failed in AuthContext:', error);
-      localStorage.removeItem('authToken');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('authToken');
+      }
       setUser(null);
       if (error.response && error.response.data && error.response.data.detail) {
         throw new Error(error.response.data.detail);
@@ -74,7 +112,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    authAPI.setAuthToken(null); // localStorageのトークンもクリア
+    if (typeof window !== 'undefined' && !window.location.hostname.includes('github.io')) {
+      authAPI.setAuthToken(null); // localStorageのトークンもクリア
+    }
     setUser(null);
     router.push('/login');
   };

@@ -407,8 +407,26 @@ export const projectsAPI = {
 
 // レポート関連API (以前のものをベースに)
 export const reportAPI = {
-  getPDF: (projectId) => apiClient.get(`/projects/${projectId}/report/pdf/`, { responseType: 'blob' }),
-  getExcel: (projectId) => apiClient.get(`/projects/${projectId}/report/excel/`, { responseType: 'blob' }),
+  getPDF: async (projectId) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Mock PDF download");
+      // モックPDFデータ（空のPDF風）
+      const mockPdfData = new Blob(['%PDF-1.4 Mock PDF Content'], { type: 'application/pdf' });
+      return { data: mockPdfData, status: 200 };
+    }
+    return apiClient.get(`/projects/${projectId}/report/pdf/`, { responseType: 'blob' });
+  },
+  getExcel: async (projectId) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Mock Excel download");
+      // モックExcelデータ
+      const mockExcelData = new Blob(['Mock Excel Content'], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      return { data: mockExcelData, status: 200 };
+    }
+    return apiClient.get(`/projects/${projectId}/report/excel/`, { responseType: 'blob' });
+  },
 };
 
 // 計算API
