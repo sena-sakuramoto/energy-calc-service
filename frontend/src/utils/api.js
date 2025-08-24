@@ -243,13 +243,91 @@ export const projectsAPI = {
     if (isGitHubPages) {
       console.log("GitHub Pages mode: Using mock getById project");
       await new Promise(resolve => setTimeout(resolve, 400));
+      // プロジェクトID=1の場合は計算結果を含む、それ以外は空
+      const hasResults = parseInt(id) === 1;
       return {
         data: {
           id: parseInt(id),
           name: `プロジェクト ${id}`,
           description: "デモ用のプロジェクト説明",
           owner_id: 1,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          input_data: hasResults ? {
+            building: {
+              building_type: "住宅",
+              total_floor_area: 100,
+              climate_zone: 6,
+              num_stories: 2,
+              has_central_heat_source: false,
+            },
+            envelope: {
+              parts: [
+                {
+                  part_name: "外壁北",
+                  part_type: "壁",
+                  area: 30,
+                  u_value: 0.4,
+                },
+                {
+                  part_name: "窓北",
+                  part_type: "窓",
+                  area: 5,
+                  u_value: 2.33,
+                  eta_value: 0.49,
+                },
+              ],
+            },
+            systems: {
+              heating: {
+                system_type: "ルームエアコン",
+                rated_capacity: 5,
+                efficiency: 4.2,
+                control_method: "インバータ制御",
+              },
+              cooling: {
+                system_type: "ルームエアコン",
+                rated_capacity: 5,
+                efficiency: 3.8,
+                control_method: "インバータ制御",
+              },
+              ventilation: {
+                system_type: "第3種換気",
+                air_volume: 150,
+                power_consumption: 15,
+              },
+              hot_water: {
+                system_type: "エコキュート",
+                efficiency: 3.5,
+              },
+              lighting: {
+                system_type: "LED",
+                power_density: 5,
+              },
+            },
+          } : null,
+          result_data: hasResults ? {
+            envelope_result: {
+              ua_value: 0.497,
+              eta_a_value: 0.4,
+              is_ua_compliant: true,
+              is_eta_a_compliant: true
+            },
+            primary_energy_result: {
+              total_energy_consumption: 447216,
+              standard_energy_consumption: 368600,
+              energy_saving_rate: -21.3,
+              is_energy_compliant: false,
+              energy_by_use: {
+                heating: 4000,
+                cooling: 4114,
+                ventilation: 12457,
+                hot_water: 339044,
+                lighting: 57600
+              }
+            },
+            overall_compliance: false,
+            message: "省エネ基準不適合: 一次エネルギー基準不適合 (省エネ率: -21.3%)"
+          } : null
         },
         status: 200
       };
@@ -297,20 +375,28 @@ export const projectsAPI = {
       await new Promise(resolve => setTimeout(resolve, 2000)); // 計算時間をシミュレート
       return {
         data: {
-          project_id: parseInt(projectId),
-          results: {
-            primary_energy_consumption: 1250.5,
-            energy_efficiency_ratio: 0.78,
-            co2_emissions: 245.3,
-            compliance_status: "適合",
-            detailed_results: {
-              heating_energy: 450.2,
-              cooling_energy: 380.1,
-              lighting_energy: 220.8,
-              ventilation_energy: 199.4
+          envelope_result: {
+            ua_value: 0.497,
+            eta_a_value: 0.4,
+            is_ua_compliant: true,
+            is_eta_a_compliant: true
+          },
+          primary_energy_result: {
+            total_energy_consumption: 447216,
+            standard_energy_consumption: 368600,
+            energy_saving_rate: -21.3,
+            is_energy_compliant: false,
+            energy_by_use: {
+              heating: 4000,
+              cooling: 4114,
+              ventilation: 12457,
+              hot_water: 339044,
+              lighting: 57600,
+              elevator: 30000
             }
           },
-          calculation_date: new Date().toISOString()
+          overall_compliance: false,
+          message: "省エネ基準不適合: 一次エネルギー基準不適合 (省エネ率: -21.3%)"
         },
         status: 200
       };

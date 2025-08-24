@@ -2,65 +2,65 @@
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
-# Œš•¨Šî–{î•ñ
+# å»ºç‰©åŸºæœ¬æƒ…å ±
 class Building(BaseModel):
-    building_type: str = Field(..., description="Œš•¨í•ÊiZ‘î/”ñZ‘îj")
-    total_floor_area: float = Field(..., description="‰„°–ÊÏ(m2)")
-    climate_zone: int = Field(..., description="’nˆæ‹æ•ªi1-8j")
-    num_stories: int = Field(..., description="ŠK”")
-    has_central_heat_source: bool = Field(False, description="W’†”MŒ¹—L–³i”ñZ‘î‚Ì‚İj")
+    building_type: str = Field(..., description="å»ºç‰©ç¨®åˆ¥(ä½å®…/éä½å®…)")
+    total_floor_area: float = Field(..., description="å»¶åºŠé¢ç©(m2)")
+    climate_zone: int = Field(..., description="åœ°åŸŸåŒºåˆ†(1-8)")
+    num_stories: int = Field(..., description="éšæ•°")
+    has_central_heat_source: bool = Field(False, description="é›†ä¸­ç†±æºã®æœ‰ç„¡(éä½å®…ã®ã¿)")
 
-# ŠO”ç•”ˆÊƒf[ƒ^
+# å¤–çš®éƒ¨ä½ãƒ‡ãƒ¼ã‚¿
 class EnvelopePart(BaseModel):
-    part_name: str = Field(..., description="•”ˆÊ–¼Ì")
-    part_type: str = Field(..., description="•”ˆÊí•Êi•Ç/‰®ª/‘‹‚È‚Çj")
-    area: float = Field(..., description="–ÊÏ(m2)")
-    u_value: float = Field(..., description="”MŠÑ—¬—¦(W/m2K)")
-    eta_value: Optional[float] = Field(None, description="“úË”Mæ“¾—¦i‘‹‚Ì‚İj")
-    psi_value: Optional[float] = Field(None, description="ü”MŠÑ—¬—¦i”M‹´j")
-    length: Optional[float] = Field(None, description="’·‚³i”M‹´j")
+    part_name: str = Field(..., description="éƒ¨ä½åç§°")
+    part_type: str = Field(..., description="éƒ¨ä½ç¨®åˆ¥(å£/å±‹æ ¹/çª“ãªã©)")
+    area: float = Field(..., description="é¢ç©(m2)")
+    u_value: float = Field(..., description="ç†±è²«æµç‡(W/m2K)")
+    eta_value: Optional[float] = Field(None, description="æ—¥å°„ç†±å–å¾—ç‡(çª“ã®ã¿)")
+    psi_value: Optional[float] = Field(None, description="ç·šç†±è²«æµç‡(ç†±æ©‹)")
+    length: Optional[float] = Field(None, description="é•·ã•(ç†±æ©‹)")
 
-# ŠO”ç‘S‘Ìƒf[ƒ^
+# å¤–çš®å…¨ä½“ãƒ‡ãƒ¼ã‚¿
 class Envelope(BaseModel):
-    parts: List[EnvelopePart] = Field(..., description="ŠO”ç•”ˆÊƒŠƒXƒg")
+    parts: List[EnvelopePart] = Field(..., description="å¤–çš®éƒ¨ä½ãƒªã‚¹ãƒˆ")
 
-# İ”õƒVƒXƒeƒ€i’g–[j
+# ç©ºèª¿ã‚·ã‚¹ãƒ†ãƒ (æš–æˆ¿)
 class HeatingSystem(BaseModel):
-    system_type: str = Field(..., description="’g–[í•Ê")
-    rated_capacity: Optional[float] = Field(None, description="’èŠi”\—Í(kW)")
-    efficiency: float = Field(..., description="Œø—¦iCOP“™j")
-    control_method: Optional[str] = Field(None, description="§Œä•û®")
-    area_served: Optional[float] = Field(None, description="‘ÎÛ°–ÊÏ(m2)")
+    system_type: str = Field(..., description="æš–æˆ¿ç¨®åˆ¥")
+    rated_capacity: Optional[float] = Field(None, description="å®šæ ¼èƒ½åŠ›(kW)")
+    efficiency: float = Field(..., description="åŠ¹ç‡(COPç­‰)")
+    control_method: Optional[str] = Field(None, description="åˆ¶å¾¡æ–¹å¼")
+    area_served: Optional[float] = Field(None, description="å¯¾è±¡åºŠé¢ç©(m2)")
 
-# İ”õƒVƒXƒeƒ€i—â–[j
+# ç©ºèª¿ã‚·ã‚¹ãƒ†ãƒ (å†·æˆ¿)
 class CoolingSystem(BaseModel):
-    system_type: str = Field(..., description="—â–[í•Ê")
-    rated_capacity: Optional[float] = Field(None, description="’èŠi”\—Í(kW)")
-    efficiency: float = Field(..., description="Œø—¦iCOP“™j")
-    control_method: Optional[str] = Field(None, description="§Œä•û®")
-    area_served: Optional[float] = Field(None, description="‘ÎÛ°–ÊÏ(m2)")
+    system_type: str = Field(..., description="å†·æˆ¿ç¨®åˆ¥")
+    rated_capacity: Optional[float] = Field(None, description="å®šæ ¼èƒ½åŠ›(kW)")
+    efficiency: float = Field(..., description="åŠ¹ç‡(COPç­‰)")
+    control_method: Optional[str] = Field(None, description="åˆ¶å¾¡æ–¹å¼")
+    area_served: Optional[float] = Field(None, description="å¯¾è±¡åºŠé¢ç©(m2)")
 
-# İ”õƒVƒXƒeƒ€iŠ·‹Cj
+# ç©ºèª¿ã‚·ã‚¹ãƒ†ãƒ (æ›æ°—)
 class VentilationSystem(BaseModel):
-    system_type: str = Field(..., description="Š·‹Cí•Ê")
-    air_volume: float = Field(..., description="•——Ê(m3/h)")
-    power_consumption: float = Field(..., description="Á”ï“d—Í(W)")
-    heat_exchange_efficiency: Optional[float] = Field(None, description="”MŒğŠ·Œø—¦")
+    system_type: str = Field(..., description="æ›æ°—ç¨®åˆ¥")
+    air_volume: float = Field(..., description="é¢¨é‡(m3/h)")
+    power_consumption: float = Field(..., description="æ¶ˆè²»é›»åŠ›(W)")
+    heat_exchange_efficiency: Optional[float] = Field(None, description="ç†±äº¤æ›åŠ¹ç‡")
 
-# İ”õƒVƒXƒeƒ€i‹‹“’j
+# ç©ºèª¿ã‚·ã‚¹ãƒ†ãƒ (çµ¦æ¹¯)
 class HotWaterSystem(BaseModel):
-    system_type: str = Field(..., description="‹‹“’Šíí•Ê")
-    efficiency: float = Field(..., description="Œø—¦")
-    rated_capacity: Optional[float] = Field(None, description="’èŠi”\—Í")
-    load: Optional[float] = Field(None, description="‹‹“’•‰‰×")
+    system_type: str = Field(..., description="çµ¦æ¹¯ç¨®åˆ¥")
+    efficiency: float = Field(..., description="åŠ¹ç‡")
+    rated_capacity: Optional[float] = Field(None, description="å®šæ ¼èƒ½åŠ›")
+    load: Optional[float] = Field(None, description="çµ¦æ¹¯è² è·")
 
-# İ”õƒVƒXƒeƒ€iÆ–¾j
+# ç©ºèª¿ã‚·ã‚¹ãƒ†ãƒ (ç…§æ˜)
 class LightingSystem(BaseModel):
-    system_type: str = Field(..., description="Æ–¾í•Ê")
-    power_density: float = Field(..., description="Æ–¾–§“x(W/m2)")
-    control_method: Optional[str] = Field(None, description="§Œä•û®")
+    system_type: str = Field(..., description="ç…§æ˜ç¨®åˆ¥")
+    power_density: float = Field(..., description="ç…§æ˜å¯†åº¦(W/m2)")
+    control_method: Optional[str] = Field(None, description="åˆ¶å¾¡æ–¹å¼")
 
-# İ”õƒVƒXƒeƒ€‘S‘Ì
+# ç©ºèª¿ã‚·ã‚¹ãƒ†ãƒ å…¨ä½“
 class Systems(BaseModel):
     heating: Optional[HeatingSystem] = None
     cooling: Optional[CoolingSystem] = None
@@ -69,7 +69,7 @@ class Systems(BaseModel):
     lighting: Optional[LightingSystem] = None
     renewable_energy: Optional[Dict[str, Any]] = None
 
-# ŒvZ“ü—Íƒf[ƒ^‘S‘Ì
+# è¨ˆç®—å…¥åŠ›ãƒ‡ãƒ¼ã‚¿å…¨ä½“
 class CalculationInput(BaseModel):
     building: Building
     envelope: Envelope

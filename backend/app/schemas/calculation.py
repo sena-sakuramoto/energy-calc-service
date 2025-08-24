@@ -41,6 +41,7 @@ class VentilationSystemInput(BaseModel):
     system_type: str = Field(..., description="換気種別")
     air_volume: Optional[float] = Field(None, description="風量 (m3/h)")
     power_consumption: Optional[float] = Field(None, description="消費電力 (W)")
+    heat_exchange_efficiency: Optional[float] = Field(None, description="熱交換効率")
 
 # 設備情報入力スキーマ (給湯)
 class HotWaterSystemInput(BaseModel):
@@ -51,6 +52,7 @@ class HotWaterSystemInput(BaseModel):
 class LightingSystemInput(BaseModel):
     system_type: str = Field(..., description="照明種別")
     power_density: Optional[float] = Field(None, description="消費電力密度 (W/m2)")
+    control_method: Optional[str] = Field(None, description="制御方式")
 
 # 全体設備情報入力スキーマ
 class SystemsInput(BaseModel):

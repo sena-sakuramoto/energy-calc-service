@@ -22,10 +22,10 @@ const CalculationSchema = Yup.object().shape({
         part_type: Yup.string().required('部位種別は必須です'),
         area: Yup.number().required('面積は必須です').positive('正の値を入力してください'),
         u_value: Yup.number().required('熱貫流率は必須です').positive('正の値を入力してください'),
-        eta_value: Yup.number().nullable().when('part_type', {
-          is: '窓',
-          then: Yup.number().required('窓の場合、日射熱取得率は必須です').positive('正の値を入力してください'),
-          otherwise: Yup.number().nullable(),
+        eta_value: Yup.number().nullable().when('part_type', (part_type, schema) => {
+          return part_type === '窓' 
+            ? schema.required('窓の場合、日射熱取得率は必須です').positive('正の値を入力してください')
+            : schema.nullable();
         }),
       })
     ).min(1, '少なくとも1つの部位が必要です'),
@@ -147,8 +147,12 @@ export default function Calculate() {
       // 計算実行と保存
       const response = await calcAPI.calculateAndSave(id, values);
       
-      // 計算結果ページへ遷移
-      router.push(`/projects/${id}/result`);
+      if (response && (response.data || response.status === 200)) {
+        // 計算結果ページへ遷移
+        router.push(`/projects/${id}/result`);
+      } else {
+        throw new Error('計算レスポンスが不正です');
+      }
     } catch (error) {
       console.error('計算エラー:', error);
       setError('計算中にエラーが発生しました。入力データを確認してください。');

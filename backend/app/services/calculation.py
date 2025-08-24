@@ -117,14 +117,15 @@ def calculate_lighting_energy(lighting_system, floor_area: float) -> float:
     return lighting_system.power_density * floor_area * 24 * 365 * 3.6 / 1000000  # W/㎡ → MJ/年
 
 def perform_energy_calculation(input_data: CalculationInput) -> CalculationResult:
-    """建築物省エネ法に基づくエネルギー計算"""
+    """建築物省エネ法に基づくエネルギー計算（モデル建物法対応）"""
+    from app.services.model_building import get_model_building_standards, calculate_actual_energy_consumption
     
     # 建物情報
     building_type = input_data.building.building_type
     total_floor_area = input_data.building.total_floor_area
     climate_zone = input_data.building.climate_zone
     
-    # 地域区分による基準値設定
+    # 地域区分による外皮基準値設定
     standards = get_climate_zone_standards(climate_zone)
     
     print(f"計算開始: {building_type}, 床面積: {total_floor_area}㎡, 地域区分: {climate_zone}")
@@ -132,9 +133,29 @@ def perform_energy_calculation(input_data: CalculationInput) -> CalculationResul
     # 外皮性能計算
     envelope_result = calculate_envelope_performance(input_data.envelope.parts, standards)
     
-    # 一次エネルギー消費量計算
-    primary_energy_result = calculate_primary_energy(
-        input_data.systems, building_type, total_floor_area
+    # モデル建物法による基準一次エネルギー消費量計算
+    model_building_standards = get_model_building_standards(
+        building_type, climate_zone, total_floor_area
+    )
+    
+    # 実際の一次エネルギー消費量計算（設備仕様に基づく詳細計算）
+    actual_energy = calculate_actual_energy_consumption(
+        input_data.systems, building_type, climate_zone, total_floor_area
+    )
+    
+    # 省エネ率計算
+    standard_energy = model_building_standards["total_standard_energy"]
+    actual_total_energy = actual_energy["total_actual_energy"]
+    energy_saving_rate = ((standard_energy - actual_total_energy) / standard_energy * 100) if standard_energy > 0 else 0
+    is_energy_compliant = actual_total_energy <= standard_energy
+    
+    # 結果作成
+    primary_energy_result = PrimaryEnergyResult(
+        total_energy_consumption=round(actual_total_energy, 1),
+        standard_energy_consumption=round(standard_energy, 1),
+        energy_saving_rate=round(energy_saving_rate, 1),
+        is_energy_compliant=is_energy_compliant,
+        energy_by_use={k: round(v, 1) for k, v in actual_energy["actual_energy_by_use"].items()}
     )
     
     # 総合判定
@@ -151,12 +172,12 @@ def perform_energy_calculation(input_data: CalculationInput) -> CalculationResul
     if not envelope_result.is_eta_a_compliant and standards.get('eta_a_threshold'):
         message_parts.append(f"ηA値基準不適合 ({envelope_result.eta_a_value} > {standards['eta_a_threshold']})")
     if not primary_energy_result.is_energy_compliant:
-        message_parts.append("一次エネルギー基準不適合")
+        message_parts.append(f"一次エネルギー基準不適合 (省エネ率: {energy_saving_rate:.1f}%)")
         
     if overall_compliance:
-        message = f"✅ 省エネ基準適合 ({standards['region_name']})"
+        message = f"省エネ基準適合 ({standards['region_name']}, 省エネ率: {energy_saving_rate:.1f}%)"
     else:
-        message = f"❌ 省エネ基準不適合: {', '.join(message_parts)}"
+        message = f"省エネ基準不適合: {', '.join(message_parts)}"
     
     print(f"計算完了: {message}")
     
