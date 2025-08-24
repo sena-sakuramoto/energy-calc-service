@@ -2,12 +2,13 @@
 // -*- coding: utf-8 -*-
 import axios from 'axios';
 
-// 環境変数からAPIのベースURLを取得。NEXT_PUBLIC_ を接頭辞にすること。
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
-
 // GitHub Pages用のモックモード検出
 const isGitHubPages = typeof window !== 'undefined' && 
   window.location.hostname.includes('github.io');
+
+// 環境変数からAPIのベースURLを取得。NEXT_PUBLIC_ を接頭辞にすること。
+const API_BASE_URL = isGitHubPages ? 'https://mock-api.example.com/api/v1' : 
+  (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1');
 
 console.log('API Config:', { API_BASE_URL, isGitHubPages, hostname: typeof window !== 'undefined' ? window.location.hostname : 'server' });
 
@@ -29,6 +30,11 @@ const getToken = () => {
 // APIクライアントに認証トークンをセットするインターセプタ
 apiClient.interceptors.request.use(
   (config) => {
+    // GitHub Pagesの場合は実際のAPIリクエストをブロック
+    if (isGitHubPages) {
+      return Promise.reject(new Error('GitHub Pages mode: API requests are mocked'));
+    }
+    
     const token = getToken();
     if (token && config.headers) {
       config.headers['Authorization'] = `Bearer ${token}`;
