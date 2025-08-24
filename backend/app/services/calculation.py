@@ -3,19 +3,21 @@ from typing import Dict, Any
 from app.schemas.calculation import CalculationInput, CalculationResult, EnvelopeResult, PrimaryEnergyResult
 
 def get_climate_zone_standards(climate_zone: int) -> Dict[str, Any]:
-    """地域区分による基準値取得"""
-    # 建築物省エネ法に基づく地域区分別基準値
-    standards_map = {
-        1: {"ua_threshold": 0.46, "eta_a_threshold": None, "region_name": "1地域"},
-        2: {"ua_threshold": 0.46, "eta_a_threshold": None, "region_name": "2地域"}, 
-        3: {"ua_threshold": 0.56, "eta_a_threshold": None, "region_name": "3地域"},
-        4: {"ua_threshold": 0.75, "eta_a_threshold": None, "region_name": "4地域"},
-        5: {"ua_threshold": 0.87, "eta_a_threshold": 3.0, "region_name": "5地域"},
-        6: {"ua_threshold": 0.87, "eta_a_threshold": 2.8, "region_name": "6地域"},
-        7: {"ua_threshold": 0.87, "eta_a_threshold": 2.7, "region_name": "7地域"},
-        8: {"ua_threshold": 0.87, "eta_a_threshold": 6.7, "region_name": "8地域"},
+    """地域区分による基準値取得（国土交通省告示準拠）"""
+    from app.data.building_standards import ClimateZone, get_envelope_standard
+    
+    try:
+        climate_enum = ClimateZone(climate_zone)
+    except ValueError:
+        climate_enum = ClimateZone.ZONE_6
+    
+    envelope_standard = get_envelope_standard(climate_enum)
+    
+    return {
+        "ua_threshold": envelope_standard["ua_threshold"],
+        "eta_a_threshold": envelope_standard["eta_a_threshold"],
+        "region_name": f"{climate_zone}地域"
     }
-    return standards_map.get(climate_zone, standards_map[6])  # デフォルト6地域
 
 def calculate_envelope_performance(envelope_parts, standards) -> EnvelopeResult:
     """外皮性能計算"""
