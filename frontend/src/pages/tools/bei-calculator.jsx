@@ -1,12 +1,13 @@
 // frontend/src/pages/tools/bei-calculator.jsx
 import { useState, useEffect } from 'react';
-import { FaCalculator, FaBuilding, FaChartLine, FaCopy, FaDownload, FaLightbulb, FaExclamationTriangle, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
+import { FaCalculator, FaBuilding, FaChartLine, FaCopy, FaDownload, FaLightbulb, FaExclamationTriangle, FaCheckCircle, FaArrowRight, FaFileAlt, FaPrint } from 'react-icons/fa';
 import CalculatorLayout from '../../components/CalculatorLayout';
 import FormSection from '../../components/FormSection';
 import ResultCard from '../../components/ResultCard';
 import ClimateZoneSelector from '../../components/ClimateZoneSelector';
 import BuildingTypeSelector from '../../components/BuildingTypeSelector';
 import HelpTooltip from '../../components/HelpTooltip';
+import ComplianceReport from '../../components/ComplianceReport';
 import { beiAPI } from '../../utils/api';
 
 export default function BEICalculator() {
@@ -32,6 +33,7 @@ export default function BEICalculator() {
   const [validationErrors, setValidationErrors] = useState({});
   const [result, setResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   // バリデーション関数
   const validateStep1 = () => {
@@ -673,16 +675,25 @@ export default function BEICalculator() {
                   </div>
                 </div>
 
-                {/* 再計算ボタン */}
-                <div className="flex justify-center pt-4">
+                {/* 行動ボタン群 */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowReport(true)}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <FaFileAlt />
+                    <span>審査機関向け計算書</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
                       setCurrentStep(1);
                       setResult(null);
                       setValidationErrors({});
+                      setShowReport(false);
                     }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
                   >
                     新しい計算を開始
                   </button>
@@ -712,6 +723,59 @@ export default function BEICalculator() {
             )}
           </div>
         </div>
+
+        {/* 審査機関向け計算書モーダル */}
+        {showReport && result && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-6xl max-h-[90vh] overflow-auto">
+              <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+                <h2 className="text-xl font-bold">建築物省エネ法 適合性判定申請書</h2>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => window.print()}
+                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded flex items-center space-x-2"
+                  >
+                    <FaPrint />
+                    <span>印刷</span>
+                  </button>
+                  <button
+                    onClick={() => setShowReport(false)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                  >
+                    閉じる
+                  </button>
+                </div>
+              </div>
+              <ComplianceReport 
+                data={{
+                  calculation_date: new Date().toISOString(),
+                  building_info: {
+                    type: formData.building_type,
+                    climate_zone: formData.climate_zone,
+                    floor_area: formData.floor_area,
+                    renewable_energy: formData.renewable_energy
+                  },
+                  design_energy: formData.design_energy,
+                  calculation_basis: {
+                    standard_energy_consumption: getStandardEnergyByType(formData.building_type),
+                    regional_factors: getRegionalFactors(formData.climate_zone),
+                    scale_factor: getScaleFactor(formData.building_type, formData.floor_area)
+                  },
+                  result: result,
+                  legal_basis: [
+                    '建築物のエネルギー消費性能の向上に関する法律（建築物省エネ法）',
+                    '国土交通省告示第1396号（平成28年1月29日）',
+                    'モデル建物法による標準入力法（平成28年国土交通省告示第265号）'
+                  ]
+                }}
+                onDownload={() => {
+                  // PDF生成機能（将来実装）
+                  alert('PDF生成機能は開発中です。現在は印刷機能をご利用ください。');
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </CalculatorLayout>
   );
