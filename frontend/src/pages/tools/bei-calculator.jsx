@@ -1,532 +1,564 @@
 // frontend/src/pages/tools/bei-calculator.jsx
 import { useState, useEffect } from 'react';
-import Layout from '../../components/Layout';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import ErrorAlert from '../../components/ErrorAlert';
-import { beiAPI, apiRequest, handleApiError } from '../../utils/api';
-import { FaBuilding, FaCalculator, FaChartBar, FaPlus, FaTrash, FaInfoCircle } from 'react-icons/fa';
+import { FaCalculator, FaBuilding, FaChartLine, FaCopy, FaDownload, FaLightbulb, FaExclamationTriangle, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
+import CalculatorLayout from '../../components/CalculatorLayout';
+import FormSection from '../../components/FormSection';
+import ResultCard from '../../components/ResultCard';
+import ClimateZoneSelector from '../../components/ClimateZoneSelector';
+import BuildingTypeSelector from '../../components/BuildingTypeSelector';
+import HelpTooltip from '../../components/HelpTooltip';
+import { beiAPI } from '../../utils/api';
 
 export default function BEICalculator() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [result, setResult] = useState(null);
-  const [uses, setUses] = useState([]);
-  const [zones, setZones] = useState([]);
-  
-  // フォームデータ
-  const [buildingData, setBuildingData] = useState({
-    building_area_m2: '',
-    use: '',
-    zone: '',
-    usage_mix: [],
-    renewable_energy_deduction_mj: 0,
-    bei_round_digits: 3,
-    compliance_threshold: 1.0
+  const [formData, setFormData] = useState({
+    building_type: '',
+    climate_zone: '',
+    floor_area: '',
+    uses: [{
+      use_type: '',
+      floor_area_ratio: 100
+    }],
+    design_energy: {
+      heating: '',
+      cooling: '',
+      ventilation: '',
+      hot_water: '',
+      lighting: '',
+      elevator: ''
+    },
+    renewable_energy: ''
   });
+  const [currentStep, setCurrentStep] = useState(1);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [result, setResult] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [designEnergy, setDesignEnergy] = useState([
-    { category: 'lighting', value: '', unit: 'kWh' },
-    { category: 'cooling', value: '', unit: 'kWh' },
-    { category: 'heating', value: '', unit: 'kWh' },
-    { category: 'ventilation', value: '', unit: 'kWh' },
-    { category: 'hot_water', value: '', unit: 'kWh' },
-    { category: 'outlet_and_others', value: '', unit: 'kWh' }
-  ]);
-
-  const [isMixedUse, setIsMixedUse] = useState(false);
-
-  // 建物用途とゾーン情報を取得
-  useEffect(() => {
-    loadCatalogData();
-  }, []);
-
-  const loadCatalogData = async () => {
-    const usesResult = await apiRequest(() => beiAPI.getUses(), 'Load uses');
-    if (usesResult.success) {
-      setUses(usesResult.data.uses);
-    }
-  };
-
-  const loadZones = async (use) => {
-    if (!use) {
-      setZones([]);
-      return;
-    }
-    const zonesResult = await apiRequest(() => beiAPI.getZones(use), 'Load zones');
-    if (zonesResult.success) {
-      setZones(zonesResult.data.zones);
-    }
-  };
-
-  const handleInputChange = (field, value) => {
-    setBuildingData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  // バリデーション関数
+  const validateStep1 = () => {
+    const errors = {};
     
-    if (field === 'use') {
-      loadZones(value);
-      setBuildingData(prev => ({ ...prev, zone: '' }));
+    if (!formData.building_type) {
+      errors.building_type = '建物用途を選択してください';
     }
+    if (!formData.climate_zone) {
+      errors.climate_zone = '地域区分を選択してください';
+    }
+    if (!formData.floor_area || parseFloat(formData.floor_area) <= 0) {
+      errors.floor_area = '延床面積を正しく入力してください（正の数値）';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
-  const handleDesignEnergyChange = (index, field, value) => {
-    const updated = [...designEnergy];
-    updated[index][field] = value;
-    setDesignEnergy(updated);
+  const validateStep2 = () => {
+    const errors = {};
+    const requiredFields = ['heating', 'cooling', 'ventilation', 'hot_water', 'lighting', 'elevator'];
+    
+    requiredFields.forEach(field => {
+      if (!formData.design_energy[field] || parseFloat(formData.design_energy[field]) < 0) {
+        errors[field] = `${getEnergyFieldLabel(field)}の値を正しく入力してください`;
+      }
+    });
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
-  const addDesignEnergyCategory = () => {
-    setDesignEnergy(prev => [...prev, { category: '', value: '', unit: 'kWh' }]);
+  const getEnergyFieldLabel = (field) => {
+    const labels = {
+      heating: '暖房',
+      cooling: '冷房',
+      ventilation: '機械換気',
+      hot_water: '給湯',
+      lighting: '照明',
+      elevator: '昇降機'
+    };
+    return labels[field] || field;
   };
 
-  const removeDesignEnergyCategory = (index) => {
-    setDesignEnergy(prev => prev.filter((_, i) => i !== index));
-  };
+  const handleCalculate = async () => {
+    if (!validateStep2()) return;
 
-  const addUsageMix = () => {
-    setBuildingData(prev => ({
-      ...prev,
-      usage_mix: [...prev.usage_mix, { use: '', zone: '', area_share: '' }]
-    }));
-  };
-
-  const removeUsageMix = (index) => {
-    setBuildingData(prev => ({
-      ...prev,
-      usage_mix: prev.usage_mix.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleUsageMixChange = (index, field, value) => {
-    const updated = [...buildingData.usage_mix];
-    updated[index][field] = value;
-    setBuildingData(prev => ({ ...prev, usage_mix: updated }));
-  };
-
-  const calculateBEI = async () => {
-    setLoading(true);
-    setError('');
-
+    setIsLoading(true);
     try {
-      // データ検証
-      if (!buildingData.building_area_m2) {
-        throw new Error('建物面積を入力してください');
-      }
-
-      if (!isMixedUse && (!buildingData.use || !buildingData.zone)) {
-        throw new Error('建物用途と地域区分を選択してください');
-      }
-
-      if (isMixedUse && buildingData.usage_mix.length === 0) {
-        throw new Error('複合用途の場合は用途構成を追加してください');
-      }
-
-      const validDesignEnergy = designEnergy.filter(item => 
-        item.category && item.value && !isNaN(parseFloat(item.value))
-      ).map(item => ({
-        ...item,
-        value: parseFloat(item.value)
-      }));
-
-      if (validDesignEnergy.length === 0) {
-        throw new Error('設計エネルギー消費量を入力してください');
-      }
-
-      const requestData = {
-        building_area_m2: parseFloat(buildingData.building_area_m2),
-        design_energy: validDesignEnergy,
-        renewable_energy_deduction_mj: parseFloat(buildingData.renewable_energy_deduction_mj) || 0,
-        bei_round_digits: parseInt(buildingData.bei_round_digits),
-        compliance_threshold: parseFloat(buildingData.compliance_threshold)
+      // APIに送信するデータを準備
+      const apiData = {
+        building_area_m2: parseFloat(formData.floor_area),
+        use: formData.building_type,
+        zone: parseInt(formData.climate_zone),
+        renewable_energy_deduction_mj: parseFloat(formData.renewable_energy) || 0,
+        design_energy: Object.entries(formData.design_energy).map(([category, value]) => ({
+          category,
+          value: parseFloat(value),
+          unit: 'kWh'
+        }))
       };
 
-      if (isMixedUse) {
-        requestData.usage_mix = buildingData.usage_mix.map(mix => ({
-          use: mix.use,
-          zone: mix.zone,
-          area_share: parseFloat(mix.area_share)
-        }));
-      } else {
-        requestData.use = buildingData.use;
-        requestData.zone = buildingData.zone;
-      }
-
-      const response = await apiRequest(() => beiAPI.evaluate(requestData), 'BEI Calculation');
-      
-      if (response.success) {
-        setResult(response.data);
-      } else {
-        setError(response.error);
-      }
-    } catch (err) {
-      setError(err.message);
+      const response = await beiAPI.evaluate(apiData);
+      setResult(response);
+      setCurrentStep(4);
+    } catch (error) {
+      console.error('BEI計算エラー:', error);
+      setValidationErrors({ api: 'BEI計算中にエラーが発生しました。入力内容を確認してください。' });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const categoryDisplayNames = {
-    lighting: '照明',
-    cooling: '冷房',
-    heating: '暖房',
-    ventilation: '換気',
-    hot_water: '給湯',
-    outlet_and_others: 'コンセント・その他',
-    elevator: 'エレベーター'
+  const copyResults = () => {
+    if (!result) return;
+    
+    const text = `BEI計算結果\n\n` +
+      `BEI値: ${result.bei_value}\n` +
+      `適合判定: ${result.compliance_status === 'compliant' ? '適合' : '不適合'}\n` +
+      `設計一次エネルギー: ${result.design_primary_energy_mj?.toLocaleString()} MJ/年\n` +
+      `基準一次エネルギー: ${result.standard_primary_energy_mj?.toLocaleString()} MJ/年`;
+    
+    navigator.clipboard.writeText(text);
+  };
+
+  const downloadResults = () => {
+    if (!result) return;
+    
+    const data = {
+      calculation_date: new Date().toISOString(),
+      building_info: {
+        type: formData.building_type,
+        climate_zone: formData.climate_zone,
+        floor_area: formData.floor_area
+      },
+      result: result
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bei-calculation-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-8">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            {/* ヘッダー */}
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-4">
-                <div className="bg-blue-100 p-4 rounded-full">
-                  <FaBuilding className="text-3xl text-blue-600" />
+    <CalculatorLayout
+      title="BEI計算（モデル建物法）"
+      subtitle="建築物省エネ法対応 - Building Energy Index による省エネ基準適合性判定"
+      icon={FaCalculator}
+      backUrl="/tools"
+      backText="計算ツール一覧に戻る"
+    >
+      <div className="max-w-6xl mx-auto">
+        {/* ステップインジケーター */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between max-w-md mx-auto">
+            {[1, 2, 3, 4].map((step) => (
+              <div key={step} className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  currentStep >= step 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {currentStep > step ? <FaCheckCircle /> : step}
                 </div>
-              </div>
-              <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-                BEI計算ツール
-              </h1>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                建築物エネルギー消費性能（BEI）を正確に計算し、省エネ基準適合性を判定します
-              </p>
-            </div>
-
-            <div className="grid lg:grid-cols-3 gap-8">
-              {/* 入力フォーム */}
-              <div className="lg:col-span-2">
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold mb-6 flex items-center">
-                    <FaCalculator className="mr-3 text-blue-600" />
-                    計算条件入力
-                  </h2>
-
-                  {error && <ErrorAlert message={error} />}
-
-                  {/* 基本情報 */}
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        建物面積 (m²) *
-                      </label>
-                      <input
-                        type="number"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        value={buildingData.building_area_m2}
-                        onChange={(e) => handleInputChange('building_area_m2', e.target.value)}
-                        placeholder="1000"
-                      />
-                    </div>
-
-                    {/* 建物用途選択 */}
-                    <div>
-                      <div className="flex items-center mb-4">
-                        <input
-                          type="checkbox"
-                          id="mixedUse"
-                          checked={isMixedUse}
-                          onChange={(e) => setIsMixedUse(e.target.checked)}
-                          className="mr-2"
-                        />
-                        <label htmlFor="mixedUse" className="text-sm font-medium text-gray-700">
-                          複合用途建物
-                        </label>
-                      </div>
-
-                      {!isMixedUse ? (
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              建物用途 *
-                            </label>
-                            <select
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              value={buildingData.use}
-                              onChange={(e) => handleInputChange('use', e.target.value)}
-                            >
-                              <option value="">選択してください</option>
-                              {uses.map(use => (
-                                <option key={use} value={use}>
-                                  {use === 'office' ? 'オフィス' : 
-                                   use === 'hotel' ? 'ホテル' :
-                                   use === 'retail' ? '店舗' :
-                                   use === 'school' ? '学校' : use}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              地域区分 *
-                            </label>
-                            <select
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              value={buildingData.zone}
-                              onChange={(e) => handleInputChange('zone', e.target.value)}
-                              disabled={!buildingData.use}
-                            >
-                              <option value="">選択してください</option>
-                              {zones.map(zone => (
-                                <option key={zone} value={zone}>地域{zone}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      ) : (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            用途構成
-                          </label>
-                          {buildingData.usage_mix.map((mix, index) => (
-                            <div key={index} className="flex gap-2 mb-2 p-3 bg-gray-50 rounded-lg">
-                              <select
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded"
-                                value={mix.use}
-                                onChange={(e) => handleUsageMixChange(index, 'use', e.target.value)}
-                              >
-                                <option value="">用途選択</option>
-                                {uses.map(use => (
-                                  <option key={use} value={use}>{use}</option>
-                                ))}
-                              </select>
-                              <select
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded"
-                                value={mix.zone}
-                                onChange={(e) => handleUsageMixChange(index, 'zone', e.target.value)}
-                              >
-                                <option value="">地域選択</option>
-                                {zones.map(zone => (
-                                  <option key={zone} value={zone}>地域{zone}</option>
-                                ))}
-                              </select>
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max="1"
-                                placeholder="面積比率"
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded"
-                                value={mix.area_share}
-                                onChange={(e) => handleUsageMixChange(index, 'area_share', e.target.value)}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeUsageMix(index)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded"
-                              >
-                                <FaTrash />
-                              </button>
-                            </div>
-                          ))}
-                          <button
-                            type="button"
-                            onClick={addUsageMix}
-                            className="flex items-center text-blue-600 hover:text-blue-800"
-                          >
-                            <FaPlus className="mr-2" />用途を追加
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 設計エネルギー消費量 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-4">
-                        設計エネルギー消費量 *
-                      </label>
-                      {designEnergy.map((item, index) => (
-                        <div key={index} className="flex gap-2 mb-3">
-                          <select
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                            value={item.category}
-                            onChange={(e) => handleDesignEnergyChange(index, 'category', e.target.value)}
-                          >
-                            <option value="">カテゴリ選択</option>
-                            {Object.entries(categoryDisplayNames).map(([key, name]) => (
-                              <option key={key} value={key}>{name}</option>
-                            ))}
-                          </select>
-                          <input
-                            type="number"
-                            step="0.01"
-                            placeholder="消費量"
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                            value={item.value}
-                            onChange={(e) => handleDesignEnergyChange(index, 'value', e.target.value)}
-                          />
-                          <select
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg"
-                            value={item.unit}
-                            onChange={(e) => handleDesignEnergyChange(index, 'unit', e.target.value)}
-                          >
-                            <option value="kWh">kWh</option>
-                            <option value="m3_gas">m³ガス</option>
-                            <option value="L_kerosene">L灯油</option>
-                            <option value="MJ">MJ</option>
-                          </select>
-                          {designEnergy.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeDesignEnergyCategory(index)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                            >
-                              <FaTrash />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={addDesignEnergyCategory}
-                        className="flex items-center text-blue-600 hover:text-blue-800 mt-2"
-                      >
-                        <FaPlus className="mr-2" />カテゴリを追加
-                      </button>
-                    </div>
-
-                    {/* オプション設定 */}
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          再エネ控除 (MJ/年)
-                        </label>
-                        <input
-                          type="number"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                          value={buildingData.renewable_energy_deduction_mj}
-                          onChange={(e) => handleInputChange('renewable_energy_deduction_mj', e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          BEI小数点桁数
-                        </label>
-                        <select
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                          value={buildingData.bei_round_digits}
-                          onChange={(e) => handleInputChange('bei_round_digits', e.target.value)}
-                        >
-                          <option value={1}>1桁</option>
-                          <option value={2}>2桁</option>
-                          <option value={3}>3桁</option>
-                          <option value={4}>4桁</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          適合閾値
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                          value={buildingData.compliance_threshold}
-                          onChange={(e) => handleInputChange('compliance_threshold', e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    {/* 計算ボタン */}
-                    <div className="pt-6">
-                      <button
-                        onClick={calculateBEI}
-                        disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105"
-                      >
-                        {loading ? <LoadingSpinner /> : 'BEI計算を実行'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 計算結果 */}
-              <div className="lg:col-span-1">
-                {result && (
-                  <div className="bg-white rounded-xl shadow-lg p-6">
-                    <h3 className="text-xl font-bold mb-4 flex items-center">
-                      <FaChartBar className="mr-3 text-green-600" />
-                      計算結果
-                    </h3>
-
-                    {/* BEI結果 */}
-                    <div className="space-y-4">
-                      <div className="text-center p-4 bg-gray-50 rounded-lg">
-                        <div className="text-3xl font-bold mb-2 text-blue-600">
-                          BEI = {result.bei}
-                        </div>
-                        <div className={`text-lg font-semibold ${result.is_compliant ? 'text-green-600' : 'text-red-600'}`}>
-                          {result.is_compliant ? '適合' : '不適合'}
-                        </div>
-                      </div>
-
-                      {/* エネルギー値 */}
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <div className="font-medium text-gray-700">設計一次エネルギー</div>
-                          <div className="text-lg">{result.design_primary_energy_mj.toLocaleString()} MJ</div>
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-700">基準一次エネルギー</div>
-                          <div className="text-lg">{result.standard_primary_energy_mj.toLocaleString()} MJ</div>
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-700">設計値/m²</div>
-                          <div>{result.design_energy_per_m2.toFixed(1)} MJ/m²</div>
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-700">基準値/m²</div>
-                          <div>{result.standard_energy_per_m2.toFixed(1)} MJ/m²</div>
-                        </div>
-                      </div>
-
-                      {/* 設計エネルギー内訳 */}
-                      <div>
-                        <div className="font-medium text-gray-700 mb-3">設計エネルギー内訳</div>
-                        <div className="space-y-2">
-                          {result.design_energy_breakdown.map((item, index) => (
-                            <div key={index} className="flex justify-between text-sm">
-                              <span>{categoryDisplayNames[item.category] || item.category}</span>
-                              <span>{item.primary_energy_mj.toLocaleString()} MJ</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* 再エネ控除 */}
-                      {result.renewable_deduction_mj > 0 && (
-                        <div className="flex justify-between text-sm text-green-600">
-                          <span>再エネ控除</span>
-                          <span>-{result.renewable_deduction_mj.toLocaleString()} MJ</span>
-                        </div>
-                      )}
-
-                      {/* 注意事項 */}
-                      {result.notes && result.notes.length > 0 && (
-                        <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
-                          <div className="flex items-center text-yellow-800 font-medium mb-2">
-                            <FaInfoCircle className="mr-2" />
-                            注意事項
-                          </div>
-                          <ul className="text-sm text-yellow-700 space-y-1">
-                            {result.notes.map((note, index) => (
-                              <li key={index}>• {note}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                {step < 4 && (
+                  <div className={`w-12 h-0.5 ${
+                    currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
+                  }`} />
                 )}
               </div>
-            </div>
+            ))}
+          </div>
+          <div className="flex justify-between max-w-md mx-auto mt-2 text-xs text-gray-600">
+            <span>基本情報</span>
+            <span>設計値</span>
+            <span>再エネ</span>
+            <span>結果</span>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            {/* ステップ1: 基本情報 */}
+            {currentStep >= 1 && (
+              <FormSection
+                title="ステップ1: 建物基本情報"
+                icon={FaBuilding}
+              >
+                {/* ガイダンス */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start space-x-2">
+                    <FaLightbulb className="text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-blue-800">
+                      <strong>モデル建物法について：</strong>
+                      国土交通省告示で定められた標準的な建物用途と地域区分に基づいて
+                      省エネ性能を評価する方法です。まずは建物の基本情報を入力してください。
+                    </div>
+                  </div>
+                </div>
+
+                {/* 建物用途選択 */}
+                <BuildingTypeSelector
+                  value={formData.building_type}
+                  onChange={(value) => {
+                    setFormData({...formData, building_type: value});
+                    setValidationErrors({...validationErrors, building_type: ''});
+                  }}
+                  className={validationErrors.building_type ? 'border-red-500' : ''}
+                />
+                {validationErrors.building_type && (
+                  <p className="text-red-600 text-sm mt-1">{validationErrors.building_type}</p>
+                )}
+
+                {/* 地域区分選択 */}
+                <ClimateZoneSelector
+                  value={formData.climate_zone}
+                  onChange={(value) => {
+                    setFormData({...formData, climate_zone: value});
+                    setValidationErrors({...validationErrors, climate_zone: ''});
+                  }}
+                  className={validationErrors.climate_zone ? 'border-red-500' : ''}
+                />
+                {validationErrors.climate_zone && (
+                  <p className="text-red-600 text-sm mt-1">{validationErrors.climate_zone}</p>
+                )}
+                
+                {/* 延床面積 */}
+                <div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      延床面積 (m²)
+                    </label>
+                    <HelpTooltip title="延床面積とは？">
+                      建物の各階の床面積の合計です。
+                      建築確認申請書や設計図書に記載されている数値を入力してください。
+                    </HelpTooltip>
+                  </div>
+                  <input
+                    type="number"
+                    value={formData.floor_area}
+                    onChange={(e) => {
+                      setFormData({...formData, floor_area: e.target.value});
+                      setValidationErrors({...validationErrors, floor_area: ''});
+                    }}
+                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      validationErrors.floor_area ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="例: 1000"
+                    min="1"
+                    required
+                  />
+                  {validationErrors.floor_area && (
+                    <p className="text-red-600 text-sm mt-1">{validationErrors.floor_area}</p>
+                  )}
+                  {formData.floor_area && (
+                    <p className="text-gray-600 text-sm mt-1">
+                      入力された延床面積: {Number(formData.floor_area).toLocaleString()} m²
+                    </p>
+                  )}
+                </div>
+                
+                {/* 次へボタン */}
+                {currentStep === 1 && (
+                  <div className="flex justify-end pt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (validateStep1()) {
+                          setCurrentStep(2);
+                        }
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
+                    >
+                      <span>次へ：設計エネルギー値入力</span>
+                      <FaArrowRight />
+                    </button>
+                  </div>
+                )}
+              </FormSection>
+            )}
+
+            {/* ステップ2: 設計エネルギー値 */}
+            {currentStep >= 2 && (
+              <FormSection
+                title="ステップ2: 設計一次エネルギー消費量"
+                icon={FaChartLine}
+              >
+                {/* ガイダンス */}
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start space-x-2">
+                    <FaLightbulb className="text-green-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-green-800">
+                      <strong>設計値入力：</strong>
+                      設計した建物の年間エネルギー消費量を用途別に入力してください。
+                      単位はMJ/年です。省エネ計算書やエネルギーシミュレーション結果を参考にしてください。
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  {Object.entries(formData.design_energy).map(([key, value]) => (
+                    <div key={key}>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          {getEnergyFieldLabel(key)} (MJ/年)
+                        </label>
+                        <HelpTooltip title={`${getEnergyFieldLabel(key)}について`}>
+                          {key === 'heating' && '暖房設備による年間一次エネルギー消費量'}
+                          {key === 'cooling' && '冷房設備による年間一次エネルギー消費量'}
+                          {key === 'ventilation' && '機械換気設備による年間一次エネルギー消費量'}
+                          {key === 'hot_water' && '給湯設備による年間一次エネルギー消費量'}
+                          {key === 'lighting' && '照明設備による年間一次エネルギー消費量'}
+                          {key === 'elevator' && '昇降機による年間一次エネルギー消費量'}
+                        </HelpTooltip>
+                      </div>
+                      <input
+                        type="number"
+                        value={value}
+                        onChange={(e) => {
+                          setFormData({
+                            ...formData,
+                            design_energy: {
+                              ...formData.design_energy,
+                              [key]: e.target.value
+                            }
+                          });
+                          setValidationErrors({...validationErrors, [key]: ''});
+                        }}
+                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          validationErrors[key] ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="0"
+                        min="0"
+                        step="0.1"
+                        required
+                      />
+                      {validationErrors[key] && (
+                        <p className="text-red-600 text-sm mt-1">{validationErrors[key]}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* ナビゲーションボタン */}
+                {currentStep === 2 && (
+                  <div className="flex justify-between pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(1)}
+                      className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                    >
+                      戻る
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (validateStep2()) {
+                          setCurrentStep(3);
+                        }
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
+                    >
+                      <span>次へ：再エネ控除</span>
+                      <FaArrowRight />
+                    </button>
+                  </div>
+                )}
+              </FormSection>
+            )}
+
+            {/* ステップ3: 再エネ控除 */}
+            {currentStep >= 3 && (
+              <FormSection
+                title="ステップ3: 再生可能エネルギー控除"
+                icon={FaLightbulb}
+              >
+                {/* ガイダンス */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start space-x-2">
+                    <FaLightbulb className="text-yellow-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-yellow-800">
+                      <strong>再エネ控除について：</strong>
+                      建物に設置された再生可能エネルギー設備（太陽光発電等）による
+                      年間発電量を一次エネルギー消費量から控除できます。控除量がない場合は0を入力してください。
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      再エネ控除量 (MJ/年)
+                    </label>
+                    <HelpTooltip title="再エネ控除の計算方法">
+                      太陽光発電等の年間発電量(kWh) × 9.76(一次エネルギー換算係数) ÷ 1000 × 3.6
+                      で算出できます。設備がない場合は0を入力してください。
+                    </HelpTooltip>
+                  </div>
+                  <input
+                    type="number"
+                    value={formData.renewable_energy}
+                    onChange={(e) => setFormData({...formData, renewable_energy: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="0"
+                    min="0"
+                    step="0.1"
+                  />
+                  <p className="text-gray-600 text-sm mt-1">
+                    設備がない場合は0のままでも計算できます
+                  </p>
+                </div>
+
+                {/* ナビゲーションボタン */}
+                {currentStep === 3 && (
+                  <div className="flex justify-between pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(2)}
+                      className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                    >
+                      戻る
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCalculate}
+                      disabled={isLoading}
+                      className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>計算中...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FaCalculator />
+                          <span>BEI計算実行</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </FormSection>
+            )}
+
+            {/* エラー表示 */}
+            {validationErrors.api && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-start space-x-2">
+                  <FaExclamationTriangle className="text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-red-800">
+                    {validationErrors.api}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 結果表示 */}
+          <div className="space-y-6">
+            {result && (
+              <ResultCard
+                title="BEI計算結果"
+                icon={FaChartLine}
+                onCopy={copyResults}
+                onDownload={downloadResults}
+              >
+                {/* BEI値と適合判定 */}
+                <div className="text-center mb-6">
+                  <div className="text-4xl font-bold mb-2">
+                    <span className={result.compliance_status === 'compliant' ? 'text-green-600' : 'text-red-600'}>
+                      {result.bei_value}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-600 mb-4">BEI値 (Building Energy Index)</div>
+                  
+                  <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
+                    result.compliance_status === 'compliant' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {result.compliance_status === 'compliant' ? (
+                      <>
+                        <FaCheckCircle className="mr-2" />
+                        省エネ基準適合
+                      </>
+                    ) : (
+                      <>
+                        <FaExclamationTriangle className="mr-2" />
+                        省エネ基準不適合
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* 詳細結果 */}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="text-sm font-medium text-blue-800 mb-1">設計一次エネルギー</div>
+                      <div className="text-2xl font-bold text-blue-900">
+                        {result.design_primary_energy_mj?.toLocaleString()} MJ/年
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="text-sm font-medium text-gray-800 mb-1">基準一次エネルギー</div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {result.standard_primary_energy_mj?.toLocaleString()} MJ/年
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-yellow-50 p-4 rounded-lg">
+                    <div className="text-sm text-yellow-800">
+                      <strong>BEI = 設計一次エネルギー消費量 ÷ 基準一次エネルギー消費量</strong>
+                      <br />
+                      BEI値が1.0以下で省エネ基準に適合します。
+                    </div>
+                  </div>
+                </div>
+
+                {/* 再計算ボタン */}
+                <div className="flex justify-center pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentStep(1);
+                      setResult(null);
+                      setValidationErrors({});
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                  >
+                    新しい計算を開始
+                  </button>
+                </div>
+              </ResultCard>
+            )}
+
+            {/* 入力内容サマリー */}
+            {(formData.building_type || formData.climate_zone || formData.floor_area) && !result && (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-xl font-bold mb-4 flex items-center">
+                  <FaBuilding className="mr-3 text-blue-600" />
+                  入力内容
+                </h3>
+                <div className="space-y-2 text-sm">
+                  {formData.building_type && (
+                    <div><span className="font-medium">建物用途:</span> {formData.building_type}</div>
+                  )}
+                  {formData.climate_zone && (
+                    <div><span className="font-medium">地域区分:</span> {formData.climate_zone}地域</div>
+                  )}
+                  {formData.floor_area && (
+                    <div><span className="font-medium">延床面積:</span> {Number(formData.floor_area).toLocaleString()} m²</div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </Layout>
+    </CalculatorLayout>
   );
 }
