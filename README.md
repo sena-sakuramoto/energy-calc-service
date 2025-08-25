@@ -1,243 +1,196 @@
-# 🏢 建築物省エネ法対応 計算サービス
+# Energy Calculation API
 
-[![Deploy Status](https://github.com/sena-sakuramoto/energy-calc-service/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/sena-sakuramoto/energy-calc-service/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/python-v3.11+-blue.svg)](https://www.python.org)
-[![Next.js](https://img.shields.io/badge/Next.js-v14-black.svg)](https://nextjs.org)
+A comprehensive FastAPI service for energy calculations, BEI (Building Energy Index) evaluation, and tariff quoting.
 
-> 建築設計者のための省エネ基準適合性判定計算を **簡単・正確・迅速** に実行できるWebアプリケーション
+## Features
 
-## 🌟 概要
+- **Energy Calculations**: Power, energy consumption, and cost calculations
+- **Tariff Quoting**: Support for flat, tiered, and time-of-use tariffs with various charges
+- **BEI Evaluation**: Building Energy Index calculation for single and mixed-use buildings
+- **Catalog System**: Standard intensity data management and validation
 
-このアプリケーションは建築物省エネ法に完全準拠した外皮性能（UA値・ηA値）と一次エネルギー消費量の計算を行い、省エネ基準適合性を自動判定します。建築設計の実務で即座に活用でき、申請書類の作成まで支援します。
+## API Endpoints
 
-### ✨ 主な特徴
+### Health Check
+- `GET /healthz` - Service health check
 
-- 🎯 **高精度計算**: 建築物省エネ法の最新基準に完全準拠
-- 🚀 **高速処理**: 複雑な計算を数秒で完了
-- 📊 **視覚的結果**: わかりやすいグラフと表で結果表示
-- 📋 **レポート自動生成**: PDF・Excel形式で申請書類を出力
-- 🔐 **セキュア**: 企業レベルのセキュリティ対策
-- 📱 **レスポンシブ**: PC・タブレット・スマートフォン対応
+### Energy Calculations (`/v1/calc/`)
+- `POST /v1/calc/power` - Calculate power from voltage, current, and power factor
+- `POST /v1/calc/energy` - Calculate energy consumption from power and time  
+- `POST /v1/calc/cost` - Calculate cost from energy consumption and tariff
+- `POST /v1/calc/device-usage` - Aggregate energy usage from multiple devices
 
-## 🎯 対応範囲
+### Tariff Quoting (`/v1/tariffs/`)
+- `POST /v1/tariffs/quote` - Generate detailed bill quote based on tariff structure
 
-### 計算対象
-- **外皮性能**: UA値（外皮平均熱貫流率）、ηA値（平均日射熱取得率）
-- **一次エネルギー消費量**: 暖房・冷房・換気・給湯・照明の各用途別計算
-- **省エネ適合性判定**: 地域区分・建物用途別基準値との自動比較
+### BEI Evaluation (`/v1/bei/`)
+- `POST /v1/bei/evaluate` - Evaluate Building Energy Index
+- `GET /v1/bei/catalog/uses` - List available building use types
+- `GET /v1/bei/catalog/uses/{use}/zones` - List climate zones for a use type
+- `GET /v1/bei/catalog/uses/{use}/zones/{zone}` - Get standard intensity data
+- `POST /v1/bei/catalog/validate` - Validate catalog consistency
 
-### 対応地域区分
-- 全国8地域区分に対応
-- 各地域の気候特性を反映した基準値設定
+## Installation
 
-### 対応建物用途
-- 事務所 / 住宅 / 店舗 / ホテル / 病院 / 学校
-
-## 🏗️ 技術構成
-
-### アーキテクチャ
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │   Database      │
-│   (Next.js)     │◄──►│   (FastAPI)     │◄──►│ (PostgreSQL)    │
-│                 │    │                 │    │                 │
-│ • React 18      │    │ • Python 3.11   │    │ • User Data     │
-│ • Tailwind CSS  │    │ • Pydantic      │    │ • Projects      │
-│ • Axios         │    │ • SQLAlchemy    │    │ • Calculations  │
-│ • Chart.js      │    │ • JWT Auth      │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-### フロントエンド
-- **フレームワーク**: Next.js 14 (React 18)
-- **スタイリング**: Tailwind CSS
-- **HTTP クライアント**: Axios
-- **チャート**: Chart.js, React-Chart.js-2
-- **フォーム**: Formik + Yup
-- **アイコン**: React Icons
-
-### バックエンド
-- **フレームワーク**: FastAPI (Python 3.11+)
-- **データベース**: PostgreSQL
-- **ORM**: SQLAlchemy 2.0
-- **認証**: JWT (JSON Web Token)
-- **バリデーション**: Pydantic v2
-- **ファイル出力**: openpyxl (Excel), reportlab (PDF)
-
-### インフラストラクチャ
-- **フロントエンド**: GitHub Pages (静的サイト)
-- **バックエンド**: Railway / Render
-- **データベース**: PostgreSQL (Railway/Render)
-- **CI/CD**: GitHub Actions
-
-## 🚀 デプロイ済みアプリケーション
-
-### 🌐 ライブデモ
-**フロントエンド**: https://sena-sakuramoto.github.io/energy-calc-service/
-
-*バックエンドはRailway/Renderでデプロイ後に連携*
-
-## 📦 ローカル開発環境構築
-
-### 前提条件
-- Node.js 18+ 
-- Python 3.11+
-- PostgreSQL 14+
-- Git
-
-### 1️⃣ リポジトリクローン
+1. Install dependencies:
 ```bash
-git clone https://github.com/sena-sakuramoto/energy-calc-service.git
-cd energy-calc-service
-```
-
-### 2️⃣ バックエンド設定
-```bash
-cd backend
-
-# 仮想環境作成・有効化
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 依存関係インストール
 pip install -r requirements.txt
-
-# 環境変数設定
-cp .env.example .env
-# .envファイルを編集してデータベース接続情報を設定
-
-# データベース初期化
-python init_db.py
-
-# サーバー起動
-uvicorn main:app --reload
 ```
 
-### 3️⃣ フロントエンド設定
+2. Run the server:
 ```bash
-cd frontend
-
-# 依存関係インストール
-npm install
-
-# 環境変数設定
-cp .env.example .env.local
-# .env.localファイルを編集してAPI URLを設定
-
-# 開発サーバー起動
-npm run dev
+uvicorn app.main:app --reload --port 8000
 ```
 
-### 4️⃣ アクセス
-- **フロントエンド**: http://localhost:3000
-- **バックエンドAPI**: http://localhost:8000
-- **API ドキュメント**: http://localhost:8000/api/v1/docs
+3. Access the API documentation:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
 
-## 📁 プロジェクト構造
+## Usage Examples
 
-```
-energy-calc-service/
-├── 📂 frontend/                 # Next.js フロントエンド
-│   ├── 📂 src/
-│   │   ├── 📂 components/       # 再利用可能コンポーネント
-│   │   ├── 📂 pages/           # ページコンポーネント
-│   │   ├── 📂 contexts/        # React Context (認証など)
-│   │   ├── 📂 utils/           # ユーティリティ関数
-│   │   └── 📂 styles/          # スタイルシート
-│   ├── 📄 package.json
-│   └── 📄 next.config.js
-├── 📂 backend/                  # FastAPI バックエンド
-│   ├── 📂 app/
-│   │   ├── 📂 api/             # API エンドポイント
-│   │   ├── 📂 core/            # 設定・セキュリティ
-│   │   ├── 📂 models/          # データモデル
-│   │   ├── 📂 schemas/         # Pydantic スキーマ
-│   │   ├── 📂 services/        # ビジネスロジック
-│   │   └── 📂 middleware/      # ミドルウェア
-│   ├── 📄 main.py              # エントリーポイント
-│   ├── 📄 requirements.txt
-│   └── 📄 Procfile            # デプロイ用
-├── 📂 .github/workflows/       # GitHub Actions CI/CD
-├── 📄 README.md
-├── 📄 DEPLOY.md                # デプロイ手順詳細
-└── 📄 .gitignore
+### Power Calculation
+```python
+# Single-phase power calculation
+{
+  "voltage": 100.0,
+  "current": 10.0,
+  "power_factor": 0.8,
+  "is_three_phase": false
+}
+# Result: 800W (0.8kW)
 ```
 
-## 🔧 API エンドポイント
+### Energy Calculation  
+```python
+# Energy from power and time
+{
+  "power_kw": 2.5,
+  "duration_hours": 8.0
+}
+# Result: 20 kWh
+```
 
-### 認証
-- `POST /api/v1/auth/token` - ログイン
-- `POST /api/v1/users/` - ユーザー登録
-- `GET /api/v1/users/me` - 現在ユーザー情報
+### Tiered Tariff Quote
+```python
+{
+  "tariff": {
+    "type": "tiered",
+    "tiers": [
+      {"limit_kwh": 100, "rate_per_kwh": 20.0},
+      {"limit_kwh": 200, "rate_per_kwh": 25.0},
+      {"limit_kwh": null, "rate_per_kwh": 30.0}
+    ],
+    "basic_charge_per_month": 1000.0,
+    "tax_rate": 0.1
+  },
+  "total_usage_kwh": 250.0
+}
+```
 
-### プロジェクト管理
-- `GET /api/v1/projects/` - プロジェクト一覧
-- `POST /api/v1/projects/` - プロジェクト作成
-- `GET /api/v1/projects/{id}/` - プロジェクト詳細
-- `PUT /api/v1/projects/{id}/` - プロジェクト更新
+### Time-of-Use Tariff
+```python
+{
+  "tariff": {
+    "type": "tou",
+    "tou_periods": [
+      {"name": "peak", "rate_per_kwh": 35.0, "hours": [13,14,15,16,17,18]},
+      {"name": "off-peak", "rate_per_kwh": 15.0, "hours": [0,1,2,3,4,5,6,7,8,9,10,11,12,19,20,21,22,23]}
+    ],
+    "demand_charge_per_kw": 1000.0,
+    "tax_rate": 0.1
+  },
+  "usage_profile": {
+    "hourly_usage": [1.0, 1.0, ...]  // 24 values
+  },
+  "contract": {
+    "max_demand_kw": 10.0
+  }
+}
+```
 
-### 計算実行
-- `POST /api/v1/projects/{id}/calculate/` - 省エネ計算実行
+### BEI Evaluation - Single Use Building
+```python
+{
+  "building_area_m2": 1000.0,
+  "use": "office",
+  "zone": "6",
+  "design_energy": [
+    {"category": "lighting", "value": 50.0, "unit": "kWh"},
+    {"category": "cooling", "value": 100.0, "unit": "kWh"},
+    {"category": "heating", "value": 30.0, "unit": "kWh"}
+  ],
+  "renewable_energy_deduction_mj": 500.0
+}
+```
 
-### レポート生成
-- `GET /api/v1/projects/{id}/report/pdf/` - PDF レポート
-- `GET /api/v1/projects/{id}/report/excel/` - Excel レポート
+### BEI Evaluation - Mixed Use Building
+```python
+{
+  "building_area_m2": 2000.0,
+  "usage_mix": [
+    {"use": "office", "zone": "6", "area_share": 0.7},
+    {"use": "hotel", "zone": "6", "area_share": 0.3}
+  ],
+  "design_energy": [
+    {"category": "lighting", "value": 200.0, "unit": "kWh"},
+    {"category": "cooling", "value": 300.0, "unit": "kWh"}
+  ],
+  "bei_round_digits": 3,
+  "compliance_threshold": 1.0
+}
+```
 
-## 🛡️ セキュリティ機能
+## Testing
 
-- **認証・認可**: JWT ベースの安全な認証
-- **Rate Limiting**: API アクセス制限 (100req/分)
-- **CORS 保護**: クロスオリジン制限
-- **SQLインジェクション対策**: 入力値検証
-- **XSS 防止**: セキュリティヘッダー設定
-- **パスワード強度**: 強力なパスワード要求
-- **ログ記録**: 詳細なアクセスログ
+Run tests:
+```bash
+pytest
+```
 
-## 📊 計算仕様
+Run tests with coverage:
+```bash
+pytest --cov=app tests/
+```
 
-### 外皮性能計算
-- **UA値**: 外皮各部位の熱貫流率と面積から加重平均算出
-- **ηA値**: 開口部の日射熱取得率から算出
-- **基準判定**: 地域区分別基準値との自動比較
+## Configuration
 
-### 一次エネルギー消費量計算
-- **対象設備**: 暖房・冷房・換気・給湯・照明
-- **計算方法**: 建物用途・設備効率を考慮した詳細計算
-- **基準比較**: 建物用途別基準値との比較・省エネ率算出
+Environment variables (`.env` file):
+- `APP_NAME`: Application name
+- `CORS_ORIGINS`: Comma-separated list of allowed origins
+- `DEFAULT_TARIFF_PER_KWH`: Default electricity tariff rate
 
-## 🤝 コントリビューション
+## Key Features
 
-プロジェクトへの貢献を歓迎します！
+### Tariff System
+- **Flat Rate**: Simple per-kWh pricing
+- **Tiered Rate**: Progressive pricing with usage tiers
+- **Time-of-Use**: Different rates for different hours
+- **Comprehensive Charges**: Basic charges, renewable levies, fuel adjustments, demand charges, taxes
 
-1. このリポジトリをフォーク
-2. 機能ブランチ作成 (`git checkout -b feature/AmazingFeature`)
-3. 変更をコミット (`git commit -m 'Add some AmazingFeature'`)
-4. ブランチにプッシュ (`git push origin feature/AmazingFeature`)
-5. プルリクエスト作成
+### BEI Calculation
+- **Single Use**: Standard building types (office, hotel, retail, school)
+- **Mixed Use**: Area-weighted combination of multiple use types
+- **Flexible Energy Units**: Supports electricity (kWh), gas (m³), oil (L), etc.
+- **Renewable Deduction**: Solar panel and other renewable energy credits
+- **Catalog Integration**: Standard intensity data with validation
 
-## 📝 ライセンス
+### Energy Calculations
+- **Power Calculation**: Single-phase and three-phase electrical power
+- **Energy Consumption**: Power × time calculations
+- **Cost Estimation**: Energy cost with taxes and fixed fees
+- **Device Aggregation**: Multi-device energy usage summation
 
-このプロジェクトは [MIT License](LICENSE) の下でライセンスされています。
+## Architecture
 
-## 👥 開発者
+- **FastAPI**: Modern, fast web framework
+- **Pydantic**: Data validation and serialization
+- **YAML**: Configuration and data storage
+- **Pytest**: Comprehensive testing framework
 
-- **開発者**: [Sena Sakuramoto](https://github.com/sena-sakuramoto)
-- **協力**: [Claude Code](https://claude.ai/code) による開発支援
+## Docker Deployment
 
-## 📞 サポート・問い合わせ
-
-- **Issues**: [GitHub Issues](https://github.com/sena-sakuramoto/energy-calc-service/issues)
-- **ドキュメント**: [デプロイ手順詳細](DEPLOY.md)
-
-## 🎉 謝辞
-
-建築物省エネ法の基準値・計算方法は国土交通省の資料を参考にしています。
-このプロジェクトは建築設計の実務効率化を目的として開発されました。
-
----
-
-<div align="center">
-  <p><strong>🌱 持続可能な建築設計を、もっと簡単に</strong></p>
-  <p>Made with ❤️ by developers who care about sustainable architecture</p>
-</div>
+Build and run with Docker:
+```bash
+docker build -t energy-calc-api .
+docker run -p 8000:8000 energy-calc-api
+```

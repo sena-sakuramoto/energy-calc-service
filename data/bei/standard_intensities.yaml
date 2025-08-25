@@ -1,0 +1,42 @@
+uses:
+  office:
+    zones:
+      "6":
+        lighting: 58
+        cooling: 119
+        heating: 35
+        ventilation: 45
+        hot_water: 12
+        outlet_and_others: 105
+        elevator: 46
+        total_MJ_per_m2_year: 420
+  hotel:
+    zones:
+      "6":
+        lighting: 78
+        cooling: 145
+        heating: 89
+        ventilation: 67
+        hot_water: 234
+        outlet_and_others: 87
+        elevator: 32
+        total_MJ_per_m2_year: 732
+  retail:
+    "6":
+      lighting: 92
+      cooling: 87
+      heating: 23
+      ventilation: 34
+      hot_water: 8
+      others: 145
+      elevator: 12
+      total_MJ_per_m2_year: 401
+  school:
+    "6":
+      lighting: 34
+      cooling: 67
+      heating: 78
+      ventilation: 23
+      hot_water: 45
+      outlet: 89
+      elevator: 15
