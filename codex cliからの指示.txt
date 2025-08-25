@@ -1,0 +1,53 @@
+新規追加（ルート）                                                                                                                                                                                          - .gitignore: Python/IDE/venv/coverage など一般的除外
+- README.md: 機能概要、起動手順、API一覧、例（calc/quote/BEI/カタログ）                               - requirements.txt:                                                                                       - fastapi==0.111.0, uvicorn[standard]==0.30.1, pydantic==2.7.4                                        - python-dotenv==1.0.1（必要でなければ省略可）                                                        - pytest==8.2.2, httpx==0.27.0（テスト用）                                                            - PyYAML==6.0.1（YAMLローダ）                                                                     - Dockerfile: Uvicorn で 8000 ポート起動                                                              - .env.example: 例（APP_NAME, CORS_ORIGINS, DEFAULT_TARIFF_PER_KWH）                                                                                                                                        新規追加（アプリ構成）                                                                                                                                                                                      - app/__init__.py: 空                                                                                 - app/main.py:                                                                                            - FastAPI アプリ生成、CORS、/healthz、/v1 ルータ登録                                              - app/core/config.py:                                                                                     - 環境変数設定（APP_NAME, CORS_ORIGINS, DEFAULT_TARIFF_PER_KWH）                                  - app/core/data.py:                                                                                       - load_yaml(path) 実装（相対→プロジェクトルート解決、PyYAMLで読み込み）                           - app/core/factors.py:                                                                                    - 一次エネ換算係数のプリセットと get_primary_factor(unit)                                             - 例: kWh: 9.76, m3_gas: 45.0, L_kerosene: 36.7 など                                                                                                                                                    新規追加（API ルーティング）                                                                                                                                                                                - app/api/__init__.py: 空                                                                             - app/api/v1/__init__.py: 空                                                                          - app/api/v1/routes.py:                                                                                   - 計算系（calc）エンドポイント: power/energy/cost/device-usage                                        - 料金見積: /tariffs/quote                                                                            - BEI: /bei/evaluate                                                                                  - カタログルータのマウント: /bei/catalog/*                                                        - app/api/v1/bei_catalog.py:                                                                              - GET /v1/bei/catalog/uses: 用途一覧                                                                  - GET /v1/bei/catalog/uses/{use}/zones: 地域一覧                                                      - GET /v1/bei/catalog/uses/{use}/zones/{zone}: カテゴリ別強度                                         - POST /v1/bei/catalog/validate: YAMLカタログ整合性チェック（カテゴリ不足・合計差分）                                                                                                                   新規追加（スキーマ）                                                                                                                                                                                        - app/schemas/__init__.py: 空                                                                         - app/schemas/calc.py:                                                                                    - Power/Energy/Cost/DeviceUsage の Request/Response モデル                                            - バリデーション（power_w/power_kw 片方必須など）                                                 - app/schemas/tariff.py:                                                                                  - Tariff モデル（flat/tiered/tou、基本料金、固定費、再エネ・燃調、デマンド課金、丸め）                - 見積入出力（QuoteRequest/Response, LineItem など）                                              - app/schemas/bei.py:                                                                                     - BEI 入出力、カテゴリ（lighting, cooling, …）                                                        - 設計エネルギー（unit と primary_factor 任意、未指定はプリセット推定）                               - 標準強度（標準合計の丸め/由来記録）、複合用途 usage_mix（{use, zone, area_share|area_m2}）          - bei_round_digits（BEI 表示丸め桁）、compliance_threshold（適合閾値）                                                                                                                                  新規追加（サービス・ビジネスロジック）                                                                                                                                                                      - app/services/energy.py:                                                                                 - power_from_vi() 単相/三相、energy_from_power()、cost_from_energy()、aggregate_device_usage()    - app/services/tariff.py:                                                                                 - quote_bill(tariff, usage, contract) 実装                                                            - flat/tiered/tou、再エネ・燃調、デマンド課金、税、丸め                                           - app/services/bei.py:                                                                                    - evaluate_bei(BEIRequest) 実装                                                                       - 設計一次エネ: unit から係数自動推定 or 指定係数                                                     - 基準一次エネ:                                                                                       - 単一用途: カタログ優先→なければ `standard_intensities`                                              - 複合用途: `usage_mix` の面積加重合成（用途×地域の合計強度）                                         - 合計強度の採用: カタログの `total_MJ_per_m2_year` があれば優先。カテゴリ合計との差は `notes` に
+記録                                                                                                      - カテゴリアイリアス対応: `others`/`outlet(s)` → `outlet_and_others`                                  - ゾーン構造の両対応: `uses -> use -> zones -> '1'` / `uses -> use -> '1'`                        - 出力: bei は bei_round_digits で丸め（適合判定は丸め前値で実施）、notes に合計由来などを格納                                                                                                              新規追加（データ）                                                                                                                                                                                          - data/bei/standard_intensities.yaml                                                                      - サンプルの office/hotel zone6 を同梱（ただし、あなたが置いた YAML の形にもローダ対応済み）          - メタキー total_MJ_per_m2_year を優先採用                                                                                                                                                              新規追加（テスト）                                                                                                                                                                                          - tests/test_energy.py:                                                                                   - 単相/三相電力、エネルギー換算、料金計算、機器集計                                                   - /healthz, /v1/calc/* の基本応答
+- tests/test_tariff.py:
+    - 段階制（アンペア基本＋再エネ）、TOU＋デマンドの見積検証
+- tests/test_bei.py:
+    - BEI 基本、再エネ控除、カタログ読み（office zone6 合計=420）、複合用途ミックス（office/hotel
+zone6）
+
+エンドポイント一覧
+
+- 健康監視: GET /healthz
+- 計算（calc）:
+    - POST /v1/calc/power（電圧×電流×力率、三相=√3×…）
+    - POST /v1/calc/energy（W/kW×時間→kWh）
+    - POST /v1/calc/cost（単純従量＋固定費＋税）
+    - POST /v1/calc/device-usage（機器群の集計）
+- 料金見積（tariff）:
+    - POST /v1/tariffs/quote（flat/tiered/tou、基本、調整費、デマンド、税、丸め）
+- BEI/モデル建物法:
+    - POST /v1/bei/evaluate（単一/複合用途、カタログ参照、自動係数、丸め）
+    - GET /v1/bei/catalog/uses / GET /v1/bei/catalog/uses/{use}/zones / GET /v1/bei/catalog/uses/
+{use}/zones/{zone}
+    - POST /v1/bei/catalog/validate
+
+README への追記（要点）
+
+- 上記のエンドポイント説明とサンプル（段階制見積、TOU、BEI 単一・複合用途例）
+- 依存インストール → uvicorn app.main:app --reload --port 8000 → /docs の案内
+
+差分のポイント（重要な仕様差・拡張）
+
+- BEI:
+    - カタログの構造揺れに対応（zones の有無、others→outlet_and_others、total の優先）
+    - 複合用途（mix）対応・面積配分（area_share|area_m2）
+    - 係数は unit から推定（必要時に上書き可）
+    - BEI の丸め桁は可変（既定3）
+- 料金見積:
+    - 段階制/時間帯別/基本/再エネ・燃調/デマンド/税/丸め
+    - 入力分布またはプロファイルで TOU 課金
+- 計算系 API 一式（電力/電力量/コスト/機器集計）
+- カタログ検証 API 追加
+
+この一覧を Claude Code に渡し、各ファイルを作成・内容反映してください。作成後に:
+
+- pip install -r requirements.txt
+- pytest -q（任意、テストが不要なら省略）
+- uvicorn app.main:app --reload --port 8000
+- http://localhost:8000/docs で API を確認
+
+もし、まずは BEI 部分だけ入れたい場合は、app 以下を BEI 関連（main.py、schemas/bei.py、services/
+bei.py、api/v1/routes.py、api/v1/bei_catalog.py、core/{data,factors}.py）に絞って反映しても動作し
+ます。

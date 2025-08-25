@@ -8,7 +8,7 @@ const isGitHubPages = typeof window !== 'undefined' &&
 
 // 環境変数からAPIのベースURLを取得。NEXT_PUBLIC_ を接頭辞にすること。
 const API_BASE_URL = isGitHubPages ? 'https://mock-api.example.com/api/v1' : 
-  (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1');
+  (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/v1');
 
 console.log('API Config:', { API_BASE_URL, isGitHubPages, hostname: typeof window !== 'undefined' ? window.location.hostname : 'server' });
 
@@ -440,5 +440,226 @@ export const calcAPI = {
   calculateAndSave: (projectId, data) => projectsAPI.calculate(projectId, data),
 };
 
+
+// 新しいBEI計算API
+export const beiAPI = {
+  // BEI評価
+  evaluate: async (data) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock BEI evaluate");
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      return {
+        data: {
+          bei: 0.85,
+          is_compliant: true,
+          design_primary_energy_mj: 350000.0,
+          standard_primary_energy_mj: 420000.0,
+          renewable_deduction_mj: 0.0,
+          design_energy_per_m2: 350.0,
+          standard_energy_per_m2: 420.0,
+          building_area_m2: data.building_area_m2,
+          use_info: data.use ? `${data.use} (zone ${data.zone})` : "Mixed use building",
+          design_energy_breakdown: data.design_energy.map(item => ({
+            category: item.category,
+            value: item.value,
+            unit: item.unit || "kWh",
+            primary_factor: 9.76,
+            primary_energy_mj: item.value * 9.76
+          })),
+          standard_intensity_source: "Catalog data",
+          compliance_threshold: 1.0,
+          bei_round_digits: 3,
+          notes: []
+        },
+        status: 200
+      };
+    }
+    return apiClient.post('/bei/evaluate', data);
+  },
+
+  // カタログ用途取得
+  getUses: async () => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock BEI uses");
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return {
+        data: { uses: ["office", "hotel", "retail", "school"] },
+        status: 200
+      };
+    }
+    return apiClient.get('/bei/catalog/uses');
+  },
+
+  // カタログ地域取得
+  getZones: async (use) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock BEI zones");
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return {
+        data: { zones: ["1", "2", "3", "4", "5", "6", "7", "8"] },
+        status: 200
+      };
+    }
+    return apiClient.get(`/bei/catalog/uses/${use}/zones`);
+  },
+
+  // カタログ強度データ取得
+  getIntensity: async (use, zone) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock BEI intensity");
+      await new Promise(resolve => setTimeout(resolve, 400));
+      return {
+        data: {
+          use,
+          zone,
+          intensities: {
+            lighting: 58,
+            cooling: 119,
+            heating: 35,
+            ventilation: 45,
+            hot_water: 12,
+            outlet_and_others: 105,
+            elevator: 46,
+            total_MJ_per_m2_year: 420
+          }
+        },
+        status: 200
+      };
+    }
+    return apiClient.get(`/bei/catalog/uses/${use}/zones/${zone}`);
+  }
+};
+
+// エネルギー計算API
+export const energyAPI = {
+  // 電力計算
+  calculatePower: async (data) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock power calculation");
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const power_w = data.is_three_phase 
+        ? Math.sqrt(3) * data.voltage * data.current * data.power_factor
+        : data.voltage * data.current * data.power_factor;
+      return {
+        data: {
+          power_w,
+          power_kw: power_w / 1000,
+          voltage: data.voltage,
+          current: data.current,
+          power_factor: data.power_factor,
+          is_three_phase: data.is_three_phase
+        },
+        status: 200
+      };
+    }
+    return apiClient.post('/calc/power', data);
+  },
+
+  // エネルギー計算
+  calculateEnergy: async (data) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock energy calculation");
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const power_kw = data.power_kw || data.power_w / 1000;
+      return {
+        data: {
+          energy_kwh: power_kw * data.duration_hours,
+          power_kw,
+          duration_hours: data.duration_hours
+        },
+        status: 200
+      };
+    }
+    return apiClient.post('/calc/energy', data);
+  },
+
+  // コスト計算
+  calculateCost: async (data) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock cost calculation");
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const tariff = data.tariff_per_kwh || 25.0;
+      const energy_cost = data.energy_kwh * tariff;
+      const subtotal = energy_cost + (data.fixed_cost || 0);
+      const tax_amount = subtotal * (data.tax_rate || 0.1);
+      return {
+        data: {
+          total_cost: subtotal + tax_amount,
+          energy_cost,
+          fixed_cost: data.fixed_cost || 0,
+          tax_amount,
+          tariff_per_kwh: tariff
+        },
+        status: 200
+      };
+    }
+    return apiClient.post('/calc/cost', data);
+  },
+
+  // 機器使用量集計
+  aggregateDevices: async (data) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock device aggregation");
+      await new Promise(resolve => setTimeout(resolve, 600));
+      let total_energy = 0;
+      let total_power = 0;
+      let device_count = 0;
+      const devices = data.devices.map(device => {
+        const device_energy = device.power_kw * device.usage_hours * device.quantity;
+        const device_power = device.power_kw * device.quantity;
+        total_energy += device_energy;
+        total_power += device_power;
+        device_count += device.quantity;
+        return {
+          ...device,
+          total_power_kw: device_power,
+          energy_kwh: device_energy
+        };
+      });
+      return {
+        data: {
+          total_energy_kwh: total_energy,
+          total_power_kw: total_power,
+          device_count,
+          devices
+        },
+        status: 200
+      };
+    }
+    return apiClient.post('/calc/device-usage', data);
+  }
+};
+
+// 料金API
+export const tariffAPI = {
+  // 料金見積もり
+  quote: async (data) => {
+    if (isGitHubPages) {
+      console.log("GitHub Pages mode: Using mock tariff quote");
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const usage = data.total_usage_kwh || 300;
+      const rate = data.tariff.flat_rate_per_kwh || 25;
+      const energy_cost = usage * rate;
+      const basic_cost = data.tariff.basic_charge_per_month || 1000;
+      const subtotal = energy_cost + basic_cost;
+      const tax = subtotal * (data.tariff.tax_rate || 0.1);
+      return {
+        data: {
+          total_amount: subtotal + tax,
+          total_before_tax: subtotal,
+          tax_amount: tax,
+          line_items: [
+            { description: "Energy (flat rate)", amount: energy_cost, unit: "kWh", quantity: usage, rate },
+            { description: "Basic charge (monthly)", amount: basic_cost, unit: "month", quantity: 1 },
+            { description: `Tax (${(data.tariff.tax_rate || 0.1) * 100}%)`, amount: tax }
+          ],
+          tariff_summary: data.tariff
+        },
+        status: 200
+      };
+    }
+    return apiClient.post('/tariffs/quote', data);
+  }
+};
 
 export default apiClient; // デフォルトでAxiosインスタンスをエクスポート

@@ -34,10 +34,10 @@ export default function Home() {
                 プロジェクト一覧
               </Link>
               <Link
-                href="/projects/1/calculate"
+                href="/tools/bei-calculator"
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105"
               >
-                新規計算を開始
+                計算ツールを使用
               </Link>
             </div>
           ) : (
@@ -69,47 +69,71 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-blue-600 hover:shadow-2xl transition-all duration-300">
               <div className="text-blue-600 text-4xl mb-6 flex justify-center">
-                <FaCalculator />
+                <FaBuilding />
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-gray-800">省エネ計算</h3>
+              <h3 className="text-2xl font-bold mb-4 text-gray-800">BEI計算</h3>
               <p className="text-gray-600 mb-4">
-                建築物省エネ法に完全準拠した外皮性能（UA値・ηA値）と一次エネルギー消費量の正確な計算を実行。
+                建築物エネルギー消費性能（BEI）を正確に計算し、省エネ基準適合性を自動判定。単一・複合用途対応。
               </p>
               <ul className="text-sm text-gray-600 space-y-2">
                 <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />地域区分別基準値対応</li>
-                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />建物用途別計算</li>
-                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />省エネ適合性自動判定</li>
+                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />複合用途建物対応</li>
+                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />再エネ控除計算</li>
               </ul>
+              <div className="mt-6">
+                <Link
+                  href="/tools/bei-calculator"
+                  className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  計算を開始 →
+                </Link>
+              </div>
             </div>
             
             <div className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-green-600 hover:shadow-2xl transition-all duration-300">
               <div className="text-green-600 text-4xl mb-6 flex justify-center">
-                <FaChartBar />
+                <FaCalculator />
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-gray-800">視覚的な結果</h3>
+              <h3 className="text-2xl font-bold mb-4 text-gray-800">エネルギー計算</h3>
               <p className="text-gray-600 mb-4">
-                計算結果をわかりやすいグラフと表で表示。エネルギー消費内訳や基準との比較を直感的に理解。
+                電力・エネルギー消費量・コスト計算と機器使用量の集計。電気設備設計に必要な基本計算をサポート。
               </p>
               <ul className="text-sm text-gray-600 space-y-2">
-                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />用途別エネルギー消費量</li>
-                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />基準値との比較チャート</li>
-                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />適合・不適合判定表示</li>
+                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />単相・三相電力計算</li>
+                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />機器別エネルギー集計</li>
+                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />電力コスト試算</li>
               </ul>
+              <div className="mt-6">
+                <Link
+                  href="/tools/energy-calculator"
+                  className="inline-flex items-center text-green-600 hover:text-green-800 font-medium"
+                >
+                  計算を開始 →
+                </Link>
+              </div>
             </div>
             
             <div className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-purple-600 hover:shadow-2xl transition-all duration-300">
               <div className="text-purple-600 text-4xl mb-6 flex justify-center">
                 <FaFileDownload />
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-gray-800">レポート出力</h3>
+              <h3 className="text-2xl font-bold mb-4 text-gray-800">電力料金見積もり</h3>
               <p className="text-gray-600 mb-4">
-                計算結果を詳細なレポートとして出力。行政機関への申請書類として直接利用可能。
+                フラット・段階制・時間帯別料金に対応した詳細な電力料金計算。基本料金や各種調整費も含めた正確な見積もり。
               </p>
               <ul className="text-sm text-gray-600 space-y-2">
-                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />PDF形式レポート</li>
-                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />Excel形式データシート</li>
-                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />申請書類フォーマット対応</li>
+                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />多様な料金体系対応</li>
+                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />時間別使用量プロファイル</li>
+                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />詳細な料金内訳表示</li>
               </ul>
+              <div className="mt-6">
+                <Link
+                  href="/tools/tariff-calculator"
+                  className="inline-flex items-center text-purple-600 hover:text-purple-800 font-medium"
+                >
+                  見積もり作成 →
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -190,10 +214,10 @@ export default function Home() {
               無料アカウント作成
             </Link>
             <Link
-              href="/projects/1/calculate"
+              href="/tools/bei-calculator"
               className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-4 px-8 rounded-lg transition-all duration-300"
             >
-              デモを体験
+              計算ツールを試す
             </Link>
           </div>
         </div>
