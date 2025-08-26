@@ -1278,31 +1278,9 @@ export default function BEICalculator() {
                 </div>
               </div>
               <ComplianceReport 
-                data={{
-                  calculation_date: new Date().toISOString(),
-                  building_info: {
-                    type: formData.building_type,
-                    climate_zone: formData.climate_zone,
-                    floor_area: formData.floor_area,
-                    renewable_energy: formData.renewable_energy
-                  },
-                  design_energy: formData.design_energy,
-                  calculation_basis: {
-                    standard_energy_consumption: getStandardEnergyByType(formData.building_type),
-                    regional_factors: getRegionalFactors(formData.climate_zone),
-                    scale_factor: getScaleFactor(formData.building_type, formData.floor_area)
-                  },
-                  result: result,
-                  legal_basis: [
-                    '建築物のエネルギー消費性能の向上に関する法律（建築物省エネ法）',
-                    '国土交通省告示第1396号（平成28年1月29日）',
-                    'モデル建物法による標準入力法（平成28年国土交通省告示第265号）'
-                  ]
-                }}
-                onDownload={() => {
-                  // PDF生成機能（将来実装）
-                  alert('PDF生成機能は開発中です。現在は印刷機能をご利用ください。');
-                }}
+                result={result}
+                formData={formData}
+                onDownload={downloadResults}
               />
             </div>
           </div>
