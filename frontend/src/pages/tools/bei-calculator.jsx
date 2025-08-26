@@ -163,20 +163,8 @@ export default function BEICalculator() {
 
       const response = await beiAPI.evaluate(apiData);
       
-      // レスポンス形式を統一する
-      const normalizedResult = {
-        bei_value: response.bei,
-        compliance_status: response.is_compliant ? 'compliant' : 'non-compliant',
-        design_primary_energy_mj: response.design_primary_energy_mj,
-        standard_primary_energy_mj: response.standard_primary_energy_mj,
-        renewable_deduction_mj: response.renewable_deduction_mj,
-        building_area_m2: response.building_area_m2,
-        use_info: response.use_info,
-        design_energy_breakdown: response.design_energy_breakdown,
-        notes: response.notes || []
-      };
-      
-      setResult(normalizedResult);
+      // APIレスポンスをそのまま使用（data フィールドから取得）
+      setResult(response.data || response);
       setCurrentStep(formData.calculation_method === 'model_building' ? 4 : 5);
     } catch (error) {
       console.error('BEI計算エラー:', error);
@@ -190,8 +178,8 @@ export default function BEICalculator() {
     if (!result) return;
     
     const text = `BEI計算結果\n\n` +
-      `BEI値: ${result.bei_value}\n` +
-      `適合判定: ${result.compliance_status === 'compliant' ? '適合' : '不適合'}\n` +
+      `BEI値: ${result.bei}\n` +
+      `適合判定: ${result.is_compliant ? '適合' : '不適合'}\n` +
       `設計一次エネルギー: ${result.design_primary_energy_mj?.toLocaleString()} MJ/年\n` +
       `基準一次エネルギー: ${result.standard_primary_energy_mj?.toLocaleString()} MJ/年`;
     
@@ -1057,18 +1045,18 @@ export default function BEICalculator() {
                 {/* BEI値と適合判定 */}
                 <div className="text-center mb-6">
                   <div className="text-4xl font-bold mb-2">
-                    <span className={result.compliance_status === 'compliant' ? 'text-green-600' : 'text-red-600'}>
-                      {typeof result.bei_value === 'number' ? result.bei_value.toFixed(3) : result.bei_value}
+                    <span className={result.is_compliant ? 'text-green-600' : 'text-red-600'}>
+                      {typeof result.bei === 'number' ? result.bei.toFixed(3) : result.bei}
                     </span>
                   </div>
                   <div className="text-sm text-gray-600 mb-4">BEI値 (Building Energy Index)</div>
                   
                   <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
-                    result.compliance_status === 'compliant' 
+                    result.is_compliant 
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {result.compliance_status === 'compliant' ? (
+                    {result.is_compliant ? (
                       <>
                         <FaCheckCircle className="mr-2" />
                         省エネ基準適合
@@ -1180,7 +1168,7 @@ export default function BEICalculator() {
                       <div className="text-xs text-yellow-900 space-y-1">
                         <div><strong>BEI = 設計一次エネルギー消費量 ÷ 基準一次エネルギー消費量</strong></div>
                         <div>= {result.design_primary_energy_mj?.toLocaleString()} ÷ {result.standard_primary_energy_mj?.toLocaleString()}</div>
-                        <div>= <strong>{result.bei_value}</strong></div>
+                        <div>= <strong>{result.bei}</strong></div>
                         <div className="mt-2 pt-2 border-t border-yellow-200">
                           判定基準: BEI ≤ 1.0 で省エネ基準適合
                         </div>

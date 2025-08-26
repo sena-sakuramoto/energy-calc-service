@@ -133,6 +133,7 @@ export function mockBEICalculation(requestData) {
     // 基準一次エネルギー消費量計算
     let standardPrimaryEnergy = 0;
     let useInfo = '';
+    let standardIntensity = null;
     
     if (usage_mix) {
       // 複合用途の場合
@@ -159,9 +160,9 @@ export function mockBEICalculation(requestData) {
       useInfo = `複合用途建物 (${usage_mix.length}用途)`;
     } else {
       // 単一用途の場合
-      const standardIntensity = STANDARD_INTENSITIES[use]?.[zone] || 
-                               STANDARD_INTENSITIES[use]?.[4] ||
-                               STANDARD_INTENSITIES.office[4];
+      standardIntensity = STANDARD_INTENSITIES[use]?.[zone] || 
+                         STANDARD_INTENSITIES[use]?.[4] ||
+                         STANDARD_INTENSITIES.office[4];
       
       standardPrimaryEnergy = standardIntensity.total * building_area_m2;
       useInfo = `${BUILDING_TYPES[use] || use} (${zone}地域)`;
@@ -187,7 +188,7 @@ export function mockBEICalculation(requestData) {
       bei_round_digits: 3,
       notes: [
         "GitHub Pages モック計算による概算値です",
-        `基準エネルギー消費量: ${standardIntensity.total} MJ/m²年`,
+        `基準エネルギー消費量: ${standardPrimaryEnergy / building_area_m2} MJ/m²年`,
         "実際の計算はローカルサーバーでより詳細に行われます"
       ]
     };

@@ -89,19 +89,35 @@ export default function ComplianceReport({ result, formData, onDownload, onDownl
         <head>
           <title>BEI計算書</title>
           <style>
-            body { font-family: 'MS PGothic', monospace; font-size: 12px; margin: 20px; }
+            body { font-family: 'MS PGothic', 'Yu Gothic', sans-serif; font-size: 12px; margin: 20px; line-height: 1.4; }
             table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-            th, td { border: 1px solid black; padding: 8px; }
-            th { background-color: #f0f0f0; }
+            th, td { border: 1px solid black; padding: 8px; vertical-align: top; }
+            th { background-color: #f0f0f0; font-weight: bold; }
             .center { text-align: center; }
             .right { text-align: right; }
             .bold { font-weight: bold; }
-            .green-bg { background-color: #f0fff0; }
-            .red-bg { background-color: #fff0f0; }
-            .yellow-bg { background-color: #fffff0; }
+            .bg-green-50 { background-color: #f0fff0; }
+            .bg-red-50 { background-color: #fff0f0; }
+            .bg-yellow-50 { background-color: #fffff0; }
+            .bg-gray-50 { background-color: #f9f9f9; }
+            .bg-gray-100 { background-color: #f0f0f0; }
+            .text-lg { font-size: 14px; }
+            .text-xl { font-size: 16px; }
+            .font-bold { font-weight: bold; }
+            .mb-2 { margin-bottom: 8px; }
+            .mb-3 { margin-bottom: 12px; }
+            .mb-6 { margin-bottom: 24px; }
+            .mt-4 { margin-top: 16px; }
+            .p-3 { padding: 12px; }
+            .border { border: 1px solid #ccc; }
+            .rounded { border-radius: 4px; }
+            .space-y-1 > * + * { margin-top: 4px; }
+            .no-print { display: none !important; }
             @media print {
               body { margin: 0; }
-              .no-print { display: none; }
+              .no-print { display: none !important; }
+              table { page-break-inside: avoid; }
+              h1, h2, h3 { page-break-after: avoid; }
             }
           </style>
         </head>
@@ -165,11 +181,11 @@ export default function ComplianceReport({ result, formData, onDownload, onDownl
               </tr>
               <tr>
                 <td className="border border-black p-2 bg-gray-100 font-bold">延床面積</td>
-                <td className="border border-black p-2">{Number(formData.building_area_m2 || result.building_area_m2).toLocaleString()} m²</td>
+                <td className="border border-black p-2">{Number(formData.floor_area || result.building_area_m2).toLocaleString()} m²</td>
               </tr>
               <tr>
                 <td className="border border-black p-2 bg-gray-100 font-bold">再エネ控除</td>
-                <td className="border border-black p-2">{Number(formData.renewable_energy_deduction_mj || result.renewable_deduction_mj || 0).toLocaleString()} MJ/年</td>
+                <td className="border border-black p-2">{Number(formData.renewable_energy || result.renewable_deduction_mj || 0).toLocaleString()} MJ/年</td>
               </tr>
             </tbody>
           </table>
@@ -280,7 +296,7 @@ export default function ComplianceReport({ result, formData, onDownload, onDownl
           <div className="mt-4 bg-gray-50 p-3 rounded border text-sm">
             <p><strong>基準一次エネルギー消費量 = </strong></p>
             <p>基準エネルギー消費量原単位合計 × 延床面積</p>
-            <p>= {result.standard_energy_per_m2?.toFixed(2)} × {Number(formData.building_area_m2 || result.building_area_m2).toLocaleString()}</p>
+            <p>= {result.standard_energy_per_m2?.toFixed(2)} × {Number(formData.floor_area || result.building_area_m2).toLocaleString()}</p>
             <p>= <strong>{result.standard_primary_energy_mj?.toLocaleString()} MJ/年</strong></p>
           </div>
         </section>
