@@ -309,13 +309,39 @@ export default function BEICalculator() {
 
   return (
     <CalculatorLayout
-      title="BEI計算（モデル建物法）"
-      subtitle="建築物省エネ法対応 - Building Energy Index による省エネ基準適合性判定"
+      title="BEI計算"
+      subtitle="建築物省エネ法の省エネ基準適合性判定 - 初心者でも簡単に計算できます"
       icon={FaCalculator}
       backUrl="/tools"
       backText="計算ツール一覧に戻る"
     >
       <div className="max-w-6xl mx-auto">
+        {/* 初心者向けガイダンス */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
+          <div className="flex items-start space-x-3">
+            <div className="bg-blue-100 rounded-full p-2">
+              <FaLightbulb className="text-blue-600 text-lg" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-blue-900 mb-2">🔰 初めての方へ - BEI計算とは？</h3>
+              <div className="text-sm text-blue-800 space-y-2">
+                <p>
+                  <strong>BEI（Building Energy Index）</strong>は、建築物省エネ法で定められた「建物の省エネ性能を表す指標」です。
+                </p>
+                <div className="bg-white bg-opacity-50 rounded-lg p-3 space-y-1">
+                  <p><strong>✅ BEI ≤ 1.0</strong> → 省エネ基準適合（OK）</p>
+                  <p><strong>❌ BEI &gt; 1.0</strong> → 省エネ基準不適合（要改善）</p>
+                </div>
+                <p>
+                  <strong>🏢 こんな工事で必要：</strong>エレベーター設置・更新、照明更新、空調更新、給湯設備更新など
+                </p>
+                <p>
+                  <strong>📝 必要な情報：</strong>建物用途、地域、面積、年間エネルギー消費量（設計値）
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
         {/* ステップインジケーター */}
         <div className="mb-8">
           {formData.calculation_method === 'model_building' ? (
@@ -389,10 +415,10 @@ export default function BEICalculator() {
                 {/* 計算方法選択 */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    計算方法
+                    🤔 どちらの計算方法を使いますか？
                   </label>
                   <div className="space-y-3">
-                    <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <label className="flex items-start space-x-3 p-4 border-2 border-green-200 bg-green-50 rounded-lg cursor-pointer hover:bg-green-100">
                       <input
                         type="radio"
                         name="calculation_method"
@@ -405,15 +431,21 @@ export default function BEICalculator() {
                         className="mt-0.5"
                       />
                       <div>
-                        <div className="font-medium text-gray-900">モデル建物法</div>
-                        <div className="text-sm text-gray-600">
-                          国土交通省告示で定められた標準的な建物用途に基づく簡易計算。
-                          <strong className="text-green-600">外皮性能の入力不要</strong>で、
-                          設計一次エネルギー消費量のみで計算できます。
+                        <div className="font-semibold text-green-900 flex items-center space-x-2">
+                          <span>✅ モデル建物法</span>
+                          <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">推奨・簡単</span>
+                        </div>
+                        <div className="text-sm text-green-800 mt-1">
+                          <strong>👍 初心者にオススメ！</strong> 建物用途を選ぶだけの簡単計算
+                        </div>
+                        <div className="text-xs text-green-700 mt-2 space-y-1">
+                          <p>• <strong>入力簡単：</strong>建物用途、地域、面積、エネルギー消費量のみ</p>
+                          <p>• <strong>外皮不要：</strong>UA値・ηAC値などの複雑な外皮性能計算は不要</p>
+                          <p>• <strong>工事対応：</strong>エレベーター、照明、空調更新など幅広く対応</p>
                         </div>
                       </div>
                     </label>
-                    <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 opacity-50">
+                    <label className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg cursor-not-allowed opacity-50">
                       <input
                         type="radio"
                         name="calculation_method"
@@ -427,13 +459,25 @@ export default function BEICalculator() {
                         disabled
                       />
                       <div>
-                        <div className="font-medium text-gray-900">標準入力法 <span className="text-sm text-gray-500">(未実装)</span></div>
-                        <div className="text-sm text-gray-600">
-                          詳細な外皮性能（UA値・ηAC値）と設備仕様による詳細計算。
-                          より正確な省エネ性能評価が可能。
+                        <div className="font-medium text-gray-900 flex items-center space-x-2">
+                          <span>📊 標準入力法</span>
+                          <span className="bg-gray-400 text-white text-xs px-2 py-1 rounded-full">未実装</span>
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          外皮性能の詳細計算が必要な上級者向け計算（将来実装予定）
+                        </div>
+                        <div className="text-xs text-gray-500 mt-2">
+                          • UA値・ηAC値・壁や窓の詳細仕様が必要
                         </div>
                       </div>
                     </label>
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="text-sm text-blue-800">
+                      <strong>💡 迷ったら「モデル建物法」を選択！</strong>
+                      ほとんどの工事でこちらで十分です。
+                    </div>
                   </div>
                 </div>
 
@@ -821,10 +865,23 @@ export default function BEICalculator() {
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                   <div className="flex items-start space-x-2">
                     <FaLightbulb className="text-green-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-green-800">
-                      <strong>設計値入力：</strong>
-                      設計した建物の年間エネルギー消費量を用途別に入力してください。
-                      単位はMJ/年です。省エネ計算書やエネルギーシミュレーション結果を参考にしてください。
+                    <div className="text-sm text-green-800 space-y-2">
+                      <p>
+                        <strong>📊 設計エネルギー消費量の入力</strong>
+                      </p>
+                      <p>
+                        設計・計画している建物の<strong>年間エネルギー消費量</strong>を用途別に入力してください。
+                      </p>
+                      <div className="bg-white bg-opacity-60 rounded p-3 text-xs space-y-1">
+                        <p><strong>💡 数値の探し方：</strong></p>
+                        <p>• <strong>省エネ計算書</strong>の「設計一次エネルギー消費量」欄</p>
+                        <p>• <strong>エネルギーシミュレーション</strong>の結果</p>
+                        <p>• <strong>設備設計図書</strong>の年間消費量計算</p>
+                        <p>• <strong>既存建物</strong>の場合：過去の実績値 + 改修効果</p>
+                      </div>
+                      <p className="text-green-700">
+                        <strong>⚠️ 単位注意：</strong>すべて <strong>MJ/年</strong> で入力してください
+                      </p>
                     </div>
                   </div>
                 </div>
