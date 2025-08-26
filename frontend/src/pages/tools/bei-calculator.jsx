@@ -12,6 +12,7 @@ import { beiAPI } from '../../utils/api';
 
 export default function BEICalculator() {
   const [formData, setFormData] = useState({
+    calculation_method: 'model_building', // 'model_building' or 'standard_input'
     building_type: '',
     climate_zone: '',
     floor_area: '',
@@ -176,7 +177,7 @@ export default function BEICalculator() {
       };
       
       setResult(normalizedResult);
-      setCurrentStep(5);
+      setCurrentStep(formData.calculation_method === 'model_building' ? 4 : 5);
     } catch (error) {
       console.error('BEI計算エラー:', error);
       setValidationErrors({ api: `BEI計算中にエラーが発生しました: ${error.message || '入力内容を確認してください'}` });
@@ -317,31 +318,64 @@ export default function BEICalculator() {
       <div className="max-w-6xl mx-auto">
         {/* ステップインジケーター */}
         <div className="mb-8">
-          <div className="flex items-center justify-between max-w-md mx-auto">
-            {[1, 2, 3, 4, 5].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  currentStep >= step 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-600'
-                }`}>
-                  {currentStep > step ? <FaCheckCircle /> : step}
-                </div>
-                {step < 5 && (
-                  <div className={`w-12 h-0.5 ${
-                    currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
-                  }`} />
-                )}
+          {formData.calculation_method === 'model_building' ? (
+            // モデル建物法（4ステップ）
+            <>
+              <div className="flex items-center justify-between max-w-lg mx-auto">
+                {[1, 2, 3, 4].map((step) => (
+                  <div key={step} className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                      currentStep >= step 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {currentStep > step ? <FaCheckCircle /> : step}
+                    </div>
+                    {step < 4 && (
+                      <div className={`w-16 h-0.5 ${
+                        currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
+                      }`} />
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="flex justify-between max-w-md mx-auto mt-2 text-xs text-gray-600">
-            <span>基本情報</span>
-            <span>外皮性能</span>
-            <span>設計値</span>
-            <span>再エネ</span>
-            <span>結果</span>
-          </div>
+              <div className="flex justify-between max-w-lg mx-auto mt-2 text-xs text-gray-600">
+                <span>基本情報</span>
+                <span>設計値</span>
+                <span>再エネ</span>
+                <span>結果</span>
+              </div>
+            </>
+          ) : (
+            // 標準入力法（5ステップ）
+            <>
+              <div className="flex items-center justify-between max-w-md mx-auto">
+                {[1, 2, 3, 4, 5].map((step) => (
+                  <div key={step} className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                      currentStep >= step 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {currentStep > step ? <FaCheckCircle /> : step}
+                    </div>
+                    {step < 5 && (
+                      <div className={`w-12 h-0.5 ${
+                        currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
+                      }`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between max-w-md mx-auto mt-2 text-xs text-gray-600">
+                <span>基本情報</span>
+                <span>外皮性能</span>
+                <span>設計値</span>
+                <span>再エネ</span>
+                <span>結果</span>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
@@ -352,14 +386,66 @@ export default function BEICalculator() {
                 title="ステップ1: 建物基本情報"
                 icon={FaBuilding}
               >
+                {/* 計算方法選択 */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    計算方法
+                  </label>
+                  <div className="space-y-3">
+                    <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="calculation_method"
+                        value="model_building"
+                        checked={formData.calculation_method === 'model_building'}
+                        onChange={(e) => {
+                          setFormData({...formData, calculation_method: e.target.value});
+                          setValidationErrors({});
+                        }}
+                        className="mt-0.5"
+                      />
+                      <div>
+                        <div className="font-medium text-gray-900">モデル建物法</div>
+                        <div className="text-sm text-gray-600">
+                          国土交通省告示で定められた標準的な建物用途に基づく簡易計算。
+                          <strong className="text-green-600">外皮性能の入力不要</strong>で、
+                          設計一次エネルギー消費量のみで計算できます。
+                        </div>
+                      </div>
+                    </label>
+                    <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 opacity-50">
+                      <input
+                        type="radio"
+                        name="calculation_method"
+                        value="standard_input"
+                        checked={formData.calculation_method === 'standard_input'}
+                        onChange={(e) => {
+                          setFormData({...formData, calculation_method: e.target.value});
+                          setValidationErrors({});
+                        }}
+                        className="mt-0.5"
+                        disabled
+                      />
+                      <div>
+                        <div className="font-medium text-gray-900">標準入力法 <span className="text-sm text-gray-500">(未実装)</span></div>
+                        <div className="text-sm text-gray-600">
+                          詳細な外皮性能（UA値・ηAC値）と設備仕様による詳細計算。
+                          より正確な省エネ性能評価が可能。
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
                 {/* ガイダンス */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                   <div className="flex items-start space-x-2">
                     <FaLightbulb className="text-blue-600 mt-0.5 flex-shrink-0" />
                     <div className="text-sm text-blue-800">
                       <strong>モデル建物法について：</strong>
-                      国土交通省告示で定められた標準的な建物用途と地域区分に基づいて
-                      省エネ性能を評価する方法です。まずは建物の基本情報を入力してください。
+                      建物用途と地域区分、設計一次エネルギー消費量のみで計算します。
+                      外皮性能（UA値・ηAC値）の入力は不要です。
+                      EVのみの工事など、外皮に関わらない工事でも対応できます。
                     </div>
                   </div>
                 </div>
@@ -586,7 +672,7 @@ export default function BEICalculator() {
                       }}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
                     >
-                      <span>次へ：外皮性能入力</span>
+                      <span>次へ：{formData.calculation_method === 'model_building' ? '設計エネルギー値入力' : '外皮性能入力'}</span>
                       <FaArrowRight />
                     </button>
                   </div>
@@ -594,8 +680,8 @@ export default function BEICalculator() {
               </FormSection>
             )}
 
-            {/* ステップ2: 外皮性能 */}
-            {currentStep >= 2 && (
+            {/* ステップ2: 外皮性能（標準入力法のみ） */}
+            {currentStep >= 2 && formData.calculation_method === 'standard_input' && (
               <FormSection
                 title="ステップ2: 外皮性能"
                 icon={FaBuilding}
@@ -726,9 +812,9 @@ export default function BEICalculator() {
             )}
 
             {/* ステップ3: 設計エネルギー値 */}
-            {currentStep >= 3 && (
+            {currentStep >= (formData.calculation_method === 'model_building' ? 2 : 3) && (
               <FormSection
-                title="ステップ3: 設計一次エネルギー消費量"
+                title={formData.calculation_method === 'model_building' ? "ステップ2: 設計一次エネルギー消費量" : "ステップ3: 設計一次エネルギー消費量"}
                 icon={FaChartLine}
               >
                 {/* ガイダンス */}
@@ -788,11 +874,11 @@ export default function BEICalculator() {
                 </div>
 
                 {/* ナビゲーションボタン */}
-                {currentStep === 3 && (
+                {currentStep === (formData.calculation_method === 'model_building' ? 2 : 3) && (
                   <div className="flex justify-between pt-4">
                     <button
                       type="button"
-                      onClick={() => setCurrentStep(2)}
+                      onClick={() => setCurrentStep(1)}
                       className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
                     >
                       戻る
@@ -801,7 +887,7 @@ export default function BEICalculator() {
                       type="button"
                       onClick={() => {
                         if (validateStep3()) {
-                          setCurrentStep(4);
+                          setCurrentStep(formData.calculation_method === 'model_building' ? 3 : 4);
                         }
                       }}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
@@ -814,10 +900,10 @@ export default function BEICalculator() {
               </FormSection>
             )}
 
-            {/* ステップ4: 再エネ控除 */}
-            {currentStep >= 4 && (
+            {/* ステップ3/4: 再エネ控除 */}
+            {currentStep >= (formData.calculation_method === 'model_building' ? 3 : 4) && (
               <FormSection
-                title="ステップ4: 再生可能エネルギー控除"
+                title={formData.calculation_method === 'model_building' ? "ステップ3: 再生可能エネルギー控除" : "ステップ4: 再生可能エネルギー控除"}
                 icon={FaLightbulb}
               >
                 {/* ガイダンス */}
@@ -857,11 +943,11 @@ export default function BEICalculator() {
                 </div>
 
                 {/* ナビゲーションボタン */}
-                {currentStep === 4 && (
+                {currentStep === (formData.calculation_method === 'model_building' ? 3 : 4) && (
                   <div className="flex justify-between pt-4">
                     <button
                       type="button"
-                      onClick={() => setCurrentStep(3)}
+                      onClick={() => setCurrentStep(formData.calculation_method === 'model_building' ? 2 : 3)}
                       className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
                     >
                       戻る
