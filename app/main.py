@@ -27,7 +27,7 @@ async def health_check():
     return {"status": "ok", "service": settings.app_name}
 
 # Include API routes
-app.include_router(v1_router, prefix="/v1", tags=["Energy Calculations"])
+app.include_router(v1_router, prefix="/api/v1", tags=["Energy Calculations"])
 
 if __name__ == "__main__":
     import uvicorn

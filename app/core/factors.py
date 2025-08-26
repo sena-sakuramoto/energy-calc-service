@@ -31,6 +31,10 @@ PRIMARY_ENERGY_FACTORS: Dict[str, float] = {
     # Biomass
     "kg_wood": 14.4,
     "m3_wood": 10.8,
+    
+    # Already primary energy
+    "MJ": 1.0,  # MJ is already primary energy
+    "GJ": 1000.0,  # GJ to MJ conversion
 }
 
 

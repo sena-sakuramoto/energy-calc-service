@@ -88,21 +88,35 @@ export default function BEICalculator() {
       const apiData = {
         building_area_m2: parseFloat(formData.floor_area),
         use: formData.building_type,
-        zone: parseInt(formData.climate_zone),
+        zone: formData.climate_zone.toString(), // 文字列として送信
         renewable_energy_deduction_mj: parseFloat(formData.renewable_energy) || 0,
         design_energy: Object.entries(formData.design_energy).map(([category, value]) => ({
           category,
           value: parseFloat(value),
-          unit: 'kWh'
+          unit: 'MJ' // MJとして送信
         }))
       };
 
       const response = await beiAPI.evaluate(apiData);
-      setResult(response);
+      
+      // レスポンス形式を統一する
+      const normalizedResult = {
+        bei_value: response.bei,
+        compliance_status: response.is_compliant ? 'compliant' : 'non-compliant',
+        design_primary_energy_mj: response.design_primary_energy_mj,
+        standard_primary_energy_mj: response.standard_primary_energy_mj,
+        renewable_deduction_mj: response.renewable_deduction_mj,
+        building_area_m2: response.building_area_m2,
+        use_info: response.use_info,
+        design_energy_breakdown: response.design_energy_breakdown,
+        notes: response.notes || []
+      };
+      
+      setResult(normalizedResult);
       setCurrentStep(4);
     } catch (error) {
       console.error('BEI計算エラー:', error);
-      setValidationErrors({ api: 'BEI計算中にエラーが発生しました。入力内容を確認してください。' });
+      setValidationErrors({ api: `BEI計算中にエラーが発生しました: ${error.message || '入力内容を確認してください'}` });
     } finally {
       setIsLoading(false);
     }
@@ -527,7 +541,7 @@ export default function BEICalculator() {
                 <div className="text-center mb-6">
                   <div className="text-4xl font-bold mb-2">
                     <span className={result.compliance_status === 'compliant' ? 'text-green-600' : 'text-red-600'}>
-                      {result.bei_value}
+                      {typeof result.bei_value === 'number' ? result.bei_value.toFixed(3) : result.bei_value}
                     </span>
                   </div>
                   <div className="text-sm text-gray-600 mb-4">BEI値 (Building Energy Index)</div>

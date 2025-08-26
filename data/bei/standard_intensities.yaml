@@ -1,15 +1,78 @@
 uses:
   office:
     zones:
-      "6":
-        lighting: 58
-        cooling: 119
-        heating: 35
-        ventilation: 45
-        hot_water: 12
+      "1":
+        lighting: 70
+        cooling: 25
+        heating: 90
+        ventilation: 28
+        hot_water: 3
         outlet_and_others: 105
-        elevator: 46
-        total_MJ_per_m2_year: 420
+        elevator: 14
+        total_MJ_per_m2_year: 335
+      "2":
+        lighting: 70
+        cooling: 26
+        heating: 76
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 322
+      "3":
+        lighting: 70
+        cooling: 33
+        heating: 58
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 311
+      "4":
+        lighting: 70
+        cooling: 38
+        heating: 44
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 302
+      "5":
+        lighting: 70
+        cooling: 41
+        heating: 41
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 302
+      "6":
+        lighting: 70
+        cooling: 44
+        heating: 32
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 296
+      "7":
+        lighting: 70
+        cooling: 48
+        heating: 27
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 295
+      "8":
+        lighting: 70
+        cooling: 51
+        heating: 14
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 285
   hotel:
     zones:
       "6":
