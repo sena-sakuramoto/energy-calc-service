@@ -15,9 +15,11 @@ export default function BEICalculator() {
     building_type: '',
     climate_zone: '',
     floor_area: '',
-    uses: [{
+    is_mixed_use: false,
+    mixed_uses: [{
       use_type: '',
-      floor_area_ratio: 100
+      area_m2: '',
+      area_share: ''
     }],
     design_energy: {
       heating: '',
@@ -44,14 +46,42 @@ export default function BEICalculator() {
   const validateStep1 = () => {
     const errors = {};
     
-    if (!formData.building_type) {
-      errors.building_type = '建物用途を選択してください';
-    }
-    if (!formData.climate_zone) {
-      errors.climate_zone = '地域区分を選択してください';
-    }
-    if (!formData.floor_area || parseFloat(formData.floor_area) <= 0) {
-      errors.floor_area = '延床面積を正しく入力してください（正の数値）';
+    if (formData.is_mixed_use) {
+      // 複合用途の場合
+      if (!formData.climate_zone) {
+        errors.climate_zone = '地域区分を選択してください';
+      }
+      if (!formData.floor_area || parseFloat(formData.floor_area) <= 0) {
+        errors.floor_area = '延床面積を正しく入力してください（正の数値）';
+      }
+      
+      // 複合用途の検証
+      formData.mixed_uses.forEach((use, index) => {
+        if (!use.use_type) {
+          errors[`mixed_use_${index}_type`] = `用途${index + 1}を選択してください`;
+        }
+        if (!use.area_m2 || parseFloat(use.area_m2) <= 0) {
+          errors[`mixed_use_${index}_area`] = `面積${index + 1}を正しく入力してください`;
+        }
+      });
+      
+      // 面積の合計チェック
+      const totalArea = formData.mixed_uses.reduce((sum, use) => sum + (parseFloat(use.area_m2) || 0), 0);
+      const buildingArea = parseFloat(formData.floor_area) || 0;
+      if (Math.abs(totalArea - buildingArea) > 1) {
+        errors.mixed_use_total = `用途別面積の合計(${totalArea}m²)が延床面積(${buildingArea}m²)と一致しません`;
+      }
+    } else {
+      // 単一用途の場合
+      if (!formData.building_type) {
+        errors.building_type = '建物用途を選択してください';
+      }
+      if (!formData.climate_zone) {
+        errors.climate_zone = '地域区分を選択してください';
+      }
+      if (!formData.floor_area || parseFloat(formData.floor_area) <= 0) {
+        errors.floor_area = '延床面積を正しく入力してください（正の数値）';
+      }
     }
     
     setValidationErrors(errors);
@@ -109,15 +139,26 @@ export default function BEICalculator() {
       // APIに送信するデータを準備
       const apiData = {
         building_area_m2: parseFloat(formData.floor_area),
-        use: formData.building_type,
-        zone: formData.climate_zone.toString(), // 文字列として送信
         renewable_energy_deduction_mj: parseFloat(formData.renewable_energy) || 0,
         design_energy: Object.entries(formData.design_energy).map(([category, value]) => ({
           category,
           value: parseFloat(value),
-          unit: 'MJ' // MJとして送信
+          unit: 'MJ'
         }))
       };
+
+      if (formData.is_mixed_use) {
+        // 複合用途の場合
+        apiData.usage_mix = formData.mixed_uses.map(use => ({
+          use: use.use_type,
+          zone: formData.climate_zone.toString(),
+          area_m2: parseFloat(use.area_m2)
+        }));
+      } else {
+        // 単一用途の場合
+        apiData.use = formData.building_type;
+        apiData.zone = formData.climate_zone.toString();
+      }
 
       const response = await beiAPI.evaluate(apiData);
       
@@ -323,17 +364,166 @@ export default function BEICalculator() {
                   </div>
                 </div>
 
-                {/* 建物用途選択 */}
-                <BuildingTypeSelector
-                  value={formData.building_type}
-                  onChange={(value) => {
-                    setFormData({...formData, building_type: value});
-                    setValidationErrors({...validationErrors, building_type: ''});
-                  }}
-                  className={validationErrors.building_type ? 'border-red-500' : ''}
-                />
-                {validationErrors.building_type && (
-                  <p className="text-red-600 text-sm mt-1">{validationErrors.building_type}</p>
+                {/* 建物用途タイプ選択 */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    建物の用途構成
+                  </label>
+                  <div className="flex space-x-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="use_type"
+                        checked={!formData.is_mixed_use}
+                        onChange={() => {
+                          setFormData({...formData, is_mixed_use: false, building_type: '', mixed_uses: [{use_type: '', area_m2: '', area_share: ''}]});
+                          setValidationErrors({});
+                        }}
+                        className="mr-2"
+                      />
+                      <span>単一用途</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="use_type"
+                        checked={formData.is_mixed_use}
+                        onChange={() => {
+                          setFormData({...formData, is_mixed_use: true, building_type: '', mixed_uses: [{use_type: '', area_m2: '', area_share: ''}]});
+                          setValidationErrors({});
+                        }}
+                        className="mr-2"
+                      />
+                      <span>複合用途</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 単一用途の場合 */}
+                {!formData.is_mixed_use && (
+                  <>
+                    <BuildingTypeSelector
+                      value={formData.building_type}
+                      onChange={(value) => {
+                        setFormData({...formData, building_type: value});
+                        setValidationErrors({...validationErrors, building_type: ''});
+                      }}
+                      className={validationErrors.building_type ? 'border-red-500' : ''}
+                    />
+                    {validationErrors.building_type && (
+                      <p className="text-red-600 text-sm mt-1">{validationErrors.building_type}</p>
+                    )}
+                  </>
+                )}
+
+                {/* 複合用途の場合 */}
+                {formData.is_mixed_use && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-sm font-medium text-gray-700">
+                        用途別構成
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            mixed_uses: [...formData.mixed_uses, {use_type: '', area_m2: '', area_share: ''}]
+                          });
+                        }}
+                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      >
+                        + 用途を追加
+                      </button>
+                    </div>
+                    
+                    {formData.mixed_uses.map((use, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-gray-900">用途 {index + 1}</h4>
+                          {formData.mixed_uses.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newUses = formData.mixed_uses.filter((_, i) => i !== index);
+                                setFormData({...formData, mixed_uses: newUses});
+                              }}
+                              className="text-red-600 hover:text-red-700 text-sm"
+                            >
+                              削除
+                            </button>
+                          )}
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            建物用途
+                          </label>
+                          <BuildingTypeSelector
+                            value={use.use_type}
+                            onChange={(value) => {
+                              const newUses = [...formData.mixed_uses];
+                              newUses[index].use_type = value;
+                              setFormData({...formData, mixed_uses: newUses});
+                              setValidationErrors({...validationErrors, [`mixed_use_${index}_type`]: ''});
+                            }}
+                            className={validationErrors[`mixed_use_${index}_type`] ? 'border-red-500' : ''}
+                            compact={true}
+                          />
+                          {validationErrors[`mixed_use_${index}_type`] && (
+                            <p className="text-red-600 text-sm mt-1">{validationErrors[`mixed_use_${index}_type`]}</p>
+                          )}
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            面積 (m²)
+                          </label>
+                          <input
+                            type="number"
+                            value={use.area_m2}
+                            onChange={(e) => {
+                              const newUses = [...formData.mixed_uses];
+                              newUses[index].area_m2 = e.target.value;
+                              // 面積割合も自動計算
+                              if (formData.floor_area) {
+                                newUses[index].area_share = (parseFloat(e.target.value) / parseFloat(formData.floor_area) * 100).toFixed(1);
+                              }
+                              setFormData({...formData, mixed_uses: newUses});
+                              setValidationErrors({...validationErrors, [`mixed_use_${index}_area`]: ''});
+                            }}
+                            className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                              validationErrors[`mixed_use_${index}_area`] ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                            placeholder="例: 500"
+                            min="0"
+                            step="0.1"
+                          />
+                          {validationErrors[`mixed_use_${index}_area`] && (
+                            <p className="text-red-600 text-sm mt-1">{validationErrors[`mixed_use_${index}_area`]}</p>
+                          )}
+                          {use.area_share && (
+                            <p className="text-gray-600 text-xs mt-1">
+                              全体に占める割合: {use.area_share}%
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {validationErrors.mixed_use_total && (
+                      <p className="text-red-600 text-sm">{validationErrors.mixed_use_total}</p>
+                    )}
+                    
+                    {/* 合計面積表示 */}
+                    {formData.mixed_uses.some(use => use.area_m2) && (
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <div className="text-sm text-gray-700">
+                          <strong>用途別面積の合計:</strong> {formData.mixed_uses.reduce((sum, use) => sum + (parseFloat(use.area_m2) || 0), 0).toLocaleString()} m²
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {/* 地域区分選択 */}

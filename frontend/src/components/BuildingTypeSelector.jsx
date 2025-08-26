@@ -174,10 +174,30 @@ const BUILDING_TYPES = [
   }
 ];
 
-export default function BuildingTypeSelector({ value, onChange, className = "" }) {
+export default function BuildingTypeSelector({ value, onChange, className = "", compact = false }) {
   const [showDetails, setShowDetails] = useState(false);
   
   const selectedType = BUILDING_TYPES.find(type => type.id === value);
+
+  // コンパクトモードの場合は簡易表示
+  if (compact) {
+    return (
+      <div className={className}>
+        <select
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white text-sm"
+        >
+          <option value="">選択してください</option>
+          {BUILDING_TYPES.map((type) => (
+            <option key={type.id} value={type.id}>
+              {type.name}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
 
   return (
     <div className={`space-y-4 ${className}`}>

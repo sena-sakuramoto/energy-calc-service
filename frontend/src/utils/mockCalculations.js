@@ -105,6 +105,7 @@ export function mockBEICalculation(requestData) {
       building_area_m2,
       use,
       zone,
+      usage_mix,
       renewable_energy_deduction_mj = 0,
       design_energy
     } = requestData;
@@ -130,11 +131,41 @@ export function mockBEICalculation(requestData) {
     designPrimaryEnergy -= renewable_energy_deduction_mj;
 
     // 基準一次エネルギー消費量計算
-    const standardIntensity = STANDARD_INTENSITIES[use]?.[zone] || 
-                             STANDARD_INTENSITIES[use]?.[4] ||
-                             STANDARD_INTENSITIES.office[4];
+    let standardPrimaryEnergy = 0;
+    let useInfo = '';
     
-    const standardPrimaryEnergy = standardIntensity.total * building_area_m2;
+    if (usage_mix) {
+      // 複合用途の場合
+      let totalWeightedIntensity = 0;
+      let useDetails = [];
+      
+      for (const mix of usage_mix) {
+        const intensity = STANDARD_INTENSITIES[mix.use]?.[mix.zone] || 
+                         STANDARD_INTENSITIES[mix.use]?.[4] ||
+                         STANDARD_INTENSITIES.office[4];
+        
+        const weightedIntensity = intensity.total * mix.area_m2;
+        totalWeightedIntensity += weightedIntensity;
+        
+        useDetails.push({
+          use: mix.use,
+          zone: mix.zone,
+          area_m2: mix.area_m2,
+          intensity: intensity.total
+        });
+      }
+      
+      standardPrimaryEnergy = totalWeightedIntensity;
+      useInfo = `複合用途建物 (${usage_mix.length}用途)`;
+    } else {
+      // 単一用途の場合
+      const standardIntensity = STANDARD_INTENSITIES[use]?.[zone] || 
+                               STANDARD_INTENSITIES[use]?.[4] ||
+                               STANDARD_INTENSITIES.office[4];
+      
+      standardPrimaryEnergy = standardIntensity.total * building_area_m2;
+      useInfo = `${BUILDING_TYPES[use] || use} (${zone}地域)`;
+    }
 
     // BEI計算
     const bei = (designPrimaryEnergy / standardPrimaryEnergy);
@@ -147,11 +178,11 @@ export function mockBEICalculation(requestData) {
       standard_primary_energy_mj: standardPrimaryEnergy,
       renewable_deduction_mj: renewable_energy_deduction_mj,
       design_energy_per_m2: designPrimaryEnergy / building_area_m2,
-      standard_energy_per_m2: standardIntensity.total,
+      standard_energy_per_m2: standardPrimaryEnergy / building_area_m2,
       building_area_m2: building_area_m2,
-      use_info: `${BUILDING_TYPES[use] || use} (${zone}地域)`,
+      use_info: useInfo,
       design_energy_breakdown: designEnergyBreakdown,
-      standard_intensity_source: `モックデータ ${use}, ${zone}地域`,
+      standard_intensity_source: usage_mix ? `複合用途モックデータ` : `モックデータ ${use}, ${zone}地域`,
       compliance_threshold: 1.0,
       bei_round_digits: 3,
       notes: [
