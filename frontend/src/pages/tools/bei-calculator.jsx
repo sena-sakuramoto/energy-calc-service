@@ -27,6 +27,11 @@ export default function BEICalculator() {
       lighting: '',
       elevator: ''
     },
+    envelope_performance: {
+      ua_value: '',
+      eta_ac_value: '',
+      perimeter_annual_load: ''
+    },
     renewable_energy: ''
   });
   const [currentStep, setCurrentStep] = useState(1);
@@ -55,6 +60,23 @@ export default function BEICalculator() {
 
   const validateStep2 = () => {
     const errors = {};
+    
+    // UA値の検証（住宅・非住宅共通）
+    if (formData.envelope_performance.ua_value && parseFloat(formData.envelope_performance.ua_value) <= 0) {
+      errors.ua_value = 'UA値は正の数値を入力してください';
+    }
+    
+    // ηAC値の検証（住宅のみ）
+    if (formData.building_type === 'residential_collective' && formData.envelope_performance.eta_ac_value && parseFloat(formData.envelope_performance.eta_ac_value) <= 0) {
+      errors.eta_ac_value = 'ηAC値は正の数値を入力してください';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateStep3 = () => {
+    const errors = {};
     const requiredFields = ['heating', 'cooling', 'ventilation', 'hot_water', 'lighting', 'elevator'];
     
     requiredFields.forEach(field => {
@@ -80,7 +102,7 @@ export default function BEICalculator() {
   };
 
   const handleCalculate = async () => {
-    if (!validateStep2()) return;
+    if (!validateStep3()) return;
 
     setIsLoading(true);
     try {
@@ -113,7 +135,7 @@ export default function BEICalculator() {
       };
       
       setResult(normalizedResult);
-      setCurrentStep(4);
+      setCurrentStep(5);
     } catch (error) {
       console.error('BEI計算エラー:', error);
       setValidationErrors({ api: `BEI計算中にエラーが発生しました: ${error.message || '入力内容を確認してください'}` });
@@ -179,6 +201,36 @@ export default function BEICalculator() {
     return '0.80';
   };
 
+  // UA値基準値を取得
+  const getUAValueStandard = (climateZone) => {
+    const standards = {
+      1: '0.46',
+      2: '0.46', 
+      3: '0.56',
+      4: '0.75',
+      5: '0.87',
+      6: '0.87',
+      7: '0.87',
+      8: '0.87'
+    };
+    return standards[parseInt(climateZone)] || '0.87';
+  };
+
+  // ηAC値基準値を取得
+  const getEtaACValueStandard = (climateZone) => {
+    const standards = {
+      1: '4.6',
+      2: '4.6', 
+      3: '3.5',
+      4: '3.2',
+      5: '3.2',
+      6: '2.8',
+      7: '2.7',
+      8: '6.7'
+    };
+    return standards[parseInt(climateZone)] || '2.8';
+  };
+
   const downloadResults = () => {
     if (!result) return;
     
@@ -225,7 +277,7 @@ export default function BEICalculator() {
         {/* ステップインジケーター */}
         <div className="mb-8">
           <div className="flex items-center justify-between max-w-md mx-auto">
-            {[1, 2, 3, 4].map((step) => (
+            {[1, 2, 3, 4, 5].map((step) => (
               <div key={step} className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   currentStep >= step 
@@ -234,7 +286,7 @@ export default function BEICalculator() {
                 }`}>
                   {currentStep > step ? <FaCheckCircle /> : step}
                 </div>
-                {step < 4 && (
+                {step < 5 && (
                   <div className={`w-12 h-0.5 ${
                     currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
                   }`} />
@@ -244,6 +296,7 @@ export default function BEICalculator() {
           </div>
           <div className="flex justify-between max-w-md mx-auto mt-2 text-xs text-gray-600">
             <span>基本情報</span>
+            <span>外皮性能</span>
             <span>設計値</span>
             <span>再エネ</span>
             <span>結果</span>
@@ -343,6 +396,137 @@ export default function BEICalculator() {
                       }}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
                     >
+                      <span>次へ：外皮性能入力</span>
+                      <FaArrowRight />
+                    </button>
+                  </div>
+                )}
+              </FormSection>
+            )}
+
+            {/* ステップ2: 外皮性能 */}
+            {currentStep >= 2 && (
+              <FormSection
+                title="ステップ2: 外皮性能"
+                icon={FaBuilding}
+              >
+                {/* ガイダンス */}
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start space-x-2">
+                    <FaLightbulb className="text-orange-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-orange-800">
+                      <strong>外皮性能について：</strong>
+                      建物の断熱・遮熱性能を表す指標です。建物の用途に応じて必要な項目を入力してください。
+                      これらの値は外皮計算書または設計図書から確認できます。
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* UA値 */}
+                  <div>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        UA値（外皮平均熱貫流率） [W/(m²·K)]
+                      </label>
+                      <HelpTooltip title="UA値とは？">
+                        建物の外皮（屋根、外壁、窓等）の熱の通しやすさの平均値です。
+                        値が小さいほど断熱性能が良好です。省エネ基準では地域ごとに基準値が設定されています。
+                      </HelpTooltip>
+                    </div>
+                    <input
+                      type="number"
+                      value={formData.envelope_performance.ua_value}
+                      onChange={(e) => {
+                        setFormData({
+                          ...formData,
+                          envelope_performance: {
+                            ...formData.envelope_performance,
+                            ua_value: e.target.value
+                          }
+                        });
+                        setValidationErrors({...validationErrors, ua_value: ''});
+                      }}
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        validationErrors.ua_value ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="例: 0.60"
+                      min="0"
+                      step="0.01"
+                    />
+                    {validationErrors.ua_value && (
+                      <p className="text-red-600 text-sm mt-1">{validationErrors.ua_value}</p>
+                    )}
+                    {formData.climate_zone && (
+                      <p className="text-gray-600 text-sm mt-1">
+                        {formData.climate_zone}地域の基準値: {getUAValueStandard(formData.climate_zone)} W/(m²·K)以下
+                      </p>
+                    )}
+                  </div>
+
+                  {/* ηAC値（住宅のみ） */}
+                  {formData.building_type === 'residential_collective' && (
+                    <div>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          ηAC値（平均日射熱取得率） [-]
+                        </label>
+                        <HelpTooltip title="ηAC値とは？">
+                          冷房期において、建物の外皮が日射をどの程度室内に取得するかを表す指標です。
+                          値が小さいほど遮熱性能が良好です。主に窓の性能に大きく依存します。
+                        </HelpTooltip>
+                      </div>
+                      <input
+                        type="number"
+                        value={formData.envelope_performance.eta_ac_value}
+                        onChange={(e) => {
+                          setFormData({
+                            ...formData,
+                            envelope_performance: {
+                              ...formData.envelope_performance,
+                              eta_ac_value: e.target.value
+                            }
+                          });
+                          setValidationErrors({...validationErrors, eta_ac_value: ''});
+                        }}
+                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          validationErrors.eta_ac_value ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="例: 2.8"
+                        min="0"
+                        step="0.1"
+                      />
+                      {validationErrors.eta_ac_value && (
+                        <p className="text-red-600 text-sm mt-1">{validationErrors.eta_ac_value}</p>
+                      )}
+                      {formData.climate_zone && (
+                        <p className="text-gray-600 text-sm mt-1">
+                          {formData.climate_zone}地域の基準値: {getEtaACValueStandard(formData.climate_zone)}以下
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* ナビゲーションボタン */}
+                {currentStep === 2 && (
+                  <div className="flex justify-between pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(1)}
+                      className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                    >
+                      戻る
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (validateStep2()) {
+                          setCurrentStep(3);
+                        }
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
+                    >
                       <span>次へ：設計エネルギー値入力</span>
                       <FaArrowRight />
                     </button>
@@ -351,10 +535,10 @@ export default function BEICalculator() {
               </FormSection>
             )}
 
-            {/* ステップ2: 設計エネルギー値 */}
-            {currentStep >= 2 && (
+            {/* ステップ3: 設計エネルギー値 */}
+            {currentStep >= 3 && (
               <FormSection
-                title="ステップ2: 設計一次エネルギー消費量"
+                title="ステップ3: 設計一次エネルギー消費量"
                 icon={FaChartLine}
               >
                 {/* ガイダンス */}
@@ -414,11 +598,11 @@ export default function BEICalculator() {
                 </div>
 
                 {/* ナビゲーションボタン */}
-                {currentStep === 2 && (
+                {currentStep === 3 && (
                   <div className="flex justify-between pt-4">
                     <button
                       type="button"
-                      onClick={() => setCurrentStep(1)}
+                      onClick={() => setCurrentStep(2)}
                       className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
                     >
                       戻る
@@ -426,8 +610,8 @@ export default function BEICalculator() {
                     <button
                       type="button"
                       onClick={() => {
-                        if (validateStep2()) {
-                          setCurrentStep(3);
+                        if (validateStep3()) {
+                          setCurrentStep(4);
                         }
                       }}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
@@ -440,10 +624,10 @@ export default function BEICalculator() {
               </FormSection>
             )}
 
-            {/* ステップ3: 再エネ控除 */}
-            {currentStep >= 3 && (
+            {/* ステップ4: 再エネ控除 */}
+            {currentStep >= 4 && (
               <FormSection
-                title="ステップ3: 再生可能エネルギー控除"
+                title="ステップ4: 再生可能エネルギー控除"
                 icon={FaLightbulb}
               >
                 {/* ガイダンス */}
@@ -483,11 +667,11 @@ export default function BEICalculator() {
                 </div>
 
                 {/* ナビゲーションボタン */}
-                {currentStep === 3 && (
+                {currentStep === 4 && (
                   <div className="flex justify-between pt-4">
                     <button
                       type="button"
-                      onClick={() => setCurrentStep(2)}
+                      onClick={() => setCurrentStep(3)}
                       className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
                     >
                       戻る

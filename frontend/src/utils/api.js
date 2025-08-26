@@ -1,6 +1,7 @@
 // frontend/src/utils/api.js
 // -*- coding: utf-8 -*-
 import axios from 'axios';
+import { mockBEICalculation, mockPowerCalculation, mockTariffCalculation } from './mockCalculations';
 
 // GitHub Pages用のモックモード検出
 const isGitHubPages = typeof window !== 'undefined' && 
@@ -8,7 +9,7 @@ const isGitHubPages = typeof window !== 'undefined' &&
 
 // 環境変数からAPIのベースURLを取得。NEXT_PUBLIC_ を接頭辞にすること。
 const API_BASE_URL = isGitHubPages ? 'https://mock-api.example.com/api/v1' : 
-  (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/v1');
+  (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1');
 
 console.log('API Config:', { API_BASE_URL, isGitHubPages, hostname: typeof window !== 'undefined' ? window.location.hostname : 'server' });
 
@@ -448,31 +449,16 @@ export const beiAPI = {
     if (isGitHubPages) {
       console.log("GitHub Pages mode: Using mock BEI evaluate");
       await new Promise(resolve => setTimeout(resolve, 1500));
-      return {
-        data: {
-          bei: 0.85,
-          is_compliant: true,
-          design_primary_energy_mj: 350000.0,
-          standard_primary_energy_mj: 420000.0,
-          renewable_deduction_mj: 0.0,
-          design_energy_per_m2: 350.0,
-          standard_energy_per_m2: 420.0,
-          building_area_m2: data.building_area_m2,
-          use_info: data.use ? `${data.use} (zone ${data.zone})` : "Mixed use building",
-          design_energy_breakdown: data.design_energy.map(item => ({
-            category: item.category,
-            value: item.value,
-            unit: item.unit || "kWh",
-            primary_factor: 9.76,
-            primary_energy_mj: item.value * 9.76
-          })),
-          standard_intensity_source: "Catalog data",
-          compliance_threshold: 1.0,
-          bei_round_digits: 3,
-          notes: []
-        },
-        status: 200
-      };
+      try {
+        const result = mockBEICalculation(data);
+        return { data: result, status: 200 };
+      } catch (error) {
+        return { 
+          data: null, 
+          status: 400, 
+          error: error.message 
+        };
+      }
     }
     return apiClient.post('/bei/evaluate', data);
   },
@@ -483,7 +469,11 @@ export const beiAPI = {
       console.log("GitHub Pages mode: Using mock BEI uses");
       await new Promise(resolve => setTimeout(resolve, 300));
       return {
-        data: { uses: ["office", "hotel", "retail", "school"] },
+        data: { uses: [
+          "office", "hotel", "hospital", "shop_department", "shop_supermarket", 
+          "school_small", "school_high", "school_university", "restaurant", 
+          "assembly", "factory", "residential_collective"
+        ]},
         status: 200
       };
     }
@@ -508,20 +498,19 @@ export const beiAPI = {
     if (isGitHubPages) {
       console.log("GitHub Pages mode: Using mock BEI intensity");
       await new Promise(resolve => setTimeout(resolve, 400));
+      
+      // Import standard intensities from mock
+      const { STANDARD_INTENSITIES } = await import('./mockCalculations');
+      
+      const intensityData = STANDARD_INTENSITIES[use]?.[zone] || 
+                           STANDARD_INTENSITIES[use]?.[4] ||
+                           STANDARD_INTENSITIES.office[4];
+      
       return {
         data: {
           use,
           zone,
-          intensities: {
-            lighting: 58,
-            cooling: 119,
-            heating: 35,
-            ventilation: 45,
-            hot_water: 12,
-            outlet_and_others: 105,
-            elevator: 46,
-            total_MJ_per_m2_year: 420
-          }
+          intensities: intensityData
         },
         status: 200
       };
@@ -537,20 +526,16 @@ export const energyAPI = {
     if (isGitHubPages) {
       console.log("GitHub Pages mode: Using mock power calculation");
       await new Promise(resolve => setTimeout(resolve, 500));
-      const power_w = data.is_three_phase 
-        ? Math.sqrt(3) * data.voltage * data.current * data.power_factor
-        : data.voltage * data.current * data.power_factor;
-      return {
-        data: {
-          power_w,
-          power_kw: power_w / 1000,
-          voltage: data.voltage,
-          current: data.current,
-          power_factor: data.power_factor,
-          is_three_phase: data.is_three_phase
-        },
-        status: 200
-      };
+      try {
+        const result = mockPowerCalculation(data);
+        return { data: result, status: 200 };
+      } catch (error) {
+        return { 
+          data: null, 
+          status: 400, 
+          error: error.message 
+        };
+      }
     }
     return apiClient.post('/calc/power', data);
   },
@@ -637,26 +622,16 @@ export const tariffAPI = {
     if (isGitHubPages) {
       console.log("GitHub Pages mode: Using mock tariff quote");
       await new Promise(resolve => setTimeout(resolve, 1000));
-      const usage = data.total_usage_kwh || 300;
-      const rate = data.tariff.flat_rate_per_kwh || 25;
-      const energy_cost = usage * rate;
-      const basic_cost = data.tariff.basic_charge_per_month || 1000;
-      const subtotal = energy_cost + basic_cost;
-      const tax = subtotal * (data.tariff.tax_rate || 0.1);
-      return {
-        data: {
-          total_amount: subtotal + tax,
-          total_before_tax: subtotal,
-          tax_amount: tax,
-          line_items: [
-            { description: "Energy (flat rate)", amount: energy_cost, unit: "kWh", quantity: usage, rate },
-            { description: "Basic charge (monthly)", amount: basic_cost, unit: "month", quantity: 1 },
-            { description: `Tax (${(data.tariff.tax_rate || 0.1) * 100}%)`, amount: tax }
-          ],
-          tariff_summary: data.tariff
-        },
-        status: 200
-      };
+      try {
+        const result = mockTariffCalculation(data);
+        return { data: result, status: 200 };
+      } catch (error) {
+        return { 
+          data: null, 
+          status: 400, 
+          error: error.message 
+        };
+      }
     }
     return apiClient.post('/tariffs/quote', data);
   }

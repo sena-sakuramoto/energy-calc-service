@@ -73,33 +73,828 @@ uses:
         outlet_and_others: 105
         elevator: 14
         total_MJ_per_m2_year: 285
+
   hotel:
     zones:
+      "1":
+        lighting: 70
+        cooling: 36
+        heating: 129
+        ventilation: 28
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 558
+      "2":
+        lighting: 70
+        cooling: 37
+        heating: 109
+        ventilation: 28
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 539
+      "3":
+        lighting: 70
+        cooling: 46
+        heating: 83
+        ventilation: 28
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 522
+      "4":
+        lighting: 70
+        cooling: 54
+        heating: 63
+        ventilation: 28
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 510
+      "5":
+        lighting: 70
+        cooling: 58
+        heating: 58
+        ventilation: 28
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 509
       "6":
-        lighting: 78
-        cooling: 145
+        lighting: 70
+        cooling: 62
+        heating: 45
+        ventilation: 28
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 500
+      "7":
+        lighting: 70
+        cooling: 68
+        heating: 38
+        ventilation: 28
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 499
+      "8":
+        lighting: 70
+        cooling: 73
+        heating: 20
+        ventilation: 28
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 486
+
+  hospital:
+    zones:
+      "1":
+        lighting: 98
+        cooling: 48
+        heating: 172
+        ventilation: 89
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 702
+      "2":
+        lighting: 98
+        cooling: 50
+        heating: 145
+        ventilation: 89
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 677
+      "3":
+        lighting: 98
+        cooling: 62
+        heating: 111
+        ventilation: 89
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 655
+      "4":
+        lighting: 98
+        cooling: 72
+        heating: 84
+        ventilation: 89
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 638
+      "5":
+        lighting: 98
+        cooling: 77
+        heating: 77
+        ventilation: 89
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 636
+      "6":
+        lighting: 98
+        cooling: 83
+        heating: 60
+        ventilation: 89
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 625
+      "7":
+        lighting: 98
+        cooling: 91
+        heating: 50
+        ventilation: 89
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 623
+      "8":
+        lighting: 98
+        cooling: 97
+        heating: 26
+        ventilation: 89
+        hot_water: 176
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 605
+
+  shop_department:
+    zones:
+      "1":
+        lighting: 126
+        cooling: 13
+        heating: 48
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 337
+      "2":
+        lighting: 126
+        cooling: 14
+        heating: 40
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 330
+      "3":
+        lighting: 126
+        cooling: 17
+        heating: 31
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 324
+      "4":
+        lighting: 126
+        cooling: 20
+        heating: 23
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 319
+      "5":
+        lighting: 126
+        cooling: 21
+        heating: 21
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 318
+      "6":
+        lighting: 126
+        cooling: 23
+        heating: 17
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 316
+      "7":
+        lighting: 126
+        cooling: 25
+        heating: 14
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 315
+      "8":
+        lighting: 126
+        cooling: 27
+        heating: 7
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 310
+
+  shop_supermarket:
+    zones:
+      "1":
+        lighting: 140
+        cooling: 13
+        heating: 48
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 351
+      "2":
+        lighting: 140
+        cooling: 14
+        heating: 40
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 344
+      "3":
+        lighting: 140
+        cooling: 17
+        heating: 31
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 338
+      "4":
+        lighting: 140
+        cooling: 20
+        heating: 23
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 333
+      "5":
+        lighting: 140
+        cooling: 21
+        heating: 21
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 332
+      "6":
+        lighting: 140
+        cooling: 23
+        heating: 17
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 330
+      "7":
+        lighting: 140
+        cooling: 25
+        heating: 14
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 329
+      "8":
+        lighting: 140
+        cooling: 27
+        heating: 7
+        ventilation: 28
+        hot_water: 3
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 324
+
+  school_small:
+    zones:
+      "1":
+        lighting: 49
+        cooling: 15
+        heating: 138
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 340
+      "2":
+        lighting: 49
+        cooling: 16
+        heating: 117
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 320
+      "3":
+        lighting: 49
+        cooling: 20
         heating: 89
-        ventilation: 67
-        hot_water: 234
-        outlet_and_others: 87
-        elevator: 32
-        total_MJ_per_m2_year: 732
-  retail:
-    "6":
-      lighting: 92
-      cooling: 87
-      heating: 23
-      ventilation: 34
-      hot_water: 8
-      others: 145
-      elevator: 12
-      total_MJ_per_m2_year: 401
-  school:
-    "6":
-      lighting: 34
-      cooling: 67
-      heating: 78
-      ventilation: 23
-      hot_water: 45
-      outlet: 89
-      elevator: 15
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 296
+      "4":
+        lighting: 49
+        cooling: 23
+        heating: 67
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 277
+      "5":
+        lighting: 49
+        cooling: 25
+        heating: 62
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 274
+      "6":
+        lighting: 49
+        cooling: 27
+        heating: 49
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 263
+      "7":
+        lighting: 49
+        cooling: 29
+        heating: 41
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 257
+      "8":
+        lighting: 49
+        cooling: 31
+        heating: 21
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 239
+
+  school_high:
+    zones:
+      "1":
+        lighting: 49
+        cooling: 20
+        heating: 138
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 345
+      "2":
+        lighting: 49
+        cooling: 21
+        heating: 117
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 325
+      "3":
+        lighting: 49
+        cooling: 26
+        heating: 89
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 302
+      "4":
+        lighting: 49
+        cooling: 30
+        heating: 67
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 284
+      "5":
+        lighting: 49
+        cooling: 32
+        heating: 62
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 281
+      "6":
+        lighting: 49
+        cooling: 34
+        heating: 49
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 270
+      "7":
+        lighting: 49
+        cooling: 38
+        heating: 41
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 266
+      "8":
+        lighting: 49
+        cooling: 41
+        heating: 21
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 2
+        total_MJ_per_m2_year: 249
+
+  school_university:
+    zones:
+      "1":
+        lighting: 49
+        cooling: 20
+        heating: 103
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 322
+      "2":
+        lighting: 49
+        cooling: 21
+        heating: 87
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 307
+      "3":
+        lighting: 49
+        cooling: 26
+        heating: 66
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 291
+      "4":
+        lighting: 49
+        cooling: 30
+        heating: 50
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 279
+      "5":
+        lighting: 49
+        cooling: 32
+        heating: 46
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 277
+      "6":
+        lighting: 49
+        cooling: 34
+        heating: 36
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 269
+      "7":
+        lighting: 49
+        cooling: 38
+        heating: 30
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 267
+      "8":
+        lighting: 49
+        cooling: 41
+        heating: 15
+        ventilation: 14
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 255
+
+  restaurant:
+    zones:
+      "1":
+        lighting: 105
+        cooling: 36
+        heating: 129
+        ventilation: 117
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 611
+      "2":
+        lighting: 105
+        cooling: 37
+        heating: 109
+        ventilation: 117
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 592
+      "3":
+        lighting: 105
+        cooling: 46
+        heating: 83
+        ventilation: 117
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 575
+      "4":
+        lighting: 105
+        cooling: 54
+        heating: 63
+        ventilation: 117
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 563
+      "5":
+        lighting: 105
+        cooling: 58
+        heating: 58
+        ventilation: 117
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 562
+      "6":
+        lighting: 105
+        cooling: 62
+        heating: 45
+        ventilation: 117
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 553
+      "7":
+        lighting: 105
+        cooling: 68
+        heating: 38
+        ventilation: 117
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 552
+      "8":
+        lighting: 105
+        cooling: 73
+        heating: 20
+        ventilation: 117
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 539
+
+  assembly:
+    zones:
+      "1":
+        lighting: 70
+        cooling: 25
+        heating: 90
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 349
+      "2":
+        lighting: 70
+        cooling: 26
+        heating: 76
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 336
+      "3":
+        lighting: 70
+        cooling: 33
+        heating: 58
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 325
+      "4":
+        lighting: 70
+        cooling: 38
+        heating: 44
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 316
+      "5":
+        lighting: 70
+        cooling: 41
+        heating: 41
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 316
+      "6":
+        lighting: 70
+        cooling: 44
+        heating: 32
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 310
+      "7":
+        lighting: 70
+        cooling: 48
+        heating: 27
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 309
+      "8":
+        lighting: 70
+        cooling: 51
+        heating: 14
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 299
+
+  factory:
+    zones:
+      "1":
+        lighting: 70
+        cooling: 13
+        heating: 172
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 419
+      "2":
+        lighting: 70
+        cooling: 14
+        heating: 145
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 393
+      "3":
+        lighting: 70
+        cooling: 17
+        heating: 111
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 362
+      "4":
+        lighting: 70
+        cooling: 20
+        heating: 84
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 338
+      "5":
+        lighting: 70
+        cooling: 21
+        heating: 77
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 332
+      "6":
+        lighting: 70
+        cooling: 23
+        heating: 60
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 317
+      "7":
+        lighting: 70
+        cooling: 25
+        heating: 50
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 309
+      "8":
+        lighting: 70
+        cooling: 27
+        heating: 26
+        ventilation: 28
+        hot_water: 17
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 287
+
+  residential_collective:
+    zones:
+      "1":
+        lighting: 42
+        cooling: 25
+        heating: 90
+        ventilation: 14
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 395
+      "2":
+        lighting: 42
+        cooling: 26
+        heating: 76
+        ventilation: 14
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 382
+      "3":
+        lighting: 42
+        cooling: 33
+        heating: 58
+        ventilation: 14
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 371
+      "4":
+        lighting: 42
+        cooling: 38
+        heating: 44
+        ventilation: 14
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 362
+      "5":
+        lighting: 42
+        cooling: 41
+        heating: 41
+        ventilation: 14
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 362
+      "6":
+        lighting: 42
+        cooling: 44
+        heating: 32
+        ventilation: 14
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 356
+      "7":
+        lighting: 42
+        cooling: 48
+        heating: 27
+        ventilation: 14
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 355
+      "8":
+        lighting: 42
+        cooling: 51
+        heating: 14
+        ventilation: 14
+        hot_water: 105
+        outlet_and_others: 105
+        elevator: 14
+        total_MJ_per_m2_year: 345
