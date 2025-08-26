@@ -3,7 +3,10 @@
     "allow": [
       "Bash(pip install:*)",
       "Bash(pytest:*)",
-      "Bash(uvicorn:*)"
+      "Bash(uvicorn:*)",
+      "Bash(node:*)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:sena-sakuramoto.github.io)"
     ],
     "additionalDirectories": [
       "C:\\temp"

@@ -8,9 +8,23 @@ import ClimateZoneSelector from '../../components/ClimateZoneSelector';
 import BuildingTypeSelector from '../../components/BuildingTypeSelector';
 import HelpTooltip from '../../components/HelpTooltip';
 import ComplianceReport from '../../components/ComplianceReport';
+import ProjectManager from '../../components/ProjectManager';
+import ProjectInfoForm from '../../components/ProjectInfoForm';
 import { beiAPI } from '../../utils/api';
+import { createProjectData, saveProject } from '../../utils/projectStorage';
+import { validateEnergyInput, validateFloorArea, validateAllInputs, WARNING_LEVELS } from '../../utils/inputValidation';
+import ValidationAlert, { ValidationSummary } from '../../components/ValidationAlert';
 
 export default function BEICalculator() {
+  const [currentProject, setCurrentProject] = useState(null);
+  const [projectInfo, setProjectInfo] = useState({
+    name: '',
+    buildingOwner: '',
+    designer: '',
+    designFirm: '',
+    location: '',
+    description: ''
+  });
   const [formData, setFormData] = useState({
     calculation_method: 'model_building', // 'model_building' or 'standard_input'
     building_type: '',
@@ -39,9 +53,24 @@ export default function BEICalculator() {
   });
   const [currentStep, setCurrentStep] = useState(1);
   const [validationErrors, setValidationErrors] = useState({});
+  const [validationWarnings, setValidationWarnings] = useState({});
   const [result, setResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showReport, setShowReport] = useState(false);
+
+  // 入力検証の実行
+  const runInputValidation = (updatedFormData = formData) => {
+    const warnings = validateAllInputs(updatedFormData);
+    setValidationWarnings(warnings);
+    return warnings;
+  };
+
+  // formData変更時に自動検証
+  useEffect(() => {
+    if (formData.building_type && formData.floor_area) {
+      runInputValidation();
+    }
+  }, [formData.building_type, formData.floor_area, formData.design_energy, formData.renewable_energy]);
 
   // バリデーション関数
   const validateStep1 = () => {
@@ -164,13 +193,99 @@ export default function BEICalculator() {
       const response = await beiAPI.evaluate(apiData);
       
       // APIレスポンスをそのまま使用（data フィールドから取得）
-      setResult(response.data || response);
+      const calculationResult = response.data || response;
+      setResult(calculationResult);
       setCurrentStep(formData.calculation_method === 'model_building' ? 4 : 5);
+
+      // 自動保存（プロジェクト名がある場合）
+      if (projectInfo.name) {
+        try {
+          const projectData = createProjectData(projectInfo, formData, calculationResult);
+          if (currentProject) {
+            projectData.id = currentProject.id;
+          }
+          const saved = saveProject(projectData);
+          setCurrentProject(saved);
+        } catch (saveError) {
+          console.error('プロジェクト保存エラー:', saveError);
+        }
+      }
     } catch (error) {
       console.error('BEI計算エラー:', error);
       setValidationErrors({ api: `BEI計算中にエラーが発生しました: ${error.message || '入力内容を確認してください'}` });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // プロジェクト管理のイベントハンドラ
+  const handleNewProject = () => {
+    setCurrentProject(null);
+    setProjectInfo({
+      name: '',
+      buildingOwner: '',
+      designer: '',
+      designFirm: '',
+      location: '',
+      description: ''
+    });
+    setFormData({
+      calculation_method: 'model_building',
+      building_type: '',
+      climate_zone: '',
+      floor_area: '',
+      is_mixed_use: false,
+      mixed_uses: [{
+        use_type: '',
+        area_m2: '',
+        area_share: ''
+      }],
+      design_energy: {
+        heating: '',
+        cooling: '',
+        ventilation: '',
+        hot_water: '',
+        lighting: '',
+        elevator: ''
+      },
+      envelope_performance: {
+        ua_value: '',
+        eta_ac_value: '',
+        perimeter_annual_load: ''
+      },
+      renewable_energy: '0'
+    });
+    setResult(null);
+    setCurrentStep(1);
+    setValidationErrors({});
+  };
+
+  const handleProjectLoad = (project) => {
+    setCurrentProject(project);
+    setProjectInfo(project.projectInfo);
+    setFormData(project.formData);
+    setResult(project.result);
+    setCurrentStep(project.result ? (project.formData.calculation_method === 'model_building' ? 4 : 5) : 1);
+    setValidationErrors({});
+  };
+
+  const handleSaveProject = () => {
+    if (!projectInfo.name) {
+      alert('プロジェクト名を入力してください');
+      return;
+    }
+
+    try {
+      const projectData = createProjectData(projectInfo, formData, result);
+      if (currentProject) {
+        projectData.id = currentProject.id;
+      }
+      const saved = saveProject(projectData);
+      setCurrentProject(saved);
+      alert('プロジェクトを保存しました');
+    } catch (error) {
+      console.error('保存エラー:', error);
+      alert('保存中にエラーが発生しました');
     }
   };
 
@@ -304,6 +419,20 @@ export default function BEICalculator() {
       backText="計算ツール一覧に戻る"
     >
       <div className="max-w-6xl mx-auto">
+        {/* プロジェクト管理 */}
+        <ProjectManager
+          currentProject={currentProject}
+          onProjectSelect={setCurrentProject}
+          onNewProject={handleNewProject}
+          onProjectLoad={handleProjectLoad}
+        />
+
+        {/* プロジェクト情報フォーム */}
+        <ProjectInfoForm
+          projectInfo={projectInfo}
+          onProjectInfoChange={setProjectInfo}
+        />
+
         {/* 初心者向けガイダンス */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
           <div className="flex items-start space-x-3">
@@ -754,6 +883,15 @@ export default function BEICalculator() {
                           }
                         });
                         setValidationErrors({...validationErrors, ua_value: ''});
+                        // リアルタイム検証を実行
+                        const updatedFormData = {
+                          ...formData,
+                          envelope_performance: {
+                            ...formData.envelope_performance,
+                            ua_value: e.target.value
+                          }
+                        };
+                        runInputValidation(updatedFormData);
                       }}
                       className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                         validationErrors.ua_value ? 'border-red-500' : 'border-gray-300'
@@ -769,6 +907,9 @@ export default function BEICalculator() {
                       <p className="text-gray-600 text-sm mt-1">
                         {formData.climate_zone}地域の基準値: {getUAValueStandard(formData.climate_zone)} W/(m²·K)以下
                       </p>
+                    )}
+                    {validationWarnings.ua_value && (
+                      <ValidationAlert warnings={validationWarnings.ua_value} />
                     )}
                   </div>
 
@@ -796,6 +937,15 @@ export default function BEICalculator() {
                             }
                           });
                           setValidationErrors({...validationErrors, eta_ac_value: ''});
+                          // リアルタイム検証を実行
+                          const updatedFormData = {
+                            ...formData,
+                            envelope_performance: {
+                              ...formData.envelope_performance,
+                              eta_ac_value: e.target.value
+                            }
+                          };
+                          runInputValidation(updatedFormData);
                         }}
                         className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                           validationErrors.eta_ac_value ? 'border-red-500' : 'border-gray-300'
@@ -811,6 +961,9 @@ export default function BEICalculator() {
                         <p className="text-gray-600 text-sm mt-1">
                           {formData.climate_zone}地域の基準値: {getEtaACValueStandard(formData.climate_zone)}以下
                         </p>
+                      )}
+                      {validationWarnings.eta_ac_value && (
+                        <ValidationAlert warnings={validationWarnings.eta_ac_value} />
                       )}
                     </div>
                   )}
@@ -914,6 +1067,9 @@ export default function BEICalculator() {
                       {validationErrors[key] && (
                         <p className="text-red-600 text-sm mt-1">{validationErrors[key]}</p>
                       )}
+                      {validationWarnings[`design_energy_${key}`] && (
+                        <ValidationAlert warnings={validationWarnings[`design_energy_${key}`]} />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -985,11 +1141,19 @@ export default function BEICalculator() {
                   <p className="text-gray-600 text-sm mt-1">
                     設備がない場合は0のままでも計算できます
                   </p>
+                  {validationWarnings.renewable_energy && (
+                    <ValidationAlert warnings={validationWarnings.renewable_energy} />
+                  )}
                 </div>
+
+                {/* 検証結果サマリー */}
+                {Object.keys(validationWarnings).length > 0 && (
+                  <ValidationSummary validationResults={validationWarnings} />
+                )}
 
                 {/* ナビゲーションボタン */}
                 {currentStep === (formData.calculation_method === 'model_building' ? 3 : 4) && (
-                  <div className="flex justify-between pt-4">
+                  <div className="flex flex-wrap justify-between items-center pt-4 gap-4">
                     <button
                       type="button"
                       onClick={() => setCurrentStep(formData.calculation_method === 'model_building' ? 2 : 3)}
@@ -997,24 +1161,36 @@ export default function BEICalculator() {
                     >
                       戻る
                     </button>
-                    <button
-                      type="button"
-                      onClick={handleCalculate}
-                      disabled={isLoading}
-                      className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
-                    >
-                      {isLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          <span>計算中...</span>
-                        </>
-                      ) : (
-                        <>
-                          <FaCalculator />
-                          <span>BEI計算実行</span>
-                        </>
-                      )}
-                    </button>
+                    
+                    <div className="flex space-x-4">
+                      <button
+                        type="button"
+                        onClick={handleSaveProject}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
+                      >
+                        <FaDownload />
+                        <span>保存</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={handleCalculate}
+                        disabled={isLoading}
+                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
+                      >
+                        {isLoading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>計算中...</span>
+                          </>
+                        ) : (
+                          <>
+                            <FaCalculator />
+                            <span>BEI計算実行</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 )}
               </FormSection>
@@ -1268,6 +1444,7 @@ export default function BEICalculator() {
               <ComplianceReport 
                 result={result}
                 formData={formData}
+                projectInfo={projectInfo}
                 onDownload={downloadResults}
               />
             </div>

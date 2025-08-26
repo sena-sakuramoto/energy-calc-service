@@ -1,6 +1,7 @@
 // frontend/src/components/ComplianceReport.jsx
 import React from 'react';
-import { FaFileAlt, FaStamp, FaBuilding, FaChartBar, FaDownload, FaFilePdf } from 'react-icons/fa';
+import { FaFileAlt, FaStamp, FaBuilding, FaChartBar, FaDownload, FaFilePdf, FaFileExcel } from 'react-icons/fa';
+import { exportToExcel, exportToExcelXML } from '../utils/excelExport';
 
 const getBuildingTypeName = (type) => {
   const names = {
@@ -66,7 +67,7 @@ const getStandardIntensities = (buildingType, climateZone) => {
   };
 };
 
-export default function ComplianceReport({ result, formData, onDownload, onDownloadPDF }) {
+export default function ComplianceReport({ result, formData, projectInfo, onDownload, onDownloadPDF }) {
   if (!result || !formData) return null;
 
   const formatDate = () => {
@@ -78,6 +79,23 @@ export default function ComplianceReport({ result, formData, onDownload, onDownl
   };
 
   const standardIntensities = getStandardIntensities(formData.building_type, formData.climate_zone);
+
+  // Excel出力関数
+  const handleExcelExport = () => {
+    try {
+      exportToExcel(result, formData, projectInfo);
+    } catch (error) {
+      alert(`Excel出力エラー: ${error.message}`);
+    }
+  };
+
+  const handleExcelXMLExport = () => {
+    try {
+      exportToExcelXML(result, formData, projectInfo);
+    } catch (error) {
+      alert(`Excel XML出力エラー: ${error.message}`);
+    }
+  };
 
   // PDF生成関数
   const generatePDF = () => {
@@ -136,13 +154,13 @@ export default function ComplianceReport({ result, formData, onDownload, onDownl
   return (
     <div className="bg-white">
       {/* ダウンロードボタン */}
-      <div className="mb-4 flex space-x-4 no-print">
+      <div className="mb-4 flex flex-wrap gap-3 no-print">
         <button
-          onClick={onDownload}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2"
+          onClick={handleExcelExport}
+          className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2"
         >
-          <FaDownload />
-          <span>JSONダウンロード</span>
+          <FaFileExcel />
+          <span>Excel出力</span>
         </button>
         <button
           onClick={generatePDF}
@@ -150,6 +168,13 @@ export default function ComplianceReport({ result, formData, onDownload, onDownl
         >
           <FaFilePdf />
           <span>PDF出力</span>
+        </button>
+        <button
+          onClick={onDownload}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2"
+        >
+          <FaDownload />
+          <span>JSON出力</span>
         </button>
       </div>
 
