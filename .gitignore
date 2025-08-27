@@ -49,9 +49,21 @@ yarn-error.log*
 .next/
 out/
 
-# Database
+# Database - 顧客データ保護
 *.db
 *.sqlite3
+*.db-*
+database/
+data/
+backups/
+customer_data/
+
+# 機密情報・個人情報
+*.json.bak
+*.xlsx
+*.csv
+project_exports/
+calculation_reports/
 
 # Logs
 logs/
