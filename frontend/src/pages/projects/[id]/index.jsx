@@ -2,7 +2,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { AuthContext } from '../../../contexts/AuthContext';
+import AuthContext from '../../../contexts/AuthContext';
 import { projectsAPI } from '../../../utils/api';
 import { useNotification } from '../../../components/ErrorAlert';
 import LoadingSpinner from '../../../components/LoadingSpinner';

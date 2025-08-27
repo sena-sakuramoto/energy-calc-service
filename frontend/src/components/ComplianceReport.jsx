@@ -153,36 +153,42 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
 
   return (
     <div className="bg-white">
-      {/* ダウンロードボタン */}
-      <div className="mb-4 flex flex-wrap gap-3 no-print">
-        <button
-          onClick={handleExcelExport}
-          className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2"
-        >
-          <FaFileExcel />
-          <span>Excel出力</span>
-        </button>
-        <button
-          onClick={generatePDF}
-          className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2"
-        >
-          <FaFilePdf />
-          <span>PDF出力</span>
-        </button>
-        <button
-          onClick={onDownload}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2"
-        >
-          <FaDownload />
-          <span>JSON出力</span>
-        </button>
-      </div>
-
       <div id="compliance-report" className="border-2 border-gray-300 p-8 max-w-4xl mx-auto font-mono text-sm">
         {/* ヘッダー */}
-        <div className="text-center border-b-2 border-black pb-4 mb-6">
-          <h1 className="text-xl font-bold mb-2">建築物省エネルギー法　適合性判定申請書</h1>
-          <h2 className="text-lg font-bold">モデル建物法による一次エネルギー消費量計算書</h2>
+        <div className="border-b-2 border-black pb-4 mb-6">
+          <div className="flex justify-between items-start">
+            <div className="text-left">
+              <h1 className="text-xl font-bold mb-2">建築物省エネルギー法　適合性判定申請書</h1>
+              <h2 className="text-lg font-bold">モデル建物法による一次エネルギー消費量計算書</h2>
+            </div>
+            {/* ダウンロードボタン */}
+            <div className="no-print flex flex-col items-end gap-2">
+                <div className="flex flex-wrap justify-end gap-2">
+                    <button
+                        onClick={handleExcelExport}
+                        className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 rounded-lg flex items-center space-x-2 text-xs"
+                    >
+                        <FaFileExcel />
+                        <span>Excel</span>
+                    </button>
+                    <button
+                        onClick={generatePDF}
+                        className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-3 rounded-lg flex items-center space-x-2 text-xs"
+                    >
+                        <FaFilePdf />
+                        <span>PDF</span>
+                    </button>
+                    <button
+                        onClick={onDownload}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-lg flex items-center space-x-2 text-xs"
+                    >
+                        <FaDownload />
+                        <span>JSON</span>
+                    </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">各種形式で出力</p>
+            </div>
+          </div>
           <div className="mt-4 text-right">
             <p>作成日: {formatDate()}</p>
           </div>
@@ -192,23 +198,33 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
         <section className="mb-6">
           <h3 className="text-lg font-bold border-b border-black mb-3 flex items-center">
             <FaBuilding className="mr-2" />
-            1. 建物概要
+            1. プロジェクト・建物概要
           </h3>
           <table className="w-full border-collapse border border-black">
             <tbody>
               <tr>
-                <td className="border border-black p-2 bg-gray-100 font-bold w-1/3">建物用途</td>
-                <td className="border border-black p-2">{getBuildingTypeName(formData.building_type)}</td>
+                <td className="border border-black p-2 bg-gray-100 font-bold w-1/4">プロジェクト名</td>
+                <td className="border border-black p-2" colSpan="3">{projectInfo?.name || '(未設定)'}</td>
               </tr>
               <tr>
+                <td className="border border-black p-2 bg-gray-100 font-bold">所在地</td>
+                <td className="border border-black p-2" colSpan="3">{projectInfo?.location || '(未設定)'}</td>
+              </tr>
+              <tr>
+                <td className="border border-black p-2 bg-gray-100 font-bold">建築主</td>
+                <td className="border border-black p-2">{projectInfo?.buildingOwner || '(未設定)'}</td>
+                <td className="border border-black p-2 bg-gray-100 font-bold w-1/4">設計者</td>
+                <td className="border border-black p-2">{projectInfo?.designer || '(未設定)'}</td>
+              </tr>
+              <tr>
+                <td className="border border-black p-2 bg-gray-100 font-bold">建物用途</td>
+                <td className="border border-black p-2">{getBuildingTypeName(formData.building_type)}</td>
                 <td className="border border-black p-2 bg-gray-100 font-bold">地域区分</td>
                 <td className="border border-black p-2">{formData.climate_zone}地域</td>
               </tr>
               <tr>
                 <td className="border border-black p-2 bg-gray-100 font-bold">延床面積</td>
                 <td className="border border-black p-2">{Number(formData.floor_area || result.building_area_m2).toLocaleString()} m²</td>
-              </tr>
-              <tr>
                 <td className="border border-black p-2 bg-gray-100 font-bold">再エネ控除</td>
                 <td className="border border-black p-2">{Number(formData.renewable_energy || result.renewable_deduction_mj || 0).toLocaleString()} MJ/年</td>
               </tr>

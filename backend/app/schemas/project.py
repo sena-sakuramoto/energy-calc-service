@@ -21,8 +21,7 @@ class ProjectInDBBase(ProjectBase):
     id: int
     owner_id: int
 
-    class Config:
-        from_attributes = True # Pydantic V2
+    model_config = {"from_attributes": True}
 
 # APIレスポンス用
 class Project(ProjectInDBBase):

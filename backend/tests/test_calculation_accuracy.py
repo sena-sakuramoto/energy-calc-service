@@ -240,7 +240,7 @@ class TestCalculationAccuracy:
         climate_results = {}
         
         for zone in range(1, 9):
-            test_building = base_building.copy()
+            test_building = base_building.model_copy()
             test_building.climate_zone = zone
             
             test_data = CalculationInput(

@@ -1,7 +1,7 @@
 // frontend/src/pages/projects/new.jsx
 import { useState, useContext } from 'react';
 import { useRouter } from 'next/router';
-import { AuthContext } from '../../contexts/AuthContext';
+import AuthContext from '../../contexts/AuthContext';
 import { projectsAPI } from '../../utils/api';
 import { useNotification } from '../../components/ErrorAlert';
 import LoadingSpinner from '../../components/LoadingSpinner';

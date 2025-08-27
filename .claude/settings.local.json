@@ -6,7 +6,15 @@
       "Bash(uvicorn:*)",
       "Bash(node:*)",
       "WebFetch(domain:api.github.com)",
-      "WebFetch(domain:sena-sakuramoto.github.io)"
+      "WebFetch(domain:sena-sakuramoto.github.io)",
+      "Bash(npm run export:*)",
+      "Bash(git log:*)",
+      "Bash(npm run build:*)",
+      "Bash(python -m pytest --version)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(npm run lint)",
+      "Bash(python:*)",
+      "Bash(git add:*)"
     ],
     "additionalDirectories": [
       "C:\\temp"

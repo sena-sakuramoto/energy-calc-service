@@ -36,8 +36,7 @@ class User(UserBase):
     """
     id: int
 
-    class Config:
-        from_attributes = True # For Pydantic V2. Use orm_mode = True for V1.
+    model_config = {"from_attributes": True}
 
 # This Pydantic model represents a user as stored in the database,
 # including the hashed_password. It's typically used internally.
@@ -49,8 +48,7 @@ class UserInDBBase(UserBase):
     id: Optional[int] = None
     hashed_password: str
 
-    class Config:
-        from_attributes = True # For Pydantic V2. Use orm_mode = True for V1.
+    model_config = {"from_attributes": True}
 
 class UserInDB(UserInDBBase):
     """
