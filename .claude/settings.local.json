@@ -14,10 +14,12 @@
       "Bash(python -m pytest tests/ -v)",
       "Bash(npm run lint)",
       "Bash(python:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)"
     ],
     "additionalDirectories": [
-      "C:\\temp"
+      "C:\\temp",
+      "C:\\Users\\senaa"
     ]
   }
 }
