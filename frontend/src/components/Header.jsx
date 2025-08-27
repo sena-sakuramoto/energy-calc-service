@@ -23,7 +23,7 @@ export default function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <Link href="/" className="text-xl font-bold hover:text-blue-200 transition-colors">
-            エネルギー計算サービス
+            楽々省エネ計算
           </Link>
           
           {/* デスクトップナビゲーション */}

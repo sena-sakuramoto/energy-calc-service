@@ -22,12 +22,18 @@ export default function Home() {
               <FaLeaf className="text-4xl text-green-600" />
             </div>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-            建築物省エネ法対応<br />計算サービス
+          <h1 className="text-6xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+            楽々省エネ計算
           </h1>
+          <p className="text-lg md:text-xl text-gray-600 mb-2 max-w-2xl mx-auto">
+            複雑化する省エネ法を、シンプルに。
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            by Archi-Prisma Design works 株式会社
+          </p>
           <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-3xl mx-auto leading-relaxed">
-            建築設計者のための省エネ基準適合性判定計算を<br />
-            <span className="font-semibold text-green-600">簡単・正確・迅速</span>に実行
+            建築設計者の負担を軽減し、本来の創造的な設計業務に集中できる<br />
+            <span className="font-semibold text-green-600">簡単・正確・安心</span>な省エネ計算ツール
           </p>
           
           {isGitHubPages ? (
@@ -227,23 +233,24 @@ export default function Home() {
       <div className="py-20 bg-gradient-to-r from-blue-600 to-green-600">
         <div className="container mx-auto text-center px-4">
           <h2 className="text-4xl font-bold text-white mb-6">
-            今すぐ始めて、設計業務を変革しませんか？
+            もう省エネ計算で悩まない。
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
-            省エネ法対応計算の新しいスタンダード。無料でお試しいただけます。
+            「楽々省エネ計算」で、設計業務をもっとクリエイティブに。<br />
+            今すぐ無料でお試しください。
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/register"
               className="bg-white text-blue-600 hover:bg-gray-100 font-bold py-4 px-8 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105"
             >
-              無料アカウント作成
+              楽々始める
             </Link>
             <Link
               href="/tools/bei-calculator"
               className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-4 px-8 rounded-lg transition-all duration-300"
             >
-              計算ツールを試す
+              まずは体験してみる
             </Link>
           </div>
         </div>
