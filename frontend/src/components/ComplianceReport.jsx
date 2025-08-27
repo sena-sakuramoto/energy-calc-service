@@ -97,28 +97,48 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
     }
   };
 
-  // PDF生成関数
+  // PDF生成関数 - スマホ対応
   const generatePDF = () => {
     const printContent = document.getElementById('compliance-report').innerHTML;
+    
+    // モバイル端末の検出
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // モバイル端末の場合は直接印刷ダイアログを開く
+      window.print();
+      return;
+    }
+    
+    // デスクトップの場合は別ウィンドウで印刷
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>BEI計算書</title>
           <style>
-            body { font-family: 'MS PGothic', 'Yu Gothic', sans-serif; font-size: 12px; margin: 20px; line-height: 1.4; }
+            body { 
+              font-family: 'MS PGothic', 'Yu Gothic', 'Hiragino Sans', sans-serif; 
+              font-size: 12px; 
+              margin: 20px; 
+              line-height: 1.4; 
+              -webkit-print-color-adjust: exact;
+              color-adjust: exact;
+            }
             table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
             th, td { border: 1px solid black; padding: 8px; vertical-align: top; }
-            th { background-color: #f0f0f0; font-weight: bold; }
+            th { background-color: #f0f0f0 !important; font-weight: bold; }
             .center { text-align: center; }
             .right { text-align: right; }
             .bold { font-weight: bold; }
-            .bg-green-50 { background-color: #f0fff0; }
-            .bg-red-50 { background-color: #fff0f0; }
-            .bg-yellow-50 { background-color: #fffff0; }
-            .bg-gray-50 { background-color: #f9f9f9; }
-            .bg-gray-100 { background-color: #f0f0f0; }
+            .bg-green-50 { background-color: #f0fff0 !important; }
+            .bg-red-50 { background-color: #fff0f0 !important; }
+            .bg-yellow-50 { background-color: #fffff0 !important; }
+            .bg-gray-50 { background-color: #f9f9f9 !important; }
+            .bg-gray-100 { background-color: #f0f0f0 !important; }
             .text-lg { font-size: 14px; }
             .text-xl { font-size: 16px; }
             .font-bold { font-weight: bold; }
@@ -131,24 +151,35 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
             .rounded { border-radius: 4px; }
             .space-y-1 > * + * { margin-top: 4px; }
             .no-print { display: none !important; }
+            
             @media print {
-              body { margin: 0; }
+              body { margin: 0; font-size: 11px; }
               .no-print { display: none !important; }
               table { page-break-inside: avoid; }
               h1, h2, h3 { page-break-after: avoid; }
+            }
+            
+            @media (max-width: 768px) {
+              body { margin: 10px; font-size: 11px; }
+              table { font-size: 10px; }
+              th, td { padding: 4px; }
             }
           </style>
         </head>
         <body>
           ${printContent}
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+                setTimeout(function() { window.close(); }, 1000);
+              }, 500);
+            };
+          </script>
         </body>
       </html>
     `);
     printWindow.document.close();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
   };
 
   return (
@@ -161,32 +192,35 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
               <h1 className="text-xl font-bold mb-2">建築物省エネルギー法　適合性判定申請書</h1>
               <h2 className="text-lg font-bold">モデル建物法による一次エネルギー消費量計算書</h2>
             </div>
-            {/* ダウンロードボタン */}
+            {/* ダウンロードボタン - スマホ対応 */}
             <div className="no-print flex flex-col items-end gap-2">
                 <div className="flex flex-wrap justify-end gap-2">
                     <button
                         onClick={handleExcelExport}
-                        className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 rounded-lg flex items-center space-x-2 text-xs"
+                        className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[80px] touch-manipulation"
+                        style={{ minHeight: '44px' }} /* iOS推奨タップ領域 */
                     >
                         <FaFileExcel />
                         <span>Excel</span>
                     </button>
                     <button
                         onClick={generatePDF}
-                        className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-3 rounded-lg flex items-center space-x-2 text-xs"
+                        className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[80px] touch-manipulation"
+                        style={{ minHeight: '44px' }} /* iOS推奨タップ領域 */
                     >
                         <FaFilePdf />
                         <span>PDF</span>
                     </button>
                     <button
                         onClick={onDownload}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-lg flex items-center space-x-2 text-xs"
+                        className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[80px] touch-manipulation"
+                        style={{ minHeight: '44px' }} /* iOS推奨タップ領域 */
                     >
                         <FaDownload />
                         <span>JSON</span>
                     </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">各種形式で出力</p>
+                <p className="text-xs text-gray-500 mt-1">各種形式で出力可能（スマホ対応）</p>
             </div>
           </div>
           <div className="mt-4 text-right">

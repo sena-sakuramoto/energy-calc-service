@@ -13,16 +13,6 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* GitHub Pages Banner */}
-      {isGitHubPages && (
-        <div className="bg-blue-600 text-white py-3 px-4 text-center">
-          <div className="container mx-auto">
-            <p className="text-sm">
-              <span className="font-semibold">🚀 GitHub Pages デモ版</span> - フロントエンドのみで動作、バックエンドAPIはモック実行中
-            </p>
-          </div>
-        </div>
-      )}
       
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-blue-50 via-white to-green-50 py-20">
