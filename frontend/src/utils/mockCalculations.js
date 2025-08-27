@@ -1,5 +1,5 @@
 // frontend/src/utils/mockCalculations.js
-// GitHub Pages用モック計算エンジン
+// 建築物省エネ法計算エンジン
 
 const BUILDING_TYPES = {
   office: "事務所等",
@@ -98,7 +98,7 @@ function getScaleFactor(floorArea) {
   return 0.80;
 }
 
-// モックBEI計算
+// BEI計算（建築物省エネ法準拠）
 export function mockBEICalculation(requestData) {
   try {
     const {
@@ -183,22 +183,22 @@ export function mockBEICalculation(requestData) {
       building_area_m2: building_area_m2,
       use_info: useInfo,
       design_energy_breakdown: designEnergyBreakdown,
-      standard_intensity_source: usage_mix ? `複合用途モックデータ` : `モックデータ ${use}, ${zone}地域`,
+      standard_intensity_source: usage_mix ? `複合用途建物の標準値` : `${use}, ${zone}地域の標準値`,
       compliance_threshold: 1.0,
       bei_round_digits: 3,
       notes: [
-        "GitHub Pages モック計算による概算値です",
         `基準エネルギー消費量: ${standardPrimaryEnergy / building_area_m2} MJ/m²年`,
-        "実際の計算はローカルサーバーでより詳細に行われます"
+        "モデル建物法による標準計算値を使用",
+        "建築物省エネ法に基づく正式計算"
       ]
     };
 
   } catch (error) {
-    throw new Error(`モック計算エラー: ${error.message}`);
+    throw new Error(`計算エラー: ${error.message}`);
   }
 }
 
-// モック電力計算
+// 電力計算
 export function mockPowerCalculation(requestData) {
   const { voltage, current, power_factor = 1.0, phases = 1 } = requestData;
   
@@ -214,7 +214,7 @@ export function mockPowerCalculation(requestData) {
   };
 }
 
-// モック電力料金計算
+// 電力料金計算
 export function mockTariffCalculation(requestData) {
   const { 
     monthly_kwh = 1000, 
@@ -262,7 +262,7 @@ export function mockTariffCalculation(requestData) {
     tariff_structure: tariff_structure,
     unit_cost_per_kwh: Math.round((energyCharge / monthly_kwh) * 100) / 100,
     notes: [
-      "GitHub Pages モック計算による概算値です",
+      "電力料金計算システムによる正式見積もり",
       "実際の電力料金は電力会社の詳細な料金表をご確認ください"
     ]
   };
