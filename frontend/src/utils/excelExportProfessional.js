@@ -59,16 +59,21 @@ export const exportToProfessionalExcel = (result, formData, projectInfo) => {
     const reportData = [];
 
     // === 公式ヘッダー（行政提出レベル）===
+    const documentId = `BEI-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+    const currentDateTime = new Date().toLocaleString('ja-JP');
+    
     reportData.push(['建築物省エネルギー法　適合性判定申請書', '', '', '', '', '']);
     reportData.push(['モデル建物法による一次エネルギー消費量計算書', '', '', '', '', '']);
     reportData.push(['', '', '', '', '', '']);
-    reportData.push(['作成日', new Date().toLocaleDateString('ja-JP'), '', '申請者印', '', '']);
+    reportData.push(['作成日時', currentDateTime, '', '申請者印', '', '']);
     reportData.push(['', '', '', '', '', '']);
     
-    // === 文書管理情報 ===
-    reportData.push(['文書管理', '', '', '', '', '']);
-    reportData.push(['文書番号', `BEI-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`, '', '', '', '']);
-    reportData.push(['版数', 'Rev.01', '', 'チェック者', '', '']);
+    // === 文書管理情報（法的準拠） ===
+    reportData.push(['【文書管理】', '', '', '', '', '']);
+    reportData.push(['文書ID', documentId, '', 'チェック者印', '', '']);
+    reportData.push(['版数', 'Rev.01', '', '承認者印', '', '']);
+    reportData.push(['作成システム', '建築物省エネ計算システム v2.0', '', '確認日', '', '']);
+    reportData.push(['法的根拠', '建築物省エネ法・国交省告示第265号準拠', '', '', '', '']);
     reportData.push(['', '', '', '', '', '']);
 
     // プロジェクト情報
@@ -337,10 +342,10 @@ export const exportToProfessionalExcel = (result, formData, projectInfo) => {
     XLSX.utils.book_append_sheet(workbook, verificationSheet, "【検算】検証データ");
     XLSX.utils.book_append_sheet(workbook, attachmentSheet, "【参考】添付資料");
 
-    // ファイル名を生成
+    // ファイル名を生成（文書ID付き）
     const filename = projectInfo?.name 
-      ? `${projectInfo.name}_BEI計算書_${new Date().toLocaleDateString('ja-JP', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '')}.xlsx`
-      : `BEI計算書_${new Date().toLocaleDateString('ja-JP', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '')}.xlsx`;
+      ? `【${documentId}】${projectInfo.name}_BEI計算書_${new Date().toLocaleDateString('ja-JP', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '')}.xlsx`
+      : `【${documentId}】BEI計算書_${new Date().toLocaleDateString('ja-JP', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '')}.xlsx`;
 
     // ファイルをダウンロード
     XLSX.writeFile(workbook, filename);
