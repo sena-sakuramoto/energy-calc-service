@@ -2,6 +2,7 @@
 import React from 'react';
 import { FaFileAlt, FaStamp, FaBuilding, FaChartBar, FaDownload, FaFilePdf, FaFileExcel } from 'react-icons/fa';
 import { exportToExcel, exportToExcelXML } from '../utils/excelExport';
+import { exportToProfessionalExcel, exportToSimpleExcel } from '../utils/excelExportProfessional';
 
 const getBuildingTypeName = (type) => {
   const names = {
@@ -80,12 +81,27 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
 
   const standardIntensities = getStandardIntensities(formData.building_type, formData.climate_zone);
 
-  // Excel出力関数
+  // Excel出力関数（プロフェッショナル版）
   const handleExcelExport = () => {
     try {
-      exportToExcel(result, formData, projectInfo);
+      exportToProfessionalExcel(result, formData, projectInfo);
+      alert('高品質なExcelファイル(.xlsx)をダウンロードしました！');
     } catch (error) {
-      alert(`Excel出力エラー: ${error.message}`);
+      console.error('Excel出力エラー:', error);
+      // フォールバック: シンプル版を試行
+      try {
+        exportToSimpleExcel(result, formData, projectInfo);
+        alert('簡易版Excelファイル(.xlsx)をダウンロードしました。');
+      } catch (fallbackError) {
+        console.error('簡易Excel出力エラー:', fallbackError);
+        // 最終フォールバック: 従来のCSV形式
+        try {
+          exportToExcel(result, formData, projectInfo);
+          alert('CSV形式でダウンロードしました（Excelで開けます）。');
+        } catch (csvError) {
+          alert(`すべての出力方法が失敗しました: ${csvError.message}`);
+        }
+      }
     }
   };
 
@@ -245,11 +261,12 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
                 <div className="flex flex-wrap justify-end gap-2">
                     <button
                         onClick={handleExcelExport}
-                        className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[80px] touch-manipulation"
+                        title="高品質なExcelファイル(.xlsx)をダウンロード - 3シート構成"
+                        className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[90px] touch-manipulation"
                         style={{ minHeight: '44px' }} /* iOS推奨タップ領域 */
                     >
                         <FaFileExcel />
-                        <span>Excel</span>
+                        <span>Excel Pro</span>
                     </button>
                     <button
                         onClick={generatePDF}
@@ -269,7 +286,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
                         <span>JSON</span>
                     </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">各種形式で出力可能（スマホ対応）</p>
+                <p className="text-xs text-gray-500 mt-1">実用的Excel・PDF対応（スマホ可）</p>
             </div>
           </div>
           <div className="mt-4 text-right">
