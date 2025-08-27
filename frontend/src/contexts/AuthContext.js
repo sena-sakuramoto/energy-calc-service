@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       
-      // 通常の認証フロー
+      // 通常の認証フロー（GitHub Pages以外）
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem('authToken');
         if (token) {

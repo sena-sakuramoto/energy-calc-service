@@ -6,9 +6,24 @@ import { FaCalculator, FaChartBar, FaFileDownload, FaCheckCircle, FaBuilding, Fa
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
+  
+  // GitHub Pages環境の検出
+  const isGitHubPages = typeof window !== 'undefined' && 
+    window.location.hostname.includes('github.io');
 
   return (
     <Layout>
+      {/* GitHub Pages Banner */}
+      {isGitHubPages && (
+        <div className="bg-blue-600 text-white py-3 px-4 text-center">
+          <div className="container mx-auto">
+            <p className="text-sm">
+              <span className="font-semibold">🚀 GitHub Pages デモ版</span> - フロントエンドのみで動作、バックエンドAPIはモック実行中
+            </p>
+          </div>
+        </div>
+      )}
+      
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-blue-50 via-white to-green-50 py-20">
         <div className="container mx-auto text-center px-4">
@@ -25,7 +40,28 @@ export default function Home() {
             <span className="font-semibold text-green-600">簡単・正確・迅速</span>に実行
           </p>
           
-          {isAuthenticated ? (
+          {isGitHubPages ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
+              <Link
+                href="/tools/bei-calculator"
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                BEI計算ツール
+              </Link>
+              <Link
+                href="/tools/energy-calculator"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                エネルギー計算
+              </Link>
+              <Link
+                href="/tools/tariff-calculator"
+                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                電力料金計算
+              </Link>
+            </div>
+          ) : isAuthenticated ? (
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/projects"
