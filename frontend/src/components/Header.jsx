@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Link from 'next/link';
-import { FaUser, FaSignOutAlt, FaCalculator, FaChevronDown, FaBars, FaTimes } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt, FaCalculator, FaChevronDown, FaBars, FaTimes, FaBook } from 'react-icons/fa';
 
 export default function Header() {
   const { isAuthenticated, logout } = useAuth();
@@ -35,6 +35,14 @@ export default function Header() {
                 </Link>
               </li>
             )}
+            
+            {/* ガイドリンク */}
+            <li className="list-none">
+              <Link href="/guide/model-building-method" className="flex items-center hover:text-blue-200 transition-colors">
+                <FaBook className="mr-2" />
+                ガイド
+              </Link>
+            </li>
             
             {/* 計算ツールドロップダウン */}
             <li className="relative list-none">
@@ -125,6 +133,16 @@ export default function Header() {
                   プロジェクト
                 </Link>
               )}
+              
+              {/* ガイドリンク (モバイル) */}
+              <Link
+                href="/guide/model-building-method"
+                className="flex items-center hover:text-blue-200 transition-colors"
+                onClick={closeMenus}
+              >
+                <FaBook className="mr-2" />
+                ガイド
+              </Link>
               
               <div className="border-l-4 border-blue-400 pl-4">
                 <div className="text-blue-200 font-medium mb-2">計算ツール</div>
