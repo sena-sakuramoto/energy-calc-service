@@ -97,89 +97,137 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
     }
   };
 
-  // PDF生成関数 - スマホ対応
-  const generatePDF = () => {
-    const printContent = document.getElementById('compliance-report').innerHTML;
-    
-    // モバイル端末の検出
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-      // モバイル端末の場合は直接印刷ダイアログを開く
-      window.print();
-      return;
+  // PDF生成関数 - スマホ対応（改良版）
+  const generatePDF = async () => {
+    try {
+      // モバイル端末の検出
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      console.log('PDF生成開始:', { isMobile, userAgent: navigator.userAgent });
+      
+      if (isMobile) {
+        // モバイル用: Web Share API または直接ダウンロード
+        const printContent = document.getElementById('compliance-report');
+        if (!printContent) {
+          alert('印刷する内容が見つかりません');
+          return;
+        }
+
+        // HTML文字列を作成
+        const htmlContent = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BEI計算書</title>
+  <style>
+    body { 
+      font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif; 
+      font-size: 14px; 
+      margin: 15px; 
+      line-height: 1.5;
+      color: #000;
     }
-    
-    // デスクトップの場合は別ウィンドウで印刷
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>BEI計算書</title>
-          <style>
-            body { 
-              font-family: 'MS PGothic', 'Yu Gothic', 'Hiragino Sans', sans-serif; 
-              font-size: 12px; 
-              margin: 20px; 
-              line-height: 1.4; 
-              -webkit-print-color-adjust: exact;
-              color-adjust: exact;
-            }
-            table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-            th, td { border: 1px solid black; padding: 8px; vertical-align: top; }
-            th { background-color: #f0f0f0 !important; font-weight: bold; }
-            .center { text-align: center; }
-            .right { text-align: right; }
-            .bold { font-weight: bold; }
-            .bg-green-50 { background-color: #f0fff0 !important; }
-            .bg-red-50 { background-color: #fff0f0 !important; }
-            .bg-yellow-50 { background-color: #fffff0 !important; }
-            .bg-gray-50 { background-color: #f9f9f9 !important; }
-            .bg-gray-100 { background-color: #f0f0f0 !important; }
-            .text-lg { font-size: 14px; }
-            .text-xl { font-size: 16px; }
-            .font-bold { font-weight: bold; }
-            .mb-2 { margin-bottom: 8px; }
-            .mb-3 { margin-bottom: 12px; }
-            .mb-6 { margin-bottom: 24px; }
-            .mt-4 { margin-top: 16px; }
-            .p-3 { padding: 12px; }
-            .border { border: 1px solid #ccc; }
-            .rounded { border-radius: 4px; }
-            .space-y-1 > * + * { margin-top: 4px; }
-            .no-print { display: none !important; }
-            
-            @media print {
-              body { margin: 0; font-size: 11px; }
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      margin-bottom: 15px; 
+      border: 2px solid #000;
+    }
+    th, td { 
+      border: 1px solid #000; 
+      padding: 8px; 
+      vertical-align: top; 
+      font-size: 12px;
+    }
+    th { 
+      background-color: #e8e8e8; 
+      font-weight: bold; 
+      text-align: center;
+    }
+    .center { text-align: center; }
+    .right { text-align: right; }
+    .bold { font-weight: bold; }
+    .text-lg { font-size: 16px; font-weight: bold; }
+    .text-xl { font-size: 18px; font-weight: bold; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-3 { margin-bottom: 12px; }
+    .mb-6 { margin-bottom: 20px; }
+    .mt-4 { margin-top: 15px; }
+    .p-3 { padding: 12px; }
+    .border { border: 1px solid #000; }
+    .no-print { display: none; }
+    h1, h2, h3 { 
+      color: #000; 
+      margin-top: 20px; 
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"')}
+</body>
+</html>`;
+
+        // Blob を作成してダウンロード
+        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `BEI計算書_${new Date().toISOString().split('T')[0]}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        alert('HTML形式でダウンロードしました。ブラウザで開いてPDF印刷してください。');
+        return;
+      }
+      
+      // デスクトップ用: 従来の方式
+      const printContent = document.getElementById('compliance-report').innerHTML;
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>BEI計算書</title>
+            <style>
+              body { 
+                font-family: 'MS PGothic', 'Yu Gothic', sans-serif; 
+                font-size: 12px; 
+                margin: 20px; 
+                line-height: 1.4; 
+              }
+              table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+              th, td { border: 1px solid black; padding: 8px; vertical-align: top; }
+              th { background-color: #f0f0f0; font-weight: bold; }
               .no-print { display: none !important; }
-              table { page-break-inside: avoid; }
-              h1, h2, h3 { page-break-after: avoid; }
-            }
-            
-            @media (max-width: 768px) {
-              body { margin: 10px; font-size: 11px; }
-              table { font-size: 10px; }
-              th, td { padding: 4px; }
-            }
-          </style>
-        </head>
-        <body>
-          ${printContent}
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-                setTimeout(function() { window.close(); }, 1000);
+              @media print {
+                body { margin: 0; }
+                .no-print { display: none !important; }
+              }
+            </style>
+          </head>
+          <body>
+            ${printContent}
+            <script>
+              setTimeout(() => { 
+                window.print(); 
+                setTimeout(() => window.close(), 1000); 
               }, 500);
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      
+    } catch (error) {
+      console.error('PDF生成エラー:', error);
+      alert(`PDF生成エラー: ${error.message}`);
+    }
   };
 
   return (
@@ -205,8 +253,9 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
                     </button>
                     <button
                         onClick={generatePDF}
+                        onTouchStart={() => console.log('PDF button touched')}
                         className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[80px] touch-manipulation"
-                        style={{ minHeight: '44px' }} /* iOS推奨タップ領域 */
+                        style={{ minHeight: '44px', WebkitTapHighlightColor: 'rgba(0,0,0,0.1)' }} /* iOS推奨タップ領域 + タップハイライト */
                     >
                         <FaFilePdf />
                         <span>PDF</span>
