@@ -85,7 +85,7 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
   const handleExcelExport = () => {
     try {
       exportToProfessionalExcel(result, formData, projectInfo);
-      alert('高品質なExcelファイル(.xlsx)をダウンロードしました！');
+      alert('プロ仕様Excelファイル(.xlsx)をダウンロードしました！\n5シート構成で実務レベル対応です。');
     } catch (error) {
       console.error('Excel出力エラー:', error);
       // フォールバック: シンプル版を試行
@@ -261,12 +261,12 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
                 <div className="flex flex-wrap justify-end gap-2">
                     <button
                         onClick={handleExcelExport}
-                        title="高品質なExcelファイル(.xlsx)をダウンロード - 3シート構成"
+                        title="プロ仕様Excelファイル(.xlsx)をダウンロード - 5シート構成・実務レベル"
                         className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[90px] touch-manipulation"
                         style={{ minHeight: '44px' }} /* iOS推奨タップ領域 */
                     >
                         <FaFileExcel />
-                        <span>Excel Pro</span>
+                        <span>Excel</span>
                     </button>
                     <button
                         onClick={generatePDF}
