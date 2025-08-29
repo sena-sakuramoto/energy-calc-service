@@ -3,6 +3,7 @@ import { useState, useContext } from 'react';
 import { useRouter } from 'next/router';
 import AuthContext from '../../contexts/AuthContext';
 import { projectsAPI } from '../../utils/api';
+import { createProjectData, saveProject } from '../../utils/projectStorage';
 import { useNotification } from '../../components/ErrorAlert';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
@@ -26,14 +27,30 @@ const NewProject = () => {
 
     setLoading(true);
     try {
-      const response = await projectsAPI.create(formData);
-      console.log('Project created:', response.data);
-      
-      showSuccess('プロジェクトを作成しました');
-      
-      // プロジェクト一覧に戻る
-      router.push('/projects');
-      
+      // LocalStorage環境での作成（一時的対応）
+      if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
+        const projectInfo = {
+          name: formData.name,
+          description: formData.description,
+          designer: user?.full_name || user?.name || 'Demo User',
+          designFirm: 'Archi-Prisma Design works 株式会社',
+          buildingOwner: '',
+          location: ''
+        };
+        
+        const projectData = createProjectData(projectInfo, {}, null);
+        const savedProject = saveProject(projectData);
+        
+        console.log('Project created locally:', savedProject);
+        showSuccess('プロジェクトを作成しました');
+        router.push('/projects');
+      } else {
+        // API環境での作成
+        const response = await projectsAPI.create(formData);
+        console.log('Project created:', response.data);
+        showSuccess('プロジェクトを作成しました');
+        router.push('/projects');
+      }
     } catch (error) {
       console.error('Project creation failed:', error);
       showError('プロジェクトの作成に失敗しました');
@@ -90,7 +107,7 @@ const NewProject = () => {
                 type="text"
                 id="name"
                 name="name"
-                value={formData.name}
+                value={formData?.name || ''}
                 onChange={handleChange}
                 required
                 placeholder="例: オフィスビル A棟 省エネ計算"
@@ -105,7 +122,7 @@ const NewProject = () => {
               <textarea
                 id="description"
                 name="description"
-                value={formData.description}
+                value={formData?.description || ''}
                 onChange={handleChange}
                 rows="4"
                 placeholder="プロジェクトの詳細説明を入力してください（任意）"

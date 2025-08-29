@@ -4,110 +4,74 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
 import Link from 'next/link';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-
-// バリデーションスキーマ
-const LoginSchema = Yup.object().shape({
-  email: Yup.string()
-    .email('メールアドレスの形式が正しくありません')
-    .required('メールアドレスは必須です'),
-  password: Yup.string()
-    .required('パスワードは必須です'),
-});
+import { FaGoogle } from 'react-icons/fa';
 
 export default function Login() {
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = async (values, { setSubmitting }) => {
+  const handleGoogleLogin = async () => {
     try {
-      const success = await login(values.email, values.password);
-      if (success) {
-        router.push('/projects');
-      } else {
-        setError('ログインに失敗しました。メールアドレスかパスワードが正しくない可能性があります。');
-      }
+      setLoading(true);
+      setError('');
+      await login();
     } catch (error) {
-      setError('エラーが発生しました。しばらくしてからもう一度お試しください。');
+      setError('Googleログインに失敗しました。');
       console.error(error);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
     <Layout>
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-2xl font-bold text-center mb-6">ログイン</h1>
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">ログイン</h1>
+          <p className="text-gray-600">楽々省エネ計算にサインインして始めましょう</p>
+        </div>
         
         {error && (
-          <div className="mb-4 bg-red-50 text-red-600 p-3 rounded">
+          <div className="mb-6 bg-red-50 text-red-600 p-4 rounded-lg border border-red-200">
             {error}
           </div>
         )}
         
-        <Formik
-          initialValues={{ email: '', password: '' }}
-          validationSchema={LoginSchema}
-          onSubmit={handleSubmit}
+        {/* Google OAuth ログインボタン */}
+        <button
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          className="w-full mb-6 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-medium py-3 px-4 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md"
         >
-          {({ isSubmitting }) => (
-            <Form>
-              <div className="mb-4">
-                <label htmlFor="email" className="block mb-1 font-medium">
-                  メールアドレス
-                </label>
-                <Field
-                  id="email"
-                  name="email"
-                  type="email"
-                  className="w-full px-3 py-2 border rounded-md"
-                />
-                <ErrorMessage
-                  name="email"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
-              </div>
-              
-              <div className="mb-6">
-                <label htmlFor="password" className="block mb-1 font-medium">
-                  パスワード
-                </label>
-                <Field
-                  id="password"
-                  name="password"
-                  type="password"
-                  className="w-full px-3 py-2 border rounded-md"
-                />
-                <ErrorMessage
-                  name="password"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
-              </div>
-              
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded-md"
-              >
-                {isSubmitting ? 'ログイン中...' : 'ログイン'}
-              </button>
-            </Form>
-          )}
-        </Formik>
-        
-        <div className="mt-4 text-center">
-          <p>
-            アカウントをお持ちでない方は
-            <Link href="/register" className="text-primary hover:underline">
-              こちら
-            </Link>
-            から登録
+          <FaGoogle className="text-red-500 mr-3 text-lg" />
+          {loading ? 'ログイン中...' : 'Googleアカウントでログイン'}
+        </button>
+
+        {/* 区切り線 */}
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">または</span>
+          </div>
+        </div>
+
+        {/* 説明テキスト */}
+        <div className="text-center text-sm text-gray-600">
+          <p className="mb-2">
+            <strong>省エネ計算を、もっとシンプルに。</strong>
           </p>
+          <p>
+            建築設計者の負担を軽減し、本来の創造的な設計業務に集中できる環境を提供します。
+          </p>
+        </div>
+
+        {/* フッター */}
+        <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
+          <p>© 2024 Archi-Prisma Design works 株式会社</p>
         </div>
       </div>
     </Layout>

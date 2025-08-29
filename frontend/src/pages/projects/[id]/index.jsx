@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import AuthContext from '../../../contexts/AuthContext';
 import { projectsAPI } from '../../../utils/api';
+import { getProject, deleteProject as deleteLocalProject } from '../../../utils/projectStorage';
 import { useNotification } from '../../../components/ErrorAlert';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import { FaCalculator, FaEdit, FaTrash, FaArrowLeft, FaEye } from 'react-icons/fa';
@@ -27,11 +28,28 @@ const ProjectDetail = () => {
   const fetchProject = async () => {
     try {
       setLoading(true);
-      const response = await projectsAPI.getById(id);
-      setProject(response.data);
+      
+      // LocalStorage環境での取得
+      if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
+        const localProject = getProject(id);
+        if (localProject) {
+          setProject(localProject);
+        } else {
+          showError('プロジェクトが見つかりません');
+        }
+      } else {
+        const response = await projectsAPI.getById(id);
+        setProject(response.data);
+      }
     } catch (error) {
       console.error('Failed to fetch project:', error);
-      showError('プロジェクトの取得に失敗しました');
+      // フォールバック
+      const localProject = getProject(id);
+      if (localProject) {
+        setProject(localProject);
+      } else {
+        showError('プロジェクトの取得に失敗しました');
+      }
     } finally {
       setLoading(false);
     }
@@ -44,9 +62,16 @@ const ProjectDetail = () => {
 
     setDeleting(true);
     try {
-      await projectsAPI.delete(id);
-      showSuccess('プロジェクトを削除しました');
-      router.push('/projects');
+      // LocalStorage環境での削除
+      if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
+        deleteLocalProject(id);
+        showSuccess('プロジェクトを削除しました');
+        router.push('/projects');
+      } else {
+        await projectsAPI.delete(id);
+        showSuccess('プロジェクトを削除しました');
+        router.push('/projects');
+      }
     } catch (error) {
       console.error('Failed to delete project:', error);
       showError('プロジェクトの削除に失敗しました');
@@ -115,15 +140,15 @@ const ProjectDetail = () => {
             <div className="flex justify-between items-start">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {project.name}
+                  {project.projectInfo?.name || project.name}
                 </h1>
-                {project.description && (
+                {(project.projectInfo?.description || project.description) && (
                   <p className="text-gray-600 text-lg mb-4">
-                    {project.description}
+                    {project.projectInfo?.description || project.description}
                   </p>
                 )}
                 <div className="text-sm text-gray-500">
-                  作成日: {new Date(project.created_at).toLocaleDateString('ja-JP')}
+                  作成日: {new Date(project.createdAt || project.created_at).toLocaleDateString('ja-JP')}
                 </div>
               </div>
               
@@ -151,77 +176,170 @@ const ProjectDetail = () => {
         </div>
 
         {/* アクションカード */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* 計算実行 */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-blue-600">
             <div className="flex items-center mb-4">
               <div className="bg-blue-100 p-3 rounded-full mr-4">
                 <FaCalculator className="text-blue-600 text-xl" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-gray-900">省エネ計算実行</h3>
-                <p className="text-gray-600">建物の省エネ性能を計算します</p>
+                <p className="text-gray-600">建物の省エネ性能を計算</p>
               </div>
             </div>
+            <p className="text-sm text-gray-500 mb-4">
+              BEI値、外皮性能、一次エネルギー消費量を正確に算出し、省エネ基準適合性を判定します。
+            </p>
             <Link 
               href={`/projects/${id}/calculate`}
-              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-medium text-center block"
+              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 font-medium text-center block shadow-lg"
             >
               計算を開始
             </Link>
           </div>
 
           {/* 結果確認 */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-green-600">
             <div className="flex items-center mb-4">
               <div className="bg-green-100 p-3 rounded-full mr-4">
                 <FaEye className="text-green-600 text-xl" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-gray-900">計算結果確認</h3>
-                <p className="text-gray-600">過去の計算結果を確認します</p>
+                <p className="text-gray-600">詳細レポートを表示</p>
               </div>
             </div>
+            <p className="text-sm text-gray-500 mb-4">
+              グラフィカルな結果表示とPDF・Excel形式での出力が可能です。申請資料作成に最適。
+            </p>
             <Link 
               href={`/projects/${id}/result`}
-              className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors font-medium text-center block"
+              className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 font-medium text-center block shadow-lg"
             >
               結果を確認
+            </Link>
+          </div>
+
+          {/* クイック計算 */}
+          <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-purple-600">
+            <div className="flex items-center mb-4">
+              <div className="bg-purple-100 p-3 rounded-full mr-4">
+                <FaEdit className="text-purple-600 text-xl" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">簡易計算ツール</h3>
+                <p className="text-gray-600">BEI計算機を使用</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              基本的な建物情報から概算BEI値を素早く算出。設計初期段階での検討に便利です。
+            </p>
+            <Link 
+              href="/tools/bei-calculator"
+              className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 font-medium text-center block shadow-lg"
+            >
+              簡易計算開始
             </Link>
           </div>
         </div>
 
         {/* プロジェクト情報 */}
         <div className="mt-8 bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">プロジェクト情報</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">プロジェクト詳細情報</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">プロジェクトID</h3>
-              <p className="text-gray-600">{project.id}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                プロジェクトID
+              </h3>
+              <p className="text-gray-600 font-mono text-sm">{project.id}</p>
             </div>
             
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">作成者</h3>
-              <p className="text-gray-600">あなた</p>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                設計者
+              </h3>
+              <p className="text-gray-600">{project.projectInfo?.designer || user?.full_name || user?.name || '設計者'}</p>
             </div>
             
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">最終更新</h3>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                設計事務所
+              </h3>
+              <p className="text-gray-600">{project.projectInfo?.designFirm || 'Archi-Prisma Design works 株式会社'}</p>
+            </div>
+            
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                作成日時
+              </h3>
               <p className="text-gray-600">
-                {project.updated_at ? 
-                  new Date(project.updated_at).toLocaleDateString('ja-JP') : 
-                  new Date(project.created_at).toLocaleDateString('ja-JP')
+                {new Date(project.createdAt || project.created_at).toLocaleString('ja-JP')}
+              </p>
+            </div>
+            
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                最終更新
+              </h3>
+              <p className="text-gray-600">
+                {project.updatedAt || project.updated_at ? 
+                  new Date(project.updatedAt || project.updated_at).toLocaleString('ja-JP') : 
+                  new Date(project.createdAt || project.created_at).toLocaleString('ja-JP')
                 }
               </p>
             </div>
             
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">ステータス</h3>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                ステータス
+              </h3>
               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
                 アクティブ
               </span>
             </div>
+          </div>
+
+          {/* 計算履歴セクション */}
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">計算履歴</h3>
+            {project.result || project.result_data ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <div className="bg-green-500 p-2 rounded-full mr-3">
+                    <FaCalculator className="text-white text-sm" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-green-900">計算完了済み</p>
+                    <p className="text-sm text-green-700">
+                      最新の省エネ計算結果が利用可能です。「結果を確認」ボタンから詳細をご覧いただけます。
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <div className="bg-yellow-500 p-2 rounded-full mr-3">
+                    <FaCalculator className="text-white text-sm" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-yellow-900">計算未実行</p>
+                    <p className="text-sm text-yellow-700">
+                      まだ省エネ計算が実行されていません。「計算を開始」ボタンから建物情報を入力して計算を実行してください。
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../../components/Layout';
 import { projectsAPI, calcAPI } from '../../../utils/api';
+import { getProject, saveProject } from '../../../utils/projectStorage';
 import { Formik, Form, Field, ErrorMessage, FieldArray } from 'formik';
 import * as Yup from 'yup';
 
@@ -77,11 +78,27 @@ export default function Calculate() {
 
   const fetchProject = async (projectId) => {
     try {
-      const response = await projectsAPI.getById(projectId);
-      setProject(response.data);
+      // LocalStorage環境での取得
+      if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
+        const localProject = getProject(projectId);
+        if (localProject) {
+          setProject(localProject);
+        } else {
+          setError('プロジェクトが見つかりません。');
+        }
+      } else {
+        const response = await projectsAPI.getById(projectId);
+        setProject(response.data);
+      }
     } catch (error) {
       console.error('プロジェクト取得エラー:', error);
-      setError('プロジェクトの取得中にエラーが発生しました。');
+      // フォールバック
+      const localProject = getProject(projectId);
+      if (localProject) {
+        setProject(localProject);
+      } else {
+        setError('プロジェクトの取得中にエラーが発生しました。');
+      }
     } finally {
       setLoading(false);
     }
@@ -144,14 +161,52 @@ export default function Calculate() {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       setCalculating(true);
-      // 計算実行と保存
-      const response = await calcAPI.calculateAndSave(id, values);
       
-      if (response && (response.data || response.status === 200)) {
-        // 計算結果ページへ遷移
+      // LocalStorage環境での計算（モック計算結果）
+      if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
+        // モック計算結果を生成
+        const mockResult = {
+          bei: {
+            value: 0.8,
+            standard: 1.0,
+            judgment: '適合'
+          },
+          energy: {
+            total: 85.2,
+            heating: 25.1,
+            cooling: 15.3,
+            ventilation: 12.8,
+            lighting: 18.5,
+            hot_water: 13.5
+          },
+          renewable: {
+            solar: 0,
+            total: 0
+          }
+        };
+        
+        // プロジェクトデータを更新
+        const updatedProject = {
+          ...project,
+          formData: values,
+          result: mockResult,
+          status: 'calculated',
+          updatedAt: new Date().toISOString()
+        };
+        
+        saveProject(updatedProject);
+        
+        console.log('計算完了（モック）:', mockResult);
         router.push(`/projects/${id}/result`);
       } else {
-        throw new Error('計算レスポンスが不正です');
+        // API環境での計算
+        const response = await calcAPI.calculateAndSave(id, values);
+        
+        if (response && (response.data || response.status === 200)) {
+          router.push(`/projects/${id}/result`);
+        } else {
+          throw new Error('計算レスポンスが不正です');
+        }
       }
     } catch (error) {
       console.error('計算エラー:', error);
@@ -179,7 +234,7 @@ export default function Calculate() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">建築物省エネ法計算</h1>
-            <p className="text-lg text-gray-600 mt-1">{project.name}</p>
+            <p className="text-lg text-gray-600 mt-1">{project?.projectInfo?.name || project?.name}</p>
             <div className="flex items-center mt-2 text-sm text-gray-500">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                 モデル建物法
@@ -203,7 +258,7 @@ export default function Calculate() {
       )}
 
       <Formik
-        initialValues={project.input_data || initialValues}
+        initialValues={project?.formData || project?.input_data || initialValues}
         validationSchema={CalculationSchema}
         onSubmit={handleSubmit}
       >

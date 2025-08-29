@@ -98,29 +98,41 @@ export default function Home() {
             主な機能
           </h2>
         
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-blue-600 hover:shadow-2xl transition-all duration-300">
-              <div className="text-blue-600 text-4xl mb-6 flex justify-center">
-                <FaBuilding />
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {/* BEI計算カード - Apple風デザイン */}
+            <Link href="/tools/bei-calculator" className="group">
+              <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 ease-out cursor-pointer">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6">
+                  <FaBuilding className="text-white text-2xl" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3 text-gray-900 group-hover:text-blue-600 transition-colors">
+                  BEI計算
+                </h3>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  建築物エネルギー消費性能を正確に計算。省エネ基準適合性を瞬時に判定します。
+                </p>
+                <div className="space-y-2 mb-6">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
+                    地域区分別基準値対応
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
+                    複合用途建物対応
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
+                    再エネ控除計算
+                  </div>
+                </div>
+                <div className="inline-flex items-center text-blue-600 font-medium group-hover:translate-x-1 transition-transform duration-200">
+                  今すぐ計算 
+                  <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-gray-800">BEI計算</h3>
-              <p className="text-gray-600 mb-4">
-                建築物エネルギー消費性能（BEI）を正確に計算し、省エネ基準適合性を自動判定。単一・複合用途対応。
-              </p>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />地域区分別基準値対応</li>
-                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />複合用途建物対応</li>
-                <li className="flex items-center"><FaCheckCircle className="text-green-500 mr-2" />再エネ控除計算</li>
-              </ul>
-              <div className="mt-6">
-                <Link
-                  href="/tools/bei-calculator"
-                  className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  計算を開始 →
-                </Link>
-              </div>
-            </div>
+            </Link>
             
             <div className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-green-600 hover:shadow-2xl transition-all duration-300">
               <div className="text-green-600 text-4xl mb-6 flex justify-center">

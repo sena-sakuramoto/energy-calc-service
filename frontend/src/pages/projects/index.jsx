@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import { projectsAPI } from '../../utils/api';
+import { getProjects as getLocalProjects, deleteProject as deleteLocalProject } from '../../utils/projectStorage';
 import Link from 'next/link';
 import { FaPlus, FaPencilAlt, FaTrash, FaCalculator } from 'react-icons/fa';
 
@@ -19,11 +20,22 @@ export default function Projects() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await projectsAPI.getAll();
-      setProjects(response.data);
+      
+      // 一時的にLocalStorageから取得（GitHub Pagesモード対応）
+      if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
+        const localProjects = getLocalProjects();
+        setProjects(localProjects);
+        setError('');
+      } else {
+        const response = await projectsAPI.getAll();
+        setProjects(response.data);
+      }
     } catch (error) {
       console.error('プロジェクト取得エラー:', error);
-      setError('プロジェクトの取得中にエラーが発生しました。');
+      // フォールバックとしてLocalStorageを使用
+      const localProjects = getLocalProjects();
+      setProjects(localProjects);
+      setError(''); // エラーメッセージをクリア（LocalStorageで動作しているため）
     } finally {
       setLoading(false);
     }
@@ -32,8 +44,14 @@ export default function Projects() {
   const handleDelete = async (id, name) => {
     if (window.confirm(`プロジェクト「${name}」を削除しますか？`)) {
       try {
-        await projectsAPI.delete(id);
-        setProjects(projects.filter(project => project.id !== id));
+        // LocalStorage環境での削除
+        if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
+          deleteLocalProject(id);
+          setProjects(projects.filter(project => project.id !== id));
+        } else {
+          await projectsAPI.delete(id);
+          setProjects(projects.filter(project => project.id !== id));
+        }
       } catch (error) {
         console.error('削除エラー:', error);
         alert('削除中にエラーが発生しました。');

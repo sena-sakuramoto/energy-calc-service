@@ -18,7 +18,12 @@
       "Bash(git push:*)",
       "Bash(git commit:*)",
       "Bash(npm install:*)",
-      "WebFetch(domain:building.lowenergy.jp)"
+      "WebFetch(domain:building.lowenergy.jp)",
+      "Bash(npm run dev:*)",
+      "Bash(openssl rand:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(grep:*)"
     ],
     "additionalDirectories": [
       "C:\\temp",

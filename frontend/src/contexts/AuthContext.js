@@ -2,7 +2,8 @@
 // -*- coding: utf-8 -*-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-import { authAPI } from '../utils/api'; // ← この行を確認・追加！
+import { useSession, signIn, signOut } from 'next-auth/react';
+import { authAPI } from '../utils/api';
 
 const AuthContext = createContext({
   user: null,
@@ -16,13 +17,14 @@ const AuthContext = createContext({
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { data: session, status } = useSession();
+  const loading = status === 'loading';
   const router = useRouter();
 
   useEffect(() => {
     const initializeAuth = async () => {
-      // GitHub Pages用のモックユーザー設定
-      if (typeof window !== 'undefined' && window.location.hostname.includes('github.io')) {
+      // GitHub Pages用のモックユーザー設定（一時的にローカルでも有効）
+      if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
         console.log("GitHub Pages mode: Setting mock user");
         setUser({
           id: 1,
@@ -30,36 +32,35 @@ export const AuthProvider = ({ children }) => {
           full_name: "Demo User",
           is_active: true
         });
-        setLoading(false);
         return;
       }
       
-      // 通常の認証フロー（GitHub Pages以外）
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('authToken');
-        if (token) {
-          try {
-            const response = await authAPI.getCurrentUser();
-            setUser(response.data);
-          } catch (error) {
-            console.error("Failed to fetch current user, token might be invalid.", error);
-            localStorage.removeItem('authToken');
-            setUser(null);
-          }
-        }
+      // Google OAuth認証済みの場合
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email,
+          full_name: session.user.name,
+          image: session.user.image,
+          is_active: true
+        });
+      } else {
+        setUser(null);
       }
-      setLoading(false);
     };
-    initializeAuth();
-  }, []);
+    
+    if (status !== 'loading') {
+      initializeAuth();
+    }
+  }, [session, status]);
 
-  const login = async (email, password) => {
-    // GitHub Pages用のモックログイン
-    if (typeof window !== 'undefined' && window.location.hostname.includes('github.io')) {
+  const login = async () => {
+    // GitHub Pages用のモックログイン（一時的にローカルでも有効）
+    if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
       console.log("GitHub Pages mode: Mock login");
       setUser({
         id: 1,
-        email: email,
+        email: "demo@example.com",
         full_name: "Demo User",
         is_active: true
       });
@@ -67,27 +68,21 @@ export const AuthProvider = ({ children }) => {
       return true;
     }
     
-    // 通常のログイン処理
+    // Google OAuth認証
     try {
-      const response = await authAPI.login({ email, password });
-      const { access_token } = response.data;
-      authAPI.setAuthToken(access_token);
-
-      const userResponse = await authAPI.getCurrentUser();
-      setUser(userResponse.data);
-
-      router.push('/');
-      return true;
+      const result = await signIn('google', { 
+        redirect: false,  // リダイレクトを無効にして手動制御
+      });
+      
+      if (result?.ok) {
+        router.push('/');
+        return true;
+      } else {
+        throw new Error('認証に失敗しました');
+      }
     } catch (error) {
-      console.error('Login failed in AuthContext:', error);
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('authToken');
-      }
-      setUser(null);
-      if (error.response && error.response.data && error.response.data.detail) {
-        throw new Error(error.response.data.detail);
-      }
-      throw new Error('メールアドレスまたはパスワードが正しくありません。');
+      console.error('Google OAuth login failed:', error);
+      throw new Error('Googleログインに失敗しました。');
     }
   };
 
@@ -111,12 +106,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    if (typeof window !== 'undefined' && !window.location.hostname.includes('github.io')) {
-      authAPI.setAuthToken(null); // localStorageのトークンもクリア
+  const logout = async () => {
+    if (typeof window !== 'undefined' && window.location.hostname.includes('github.io')) {
+      setUser(null);
+      router.push('/login');
+      return;
     }
-    setUser(null);
-    router.push('/login');
+    
+    // Google OAuth ログアウト
+    try {
+      await signOut({ callbackUrl: '/login' });
+      setUser(null);
+    } catch (error) {
+      console.error('Logout failed:', error);
+      setUser(null);
+      router.push('/login');
+    }
   };
 
   const value = {

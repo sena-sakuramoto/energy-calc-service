@@ -650,7 +650,7 @@ export default function BEICalculator() {
                 {!formData.is_mixed_use && (
                   <>
                     <BuildingTypeSelector
-                      value={formData.building_type}
+                      value={formData?.building_type || ''}
                       onChange={(value) => {
                         setFormData({...formData, building_type: value});
                         setValidationErrors({...validationErrors, building_type: ''});
@@ -707,7 +707,7 @@ export default function BEICalculator() {
                             建物用途
                           </label>
                           <BuildingTypeSelector
-                            value={use.use_type}
+                            value={use?.use_type || ''}
                             onChange={(value) => {
                               const newUses = [...formData.mixed_uses];
                               newUses[index].use_type = value;
@@ -728,7 +728,7 @@ export default function BEICalculator() {
                           </label>
                           <input
                             type="number"
-                            value={use.area_m2}
+                            value={use?.area_m2 || ''}
                             onChange={(e) => {
                               const newUses = [...formData.mixed_uses];
                               newUses[index].area_m2 = e.target.value;
@@ -775,7 +775,7 @@ export default function BEICalculator() {
 
                 {/* 地域区分選択 */}
                 <ClimateZoneSelector
-                  value={formData.climate_zone}
+                  value={formData?.climate_zone || ''}
                   onChange={(value) => {
                     setFormData({...formData, climate_zone: value});
                     setValidationErrors({...validationErrors, climate_zone: ''});
@@ -799,7 +799,7 @@ export default function BEICalculator() {
                   </div>
                   <input
                     type="number"
-                    value={formData.floor_area}
+                    value={formData?.floor_area || ''}
                     onChange={(e) => {
                       setFormData({...formData, floor_area: e.target.value});
                       setValidationErrors({...validationErrors, floor_area: ''});
@@ -873,7 +873,7 @@ export default function BEICalculator() {
                     </div>
                     <input
                       type="number"
-                      value={formData.envelope_performance.ua_value}
+                      value={formData?.envelope_performance?.ua_value || ''}
                       onChange={(e) => {
                         setFormData({
                           ...formData,
@@ -927,7 +927,7 @@ export default function BEICalculator() {
                       </div>
                       <input
                         type="number"
-                        value={formData.envelope_performance.eta_ac_value}
+                        value={formData?.envelope_performance?.eta_ac_value || ''}
                         onChange={(e) => {
                           setFormData({
                             ...formData,
@@ -1131,7 +1131,7 @@ export default function BEICalculator() {
                   </div>
                   <input
                     type="number"
-                    value={formData.renewable_energy}
+                    value={formData?.renewable_energy || ''}
                     onChange={(e) => setFormData({...formData, renewable_energy: e.target.value})}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="0"
