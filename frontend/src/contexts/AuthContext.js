@@ -54,24 +54,71 @@ export const AuthProvider = ({ children }) => {
     }
   }, [session, status]);
 
-  const login = async () => {
-    // GitHub Pages用のモックログイン（一時的にローカルでも有効）
+  const login = async (credentials = null) => {
+    // GitHub Pages用のモックログイン
     if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
       console.log("GitHub Pages mode: Mock login");
-      setUser({
-        id: 1,
-        email: "demo@example.com",
-        full_name: "Demo User",
-        is_active: true
-      });
-      router.push('/');
-      return true;
+      
+      // メール認証の場合、メールアドレスをチェック
+      if (credentials?.email) {
+        if (credentials.email === 's.sakuramoto@archisoft.co.jp' && credentials.password) {
+          setUser({
+            id: 2,
+            email: "s.sakuramoto@archisoft.co.jp",
+            full_name: "櫻本 聖亜",
+            is_active: true,
+            authType: 'email'
+          });
+          router.push('/');
+          return true;
+        } else {
+          throw new Error('メールアドレスまたはパスワードが正しくありません');
+        }
+      } else {
+        // Google認証用のデモ
+        setUser({
+          id: 1,
+          email: "demo@example.com",
+          full_name: "Demo User",
+          is_active: true,
+          authType: 'google'
+        });
+        router.push('/');
+        return true;
+      }
+    }
+    
+    // メール/パスワード認証
+    if (credentials?.email && credentials?.password) {
+      try {
+        const response = await authAPI.login({
+          email: credentials.email,
+          password: credentials.password
+        });
+        
+        setUser({
+          id: response.data.user.id,
+          email: response.data.user.email,
+          full_name: response.data.user.full_name,
+          is_active: response.data.user.is_active,
+          authType: 'email'
+        });
+        
+        // トークンをローカルストレージに保存
+        localStorage.setItem('authToken', response.data.access_token);
+        
+        router.push('/');
+        return true;
+      } catch (error) {
+        console.error('Email login failed:', error);
+        throw new Error('メールアドレスまたはパスワードが正しくありません');
+      }
     }
     
     // Google OAuth認証
     try {
       const result = await signIn('google', { 
-        redirect: false,  // リダイレクトを無効にして手動制御
+        redirect: false,
       });
       
       if (result?.ok) {
