@@ -33,28 +33,28 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* 機能リンク */}
+          {/* 主要サービス */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-blue-300">主な機能</h4>
+            <h4 className="text-lg font-semibold mb-4 text-blue-300">主要サービス</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/tools/bei-calculator" className="text-gray-300 hover:text-blue-300 transition-colors text-sm">
-                  BEI計算ツール
+                  🔥 BEI計算（無料）
                 </Link>
               </li>
               <li>
-                <Link href="/tools/energy-calculator" className="text-gray-300 hover:text-blue-300 transition-colors text-sm">
-                  エネルギー計算
+                <Link href="/campaign" className="text-gray-300 hover:text-blue-300 transition-colors text-sm">
+                  🎁 期間限定キャンペーン
                 </Link>
               </li>
               <li>
-                <Link href="/tools/tariff-calculator" className="text-gray-300 hover:text-blue-300 transition-colors text-sm">
-                  電力料金計算
+                <Link href="/system/status" className="text-gray-300 hover:text-blue-300 transition-colors text-sm">
+                  📊 サービス稼働状況
                 </Link>
               </li>
               <li>
-                <Link href="/projects" className="text-gray-300 hover:text-blue-300 transition-colors text-sm">
-                  プロジェクト管理
+                <Link href="/contact" className="text-gray-300 hover:text-blue-300 transition-colors text-sm">
+                  💬 お問い合わせ
                 </Link>
               </li>
             </ul>

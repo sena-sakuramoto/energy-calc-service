@@ -202,9 +202,45 @@ export default function Campaign() {
               <p className="text-gray-700">A. 2025年1月以降は月額19,800円となりますが、引き続き同じ高品質なサービスをご利用いただけます。</p>
             </div>
             
-            <div>
+            <div className="border-b border-gray-200 pb-4">
               <h3 className="font-bold text-gray-900 mb-2">Q. 商用利用はできますか？</h3>
               <p className="text-gray-700">A. はい、設計業務での商用利用も可能です。ただし計算結果は参考値として専門家による確認をお願いします。</p>
+            </div>
+            
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">Q. サービスは安定していますか？</h3>
+              <p className="text-gray-700">A. はい、24時間監視体制で99.9%の稼働率を保っています。
+                <Link href="/system/status" className="text-blue-600 hover:text-blue-800 font-medium ml-2">
+                  📊 リアルタイムの稼働状況はこちら
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 安心してご利用いただくために */}
+        <div className="mt-8 bg-blue-50 rounded-lg p-6">
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-blue-900 mb-4">🛡️ 安心してご利用いただくために</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Link
+                href="/system/status"
+                className="bg-white hover:bg-gray-50 text-blue-900 font-medium py-3 px-4 rounded-lg shadow transition-all duration-300 transform hover:scale-105"
+              >
+                📊 サービス稼働状況
+              </Link>
+              <Link
+                href="/about"
+                className="bg-white hover:bg-gray-50 text-blue-900 font-medium py-3 px-4 rounded-lg shadow transition-all duration-300 transform hover:scale-105"
+              >
+                🏢 会社・サービス情報
+              </Link>
+              <Link
+                href="/contact"
+                className="bg-white hover:bg-gray-50 text-blue-900 font-medium py-3 px-4 rounded-lg shadow transition-all duration-300 transform hover:scale-105"
+              >
+                💬 お問い合わせ
+              </Link>
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Link from 'next/link';
-import { FaUser, FaSignOutAlt, FaCalculator, FaChevronDown, FaBars, FaTimes, FaBook } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt, FaCalculator, FaChevronDown, FaBars, FaTimes, FaBook, FaChartLine, FaGift } from 'react-icons/fa';
 
 export default function Header() {
   const { isAuthenticated, logout } = useAuth();
@@ -36,11 +36,20 @@ export default function Header() {
               </li>
             )}
             
-            {/* ガイドリンク */}
+            {/* キャンペーン */}
             <li className="list-none">
-              <Link href="/guide/model-building-method" className="flex items-center hover:text-blue-200 transition-colors">
-                <FaBook className="mr-2" />
-                ガイド
+              <Link href="/campaign" className="flex items-center hover:text-blue-200 transition-colors">
+                <FaGift className="mr-2 text-yellow-300" />
+                <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold mr-2">無料</span>
+                キャンペーン
+              </Link>
+            </li>
+            
+            {/* サービス状況 */}
+            <li className="list-none">
+              <Link href="/system/status" className="flex items-center hover:text-blue-200 transition-colors">
+                <FaChartLine className="mr-2" />
+                サービス状況
               </Link>
             </li>
             
@@ -134,14 +143,25 @@ export default function Header() {
                 </Link>
               )}
               
-              {/* ガイドリンク (モバイル) */}
+              {/* キャンペーン (モバイル) */}
               <Link
-                href="/guide/model-building-method"
+                href="/campaign"
                 className="flex items-center hover:text-blue-200 transition-colors"
                 onClick={closeMenus}
               >
-                <FaBook className="mr-2" />
-                ガイド
+                <FaGift className="mr-2 text-yellow-300" />
+                <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold mr-2">無料</span>
+                キャンペーン
+              </Link>
+              
+              {/* サービス状況 (モバイル) */}
+              <Link
+                href="/system/status"
+                className="flex items-center hover:text-blue-200 transition-colors"
+                onClick={closeMenus}
+              >
+                <FaChartLine className="mr-2" />
+                サービス状況
               </Link>
               
               <div className="border-l-4 border-blue-400 pl-4">

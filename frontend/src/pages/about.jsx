@@ -212,13 +212,19 @@ export default function About() {
               href="/contact"
               className="bg-white text-blue-600 hover:bg-gray-100 font-bold py-3 px-6 rounded-lg transition-all duration-300 inline-block"
             >
-              お問い合わせフォーム
+              💬 お問い合わせフォーム
             </Link>
             <Link
               href="/system/status"
               className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-3 px-6 rounded-lg transition-all duration-300 inline-block"
             >
-              システム状況を確認
+              📊 サービス稼働状況を確認
+            </Link>
+            <Link
+              href="/campaign"
+              className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 inline-block ml-2"
+            >
+              🔥 期間限定無料キャンペーン
             </Link>
           </div>
         </div>

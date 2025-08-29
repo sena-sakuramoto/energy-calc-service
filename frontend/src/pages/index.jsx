@@ -86,7 +86,7 @@ export default function Home() {
               </div>
               
               {/* サブツール */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto">
                 <Link
                   href="/tools/energy-calculator"
                   className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 text-center"
@@ -98,6 +98,12 @@ export default function Home() {
                   className="bg-purple-500 hover:bg-purple-600 text-white font-medium py-3 px-4 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 text-center"
                 >
                   電力料金計算
+                </Link>
+                <Link
+                  href="/system/status"
+                  className="bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 text-center"
+                >
+                  📊 サービス状況
                 </Link>
               </div>
             </div>
