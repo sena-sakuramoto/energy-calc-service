@@ -36,23 +36,31 @@ export default function Home() {
             <span className="font-semibold text-green-600">簡単・正確・安心</span>な省エネ計算ツール
           </p>
           
-          {/* デモ版案内 */}
-          <div className="mb-8 max-w-2xl mx-auto">
-            <div className="bg-green-100 border border-green-300 text-green-800 px-6 py-4 rounded-lg">
-              <div className="flex items-center justify-center mb-2">
-                <FaCheckCircle className="mr-2 text-green-600" />
-                <span className="font-bold">今すぐ無料で体験できます！</span>
+          {/* 期間限定無料キャンペーン */}
+          <div className="mb-8 max-w-3xl mx-auto">
+            <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 text-red-900 px-8 py-6 rounded-xl shadow-lg">
+              <div className="flex items-center justify-center mb-3">
+                <span className="bg-red-600 text-white px-4 py-1 rounded-full text-sm font-bold mr-3">期間限定</span>
+                <span className="font-bold text-xl">🎉 完全無料キャンペーン実施中！</span>
               </div>
-              <p className="text-sm mb-3">
-                登録不要・ログイン不要で全機能をお試しいただけます。<br />
-                本格的な省エネ計算が5分で完了します。
+              <p className="text-center text-lg font-medium mb-3">
+                <span className="text-2xl font-bold text-red-600">2024年12月末まで</span>
+                <span className="block text-sm text-red-700 mt-1">
+                  通常月額19,800円のサービスが完全無料でご利用いただけます
+                </span>
               </p>
-              <Link 
-                href="/demo-guide" 
-                className="text-sm text-green-700 hover:text-green-900 font-medium underline"
-              >
-                📋 体験の詳しい手順を見る
-              </Link>
+              <div className="text-center">
+                <p className="text-sm text-red-800 mb-3">
+                  ✓ アカウント登録不要　✓ すぐに使える　✓ 全機能利用可能<br />
+                  ✓ 省エネ計算が5分で完了　✓ 申請書類自動作成
+                </p>
+                <Link 
+                  href="/campaign" 
+                  className="text-sm text-red-800 hover:text-red-900 font-bold underline"
+                >
+                  🔥 キャンペーン詳細を見る
+                </Link>
+              </div>
             </div>
           </div>
           
@@ -62,15 +70,18 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
                 <Link
                   href="/tools/bei-calculator"
-                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-8 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
+                  className="relative bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold py-5 px-10 rounded-xl shadow-2xl transition-all duration-300 transform hover:scale-105 text-xl"
                 >
-                  ⚡ 今すぐBEI計算を体験
+                  <span className="absolute -top-2 -right-2 bg-yellow-400 text-red-900 text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                    無料
+                  </span>
+                  🔥 今すぐ無料で省エネ計算
                 </Link>
                 <Link
-                  href="/login"
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-8 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
+                  href="/campaign"
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-5 px-8 rounded-xl shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
                 >
-                  🚀 ログインして始める
+                  🎉 キャンペーン詳細
                 </Link>
               </div>
               
