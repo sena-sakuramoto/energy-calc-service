@@ -64,6 +64,13 @@ export default function Login() {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">ログイン</h1>
             <p className="text-gray-600">楽々省エネ計算にサインインして始めましょう</p>
+            
+            {/* 体験版案内 */}
+            <div className="mt-4 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg">
+              <p className="text-sm font-medium">
+                🎉 体験版として全機能をご利用いただけます！
+              </p>
+            </div>
           </div>
           
           {error && (

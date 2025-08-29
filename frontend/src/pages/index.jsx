@@ -31,31 +31,64 @@ export default function Home() {
           <p className="text-sm text-gray-500 mb-6">
             by Archi-Prisma Design works 株式会社
           </p>
-          <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-gray-700 mb-6 max-w-3xl mx-auto leading-relaxed">
             建築設計者の負担を軽減し、本来の創造的な設計業務に集中できる<br />
             <span className="font-semibold text-green-600">簡単・正確・安心</span>な省エネ計算ツール
           </p>
           
-          {isGitHubPages ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
-              <Link
-                href="/tools/bei-calculator"
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105"
+          {/* デモ版案内 */}
+          <div className="mb-8 max-w-2xl mx-auto">
+            <div className="bg-green-100 border border-green-300 text-green-800 px-6 py-4 rounded-lg">
+              <div className="flex items-center justify-center mb-2">
+                <FaCheckCircle className="mr-2 text-green-600" />
+                <span className="font-bold">今すぐ無料で体験できます！</span>
+              </div>
+              <p className="text-sm mb-3">
+                登録不要・ログイン不要で全機能をお試しいただけます。<br />
+                本格的な省エネ計算が5分で完了します。
+              </p>
+              <Link 
+                href="/demo-guide" 
+                className="text-sm text-green-700 hover:text-green-900 font-medium underline"
               >
-                BEI計算ツール
+                📋 体験の詳しい手順を見る
               </Link>
-              <Link
-                href="/tools/energy-calculator"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105"
-              >
-                エネルギー計算
-              </Link>
-              <Link
-                href="/tools/tariff-calculator"
-                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105"
-              >
-                電力料金計算
-              </Link>
+            </div>
+          </div>
+          
+          {isGitHubPages || !isAuthenticated ? (
+            <div className="space-y-4">
+              {/* メインCTAボタン */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+                <Link
+                  href="/tools/bei-calculator"
+                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-8 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
+                >
+                  ⚡ 今すぐBEI計算を体験
+                </Link>
+                <Link
+                  href="/login"
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-8 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
+                >
+                  🚀 ログインして始める
+                </Link>
+              </div>
+              
+              {/* サブツール */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                <Link
+                  href="/tools/energy-calculator"
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 text-center"
+                >
+                  エネルギー計算
+                </Link>
+                <Link
+                  href="/tools/tariff-calculator"
+                  className="bg-purple-500 hover:bg-purple-600 text-white font-medium py-3 px-4 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 text-center"
+                >
+                  電力料金計算
+                </Link>
+              </div>
             </div>
           ) : isAuthenticated ? (
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
