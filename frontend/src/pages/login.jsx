@@ -79,17 +79,14 @@ export default function Login() {
             </div>
           )}
           
+          {/* 登録成功メッセージ */}
+          {router.query.registered === 'true' && (
+            <div className="mb-6 bg-green-50 text-green-600 p-4 rounded-lg border border-green-200">
+              アカウントの登録が完了しました！ログインしてご利用ください。
+            </div>
+          )}
+          
           <div className="space-y-4">
-            {/* Google認証ボタン */}
-            <button
-              onClick={handleGoogleLogin}
-              disabled={loading}
-              className="w-full bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-blue-400 text-gray-700 font-medium py-4 px-4 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md"
-            >
-              <FaGoogle className="text-red-500 mr-3 text-xl" />
-              {loading ? 'ログイン中...' : 'Googleアカウントでログイン'}
-            </button>
-
             {/* メール認証ボタン */}
             <button
               onClick={() => setLoginType('email')}
@@ -98,6 +95,18 @@ export default function Login() {
               <FaEnvelope className="mr-3 text-lg" />
               メール・パスワードでログイン
             </button>
+            
+            {/* 開発環境でのみGoogle認証ボタンを表示 */}
+            {typeof window !== 'undefined' && window.location.hostname === 'localhost' && (
+              <button
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-blue-400 text-gray-700 font-medium py-4 px-4 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                <FaGoogle className="text-red-500 mr-3 text-xl" />
+                {loading ? 'ログイン中...' : 'Googleアカウントでログイン（開発環境）'}
+              </button>
+            )}
           </div>
 
           {/* 説明テキスト */}
@@ -165,7 +174,7 @@ export default function Login() {
                   name="email"
                   value={formData.email || ''}
                   onChange={handleInputChange}
-                  placeholder="s.sakuramoto@archisoft.co.jp"
+                  placeholder="example@company.co.jp"
                   required
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />

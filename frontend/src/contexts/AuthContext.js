@@ -23,26 +23,31 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      // GitHub Pages用のモックユーザー設定（一時的にローカルでも有効）
-      if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname.includes('rakuraku-energy.archi-prisma.co.jp') || window.location.hostname === 'localhost')) {
-        console.log("GitHub Pages mode: Setting mock user");
-        setUser({
-          id: 1,
-          email: "demo@example.com",
-          full_name: "Demo User",
-          is_active: true
-        });
-        return;
+      // 静的サイト用のLocalStorage認証チェック
+      if (typeof window !== 'undefined') {
+        const storedUser = localStorage.getItem('currentUser');
+        if (storedUser) {
+          try {
+            const userData = JSON.parse(storedUser);
+            setUser(userData);
+            console.log("Restored user from localStorage:", userData.email);
+            return;
+          } catch (error) {
+            console.error("Failed to parse stored user data:", error);
+            localStorage.removeItem('currentUser');
+          }
+        }
       }
       
-      // Google OAuth認証済みの場合
-      if (session?.user) {
+      // Google OAuth認証済みの場合（開発環境のみ）
+      if (session?.user && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
         setUser({
           id: session.user.id,
           email: session.user.email,
           full_name: session.user.name,
           image: session.user.image,
-          is_active: true
+          is_active: true,
+          authType: 'google'
         });
       } else {
         setUser(null);
@@ -55,119 +60,117 @@ export const AuthProvider = ({ children }) => {
   }, [session, status]);
 
   const login = async (credentials = null) => {
-    // GitHub Pages用のモックログイン
-    if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname.includes('rakuraku-energy.archi-prisma.co.jp') || window.location.hostname === 'localhost')) {
-      console.log("GitHub Pages mode: Mock login");
-      
-      // メール認証の場合、メールアドレスをチェック
-      if (credentials?.email) {
-        if (credentials.email === 's.sakuramoto@archisoft.co.jp' && credentials.password) {
-          setUser({
-            id: 2,
-            email: "s.sakuramoto@archisoft.co.jp",
-            full_name: "櫻本 聖亜",
+    // 静的サイト用の実際のログインシステム
+    if (typeof window !== 'undefined') {
+      // メール認証の場合
+      if (credentials?.email && credentials?.password) {
+        // LocalStorageから登録済みユーザーを取得
+        const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+        const user = registeredUsers.find(u => u.email === credentials.email);
+        
+        if (user && user.password === credentials.password) {
+          const loginUser = {
+            id: user.id,
+            email: user.email,
+            full_name: user.full_name,
+            company: user.company,
             is_active: true,
-            authType: 'email'
-          });
+            authType: 'email',
+            registrationDate: user.registrationDate
+          };
+          
+          setUser(loginUser);
+          localStorage.setItem('currentUser', JSON.stringify(loginUser));
+          console.log("User logged in:", loginUser.email);
           router.push('/');
           return true;
         } else {
           throw new Error('メールアドレスまたはパスワードが正しくありません');
         }
-      } else {
-        // Google認証用のデモ
-        setUser({
-          id: 1,
-          email: "demo@example.com",
-          full_name: "Demo User",
-          is_active: true,
-          authType: 'google'
-        });
-        router.push('/');
-        return true;
       }
     }
     
-    // メール/パスワード認証
-    if (credentials?.email && credentials?.password) {
+    // 開発環境でのみGoogle OAuth認証を有効化
+    if (!credentials?.email && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
       try {
-        const response = await authAPI.login({
-          email: credentials.email,
-          password: credentials.password
+        const result = await signIn('google', { 
+          redirect: false,
         });
         
-        setUser({
-          id: response.data.user.id,
-          email: response.data.user.email,
-          full_name: response.data.user.full_name,
-          is_active: response.data.user.is_active,
-          authType: 'email'
-        });
-        
-        // トークンをローカルストレージに保存
-        localStorage.setItem('authToken', response.data.access_token);
-        
-        router.push('/');
-        return true;
+        if (result?.ok) {
+          router.push('/');
+          return true;
+        } else {
+          throw new Error('認証に失敗しました');
+        }
       } catch (error) {
-        console.error('Email login failed:', error);
-        throw new Error('メールアドレスまたはパスワードが正しくありません');
+        console.error('Google OAuth login failed:', error);
+        throw new Error('Googleログインに失敗しました。');
       }
     }
     
-    // Google OAuth認証
-    try {
-      const result = await signIn('google', { 
-        redirect: false,
-      });
-      
-      if (result?.ok) {
-        router.push('/');
-        return true;
-      } else {
-        throw new Error('認証に失敗しました');
-      }
-    } catch (error) {
-      console.error('Google OAuth login failed:', error);
-      throw new Error('Googleログインに失敗しました。');
-    }
+    throw new Error('ログイン情報が正しくありません');
   };
 
   const register = async (userData) => {
-    console.log("Registering with data in AuthContext:", JSON.stringify(userData)); // AuthContextでのデータ確認
+    console.log("Registering new user:", userData.email);
+    
     try {
-      const response = await authAPI.register(userData); // authAPI を使用
-      router.push('/login?registered=true');
-      return response.data;
-    } catch (error) {
-      console.error('Register failed in AuthContext:', error); // ここでエラーがキャッチされる
-      if (error.response && error.response.data && error.response.data.detail) {
-        if (Array.isArray(error.response.data.detail)) {
-          const errorMessages = error.response.data.detail.map(d => `${(d.loc && d.loc.length > 1 ? d.loc[1] : 'Error')}: ${d.msg}`).join('\n');
-          throw new Error(`${errorMessages}`);
-        } else {
-          throw new Error(`${error.response.data.detail}`);
+      if (typeof window !== 'undefined') {
+        // 既存ユーザーリストを取得
+        const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+        
+        // 重複チェック
+        const existingUser = registeredUsers.find(u => u.email === userData.email);
+        if (existingUser) {
+          throw new Error('このメールアドレスは既に登録されています');
         }
+        
+        // 新しいユーザーを作成
+        const newUser = {
+          id: Date.now(), // 簡易的なID生成
+          email: userData.email,
+          password: userData.password,
+          full_name: userData.full_name || userData.firstName + ' ' + userData.lastName,
+          company: userData.company || '',
+          registrationDate: new Date().toISOString(),
+          is_active: true
+        };
+        
+        // ユーザーリストに追加
+        registeredUsers.push(newUser);
+        localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+        
+        console.log("User registered successfully:", newUser.email);
+        router.push('/login?registered=true');
+        return { message: '登録が完了しました' };
       }
-      throw new Error('アカウントの登録に失敗しました。入力内容を確認してください。');
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
     }
   };
 
   const logout = async () => {
-    if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname.includes('rakuraku-energy.archi-prisma.co.jp'))) {
+    if (typeof window !== 'undefined') {
+      // 現在のユーザー情報をクリア
+      localStorage.removeItem('currentUser');
       setUser(null);
+      console.log("User logged out");
       router.push('/login');
       return;
     }
     
-    // Google OAuth ログアウト
-    try {
-      await signOut({ callbackUrl: '/login' });
-      setUser(null);
-    } catch (error) {
-      console.error('Logout failed:', error);
-      setUser(null);
-      router.push('/login');
+    // 開発環境でのGoogle OAuth ログアウト
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      try {
+        await signOut({ callbackUrl: '/login' });
+        setUser(null);
+      } catch (error) {
+        console.error('Logout failed:', error);
+        setUser(null);
+        router.push('/login');
+      }
     }
   };
 
