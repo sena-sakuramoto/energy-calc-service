@@ -2,7 +2,8 @@
 // -*- coding: utf-8 -*-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-// next-auth removed for static hosting compatibility
+import { auth, googleProvider } from '../utils/firebase';
+import { signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 import { authAPI } from '../utils/api';
 
 const AuthContext = createContext({
@@ -74,6 +75,32 @@ export const AuthProvider = ({ children }) => {
           throw new Error('メールアドレスまたはパスワードが正しくありません');
         }
       }
+      
+      // Firebase Google認証（Googleログインの場合）
+      if (!credentials?.email) {
+        try {
+          const result = await signInWithPopup(auth, googleProvider);
+          const firebaseUser = result.user;
+          
+          const loginUser = {
+            id: firebaseUser.uid,
+            email: firebaseUser.email,
+            full_name: firebaseUser.displayName,
+            image: firebaseUser.photoURL,
+            is_active: true,
+            authType: 'google'
+          };
+          
+          setUser(loginUser);
+          localStorage.setItem('currentUser', JSON.stringify(loginUser));
+          console.log("User logged in with Google:", loginUser.email);
+          router.push('/');
+          return true;
+        } catch (error) {
+          console.error('Firebase Google login failed:', error);
+          throw new Error('Googleログインに失敗しました');
+        }
+      }
     }
     
     throw new Error('ログイン情報が正しくありません');
@@ -120,6 +147,15 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     if (typeof window !== 'undefined') {
+      // Firebase認証からもログアウト
+      if (user?.authType === 'google') {
+        try {
+          await firebaseSignOut(auth);
+        } catch (error) {
+          console.error('Firebase logout failed:', error);
+        }
+      }
+      
       // 現在のユーザー情報をクリア
       localStorage.removeItem('currentUser');
       setUser(null);
