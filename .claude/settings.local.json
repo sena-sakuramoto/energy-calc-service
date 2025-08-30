@@ -24,7 +24,9 @@
       "Bash(timeout:*)",
       "Bash(curl:*)",
       "Bash(grep:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(nslookup:*)",
+      "WebFetch(domain:rakuraku-energy.archi-prisma.co.jp)"
     ],
     "additionalDirectories": [
       "C:\\temp",
