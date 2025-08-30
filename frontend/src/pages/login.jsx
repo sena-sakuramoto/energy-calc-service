@@ -18,18 +18,6 @@ export default function Login() {
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleGoogleLogin = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      await login();
-    } catch (error) {
-      setError('Googleログインに失敗しました。');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
@@ -96,17 +84,6 @@ export default function Login() {
               メール・パスワードでログイン
             </button>
             
-            {/* 開発環境でのみGoogle認証ボタンを表示 */}
-            {typeof window !== 'undefined' && window.location.hostname === 'localhost' && (
-              <button
-                onClick={handleGoogleLogin}
-                disabled={loading}
-                className="w-full bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-blue-400 text-gray-700 font-medium py-4 px-4 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md"
-              >
-                <FaGoogle className="text-red-500 mr-3 text-xl" />
-                {loading ? 'ログイン中...' : 'Googleアカウントでログイン（開発環境）'}
-              </button>
-            )}
           </div>
 
           {/* 説明テキスト */}

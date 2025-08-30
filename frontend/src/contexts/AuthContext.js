@@ -2,7 +2,7 @@
 // -*- coding: utf-8 -*-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-import { useSession, signIn, signOut } from 'next-auth/react';
+// next-auth removed for static hosting compatibility
 import { authAPI } from '../utils/api';
 
 const AuthContext = createContext({
@@ -17,8 +17,7 @@ const AuthContext = createContext({
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const { data: session, status } = useSession();
-  const loading = status === 'loading';
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -31,33 +30,20 @@ export const AuthProvider = ({ children }) => {
             const userData = JSON.parse(storedUser);
             setUser(userData);
             console.log("Restored user from localStorage:", userData.email);
-            return;
           } catch (error) {
             console.error("Failed to parse stored user data:", error);
             localStorage.removeItem('currentUser');
+            setUser(null);
           }
+        } else {
+          setUser(null);
         }
       }
-      
-      // Google OAuth認証済みの場合（開発環境のみ）
-      if (session?.user && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-        setUser({
-          id: session.user.id,
-          email: session.user.email,
-          full_name: session.user.name,
-          image: session.user.image,
-          is_active: true,
-          authType: 'google'
-        });
-      } else {
-        setUser(null);
-      }
+      setLoading(false);
     };
     
-    if (status !== 'loading') {
-      initializeAuth();
-    }
-  }, [session, status]);
+    initializeAuth();
+  }, []);
 
   const login = async (credentials = null) => {
     // 静的サイト用の実際のログインシステム
@@ -87,25 +73,6 @@ export const AuthProvider = ({ children }) => {
         } else {
           throw new Error('メールアドレスまたはパスワードが正しくありません');
         }
-      }
-    }
-    
-    // 開発環境でのみGoogle OAuth認証を有効化
-    if (!credentials?.email && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-      try {
-        const result = await signIn('google', { 
-          redirect: false,
-        });
-        
-        if (result?.ok) {
-          router.push('/');
-          return true;
-        } else {
-          throw new Error('認証に失敗しました');
-        }
-      } catch (error) {
-        console.error('Google OAuth login failed:', error);
-        throw new Error('Googleログインに失敗しました。');
       }
     }
     
@@ -158,19 +125,6 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       console.log("User logged out");
       router.push('/login');
-      return;
-    }
-    
-    // 開発環境でのGoogle OAuth ログアウト
-    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-      try {
-        await signOut({ callbackUrl: '/login' });
-        setUser(null);
-      } catch (error) {
-        console.error('Logout failed:', error);
-        setUser(null);
-        router.push('/login');
-      }
     }
   };
 
