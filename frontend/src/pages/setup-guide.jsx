@@ -62,7 +62,7 @@ export default function SetupGuide() {
                 <h3 className="font-semibold text-gray-900 mb-2">1. Google Cloud Console設定</h3>
                 <ol className="text-sm text-gray-700 space-y-2 ml-4">
                   <li>1. <a href="https://console.cloud.google.com/" target="_blank" rel="noopener" className="text-blue-600 hover:underline">Google Cloud Console</a> にアクセス</li>
-                  <li>2. 新プロジェクト作成: "楽々省エネ計算"</li>
+                  <li>2. 新プロジェクト作成: &ldquo;楽々省エネ計算&rdquo;</li>
                   <li>3. APIs & Services → OAuth consent screen設定</li>
                   <li>4. Credentials → OAuth 2.0 Client ID作成</li>
                   <li>5. Authorized redirect URIs追加:<br />
@@ -200,7 +200,7 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=あなたのストレージバケット`}
                 <div className="space-y-3">
                   <div className="bg-gray-50 p-3 rounded">
                     <h4 className="font-medium">SSL証明書</h4>
-                    <p className="text-sm text-gray-600">Let's Encrypt (自動)</p>
+                    <p className="text-sm text-gray-600">Let&apos;s Encrypt (自動)</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded">
                     <h4 className="font-medium">環境変数</h4>
