@@ -14,17 +14,17 @@ export default function DemoGuide() {
             5分で体験！省エネ計算
           </h1>
           <p className="text-xl text-gray-600">
-            登録不要で、今すぐ本格的なBEI計算を体験していただけます
+            簡単30秒でアカウント作成後、本格的なBEI計算をご体験ください
           </p>
         </div>
 
         {/* クイックスタートボタン */}
         <div className="text-center mb-12">
           <Link
-            href="/tools/bei-calculator"
+            href="/register"
             className="inline-block bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-8 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105 text-lg mr-4"
           >
-            ⚡ 今すぐ始める
+            ⚡ 無料アカウント作成
           </Link>
           <Link
             href="/about"
@@ -197,16 +197,16 @@ export default function DemoGuide() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/tools/bei-calculator"
+              href="/register"
               className="bg-white text-green-600 hover:bg-gray-100 font-bold py-3 px-6 rounded-lg transition-all duration-300 inline-block"
             >
-              ⚡ BEI計算を開始
+              ⚡ 無料アカウント作成
             </Link>
             <Link
-              href="/contact"
+              href="/login"
               className="border-2 border-white text-white hover:bg-white hover:text-green-600 font-bold py-3 px-6 rounded-lg transition-all duration-300 inline-block"
             >
-              質問・相談する
+              ログインして開始
             </Link>
           </div>
         </div>

@@ -636,11 +636,11 @@ export default function ModelBuildingMethodGuide() {
               </div>
 
               <Link 
-                href="/tools/bei-calculator"
+                href="/register"
                 className="inline-flex items-center bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
               >
                 <FaArrowRight className="mr-3" />
-                無料BEI計算ツールを使ってみる
+                無料アカウント作成して開始
               </Link>
             </div>
           </section>
@@ -700,16 +700,16 @@ export default function ModelBuildingMethodGuide() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
-                href="/tools/bei-calculator"
+                href="/register"
                 className="bg-white text-blue-600 hover:bg-gray-100 font-bold py-3 px-6 rounded-lg transition-colors"
               >
-                無料BEI計算を試す
+                無料アカウント作成
               </Link>
               <Link 
-                href="/tools/energy-calculator"
+                href="/login"
                 className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-3 px-6 rounded-lg transition-colors"
               >
-                エネルギー計算ツール
+                ログインして開始
               </Link>
             </div>
           </div>

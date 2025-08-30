@@ -53,43 +53,45 @@ export default function Header() {
               </Link>
             </li>
             
-            {/* 計算ツールドロップダウン */}
-            <li className="relative list-none">
-              <button
-                onClick={toggleTools}
-                className="flex items-center hover:text-blue-200 transition-colors"
-              >
-                <FaCalculator className="mr-2" />
-                計算ツール
-                <FaChevronDown className="ml-1 text-sm" />
-              </button>
-              
-              {isToolsOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50">
-                  <Link
-                    href="/tools/bei-calculator"
-                    className="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                    onClick={closeMenus}
-                  >
-                    BEI計算
-                  </Link>
-                  <Link
-                    href="/tools/energy-calculator"
-                    className="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                    onClick={closeMenus}
-                  >
-                    エネルギー計算
-                  </Link>
-                  <Link
-                    href="/tools/tariff-calculator"
-                    className="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                    onClick={closeMenus}
-                  >
-                    電力料金見積もり
-                  </Link>
-                </div>
-              )}
-            </li>
+            {/* 計算ツールドロップダウン - 認証時のみ表示 */}
+            {isAuthenticated && (
+              <li className="relative list-none">
+                <button
+                  onClick={toggleTools}
+                  className="flex items-center hover:text-blue-200 transition-colors"
+                >
+                  <FaCalculator className="mr-2" />
+                  計算ツール
+                  <FaChevronDown className="ml-1 text-sm" />
+                </button>
+                
+                {isToolsOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50">
+                    <Link
+                      href="/tools/bei-calculator"
+                      className="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                      onClick={closeMenus}
+                    >
+                      BEI計算
+                    </Link>
+                    <Link
+                      href="/tools/energy-calculator"
+                      className="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                      onClick={closeMenus}
+                    >
+                      エネルギー計算
+                    </Link>
+                    <Link
+                      href="/tools/tariff-calculator"
+                      className="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                      onClick={closeMenus}
+                    >
+                      電力料金見積もり
+                    </Link>
+                  </div>
+                )}
+              </li>
+            )}
 
             {isAuthenticated ? (
               <li className="list-none">
@@ -164,32 +166,35 @@ export default function Header() {
                 サービス状況
               </Link>
               
-              <div className="border-l-4 border-blue-400 pl-4">
-                <div className="text-blue-200 font-medium mb-2">計算ツール</div>
-                <div className="flex flex-col space-y-2 ml-2">
-                  <Link
-                    href="/tools/bei-calculator"
-                    className="text-sm hover:text-blue-200 transition-colors"
-                    onClick={closeMenus}
-                  >
-                    BEI計算
-                  </Link>
-                  <Link
-                    href="/tools/energy-calculator"
-                    className="text-sm hover:text-blue-200 transition-colors"
-                    onClick={closeMenus}
-                  >
-                    エネルギー計算
-                  </Link>
-                  <Link
-                    href="/tools/tariff-calculator"
-                    className="text-sm hover:text-blue-200 transition-colors"
-                    onClick={closeMenus}
-                  >
-                    電力料金見積もり
-                  </Link>
+              {/* 計算ツール - 認証時のみ表示 */}
+              {isAuthenticated && (
+                <div className="border-l-4 border-blue-400 pl-4">
+                  <div className="text-blue-200 font-medium mb-2">計算ツール</div>
+                  <div className="flex flex-col space-y-2 ml-2">
+                    <Link
+                      href="/tools/bei-calculator"
+                      className="text-sm hover:text-blue-200 transition-colors"
+                      onClick={closeMenus}
+                    >
+                      BEI計算
+                    </Link>
+                    <Link
+                      href="/tools/energy-calculator"
+                      className="text-sm hover:text-blue-200 transition-colors"
+                      onClick={closeMenus}
+                    >
+                      エネルギー計算
+                    </Link>
+                    <Link
+                      href="/tools/tariff-calculator"
+                      className="text-sm hover:text-blue-200 transition-colors"
+                      onClick={closeMenus}
+                    >
+                      電力料金見積もり
+                    </Link>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {isAuthenticated ? (
                 <button

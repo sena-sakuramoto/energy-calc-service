@@ -35,22 +35,22 @@ function Error({ statusCode, hasGetInitialPropsRun, err }) {
 
           <div className="space-y-3">
             <Link 
-              href="/tools/bei-calculator"
+              href="/register"
               className="block w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              BEI計算ツール
+              🔥 無料アカウント作成
             </Link>
             <Link 
-              href="/tools/energy-calculator"
+              href="/campaign"
               className="block w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
             >
-              エネルギー計算ツール
+              🎁 キャンペーン詳細
             </Link>
             <Link 
-              href="/tools/tariff-calculator"
+              href="/system/status"
               className="block w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors font-medium"
             >
-              電力料金計算ツール
+              📊 サービス状況
             </Link>
           </div>
 

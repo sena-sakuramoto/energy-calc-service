@@ -154,7 +154,7 @@ export default function Home() {
         
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {/* BEI計算カード - Apple風デザイン */}
-            <Link href="/tools/bei-calculator" className="group">
+            <Link href="/register" className="group">
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 ease-out cursor-pointer">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6">
                   <FaBuilding className="text-white text-2xl" />
@@ -203,10 +203,10 @@ export default function Home() {
               </ul>
               <div className="mt-6">
                 <Link
-                  href="/tools/energy-calculator"
+                  href="/register"
                   className="inline-flex items-center text-green-600 hover:text-green-800 font-medium"
                 >
-                  計算を開始 →
+                  アカウント作成して開始 →
                 </Link>
               </div>
             </div>
@@ -226,10 +226,10 @@ export default function Home() {
               </ul>
               <div className="mt-6">
                 <Link
-                  href="/tools/tariff-calculator"
+                  href="/register"
                   className="inline-flex items-center text-purple-600 hover:text-purple-800 font-medium"
                 >
-                  見積もり作成 →
+                  アカウント作成して開始 →
                 </Link>
               </div>
             </div>
@@ -313,10 +313,10 @@ export default function Home() {
               楽々始める
             </Link>
             <Link
-              href="/tools/bei-calculator"
+              href="/login"
               className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-4 px-8 rounded-lg transition-all duration-300"
             >
-              まずは体験してみる
+              ログインして開始
             </Link>
           </div>
         </div>
