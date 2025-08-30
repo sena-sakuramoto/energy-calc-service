@@ -1,20 +1,9 @@
 // frontend/next.config.js
 const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
-const hasCustomDomain = process.env.GITHUB_PAGES_CUSTOM_DOMAIN === 'true';
 
-// カスタムドメイン検出強化（CNAMEファイルの存在もチェック）
+// カスタムドメイン：CNAMEファイルが存在する場合は常にカスタムドメインとして扱う
 const fs = require('fs');
-const path = require('path');
-const cnameExists = fs.existsSync(path.join(__dirname, '..', 'CNAME'));
-const shouldUseCustomDomain = hasCustomDomain || cnameExists;
-
-// デバッグ用ログ
-console.log('🔧 Next.js Config Debug:');
-console.log('GITHUB_ACTIONS:', process.env.GITHUB_ACTIONS);
-console.log('GITHUB_PAGES_CUSTOM_DOMAIN:', process.env.GITHUB_PAGES_CUSTOM_DOMAIN);
-console.log('CNAME file exists:', cnameExists);
-console.log('isGitHubActions:', isGitHubActions);
-console.log('shouldUseCustomDomain:', shouldUseCustomDomain);
+const cnameExists = fs.existsSync('../CNAME');
 
 module.exports = {
     reactStrictMode: true,
@@ -24,24 +13,24 @@ module.exports = {
     // 本番ビルド最適化
     swcMinify: true,
     
-    // 条件付き設定：GitHub Pagesの場合のみ静的エクスポート
+    // GitHub Pages 静的エクスポート設定
     ...(isGitHubActions ? {
-        // GitHub Pages用静的エクスポート設定
         trailingSlash: true,
         output: 'export',
         distDir: 'out',
         images: {
-            unoptimized: true // GitHub Pagesでは画像最適化無効
+            unoptimized: true
         },
-        // カスタムドメイン使用時はbasePathを無効化
-        ...(shouldUseCustomDomain ? {} : {
+        // CNAMEファイルがある場合はカスタムドメイン（basePath不要）
+        // ない場合は通常のGitHub Pages（basePath必要）
+        ...(cnameExists ? {} : {
             basePath: '/energy-calc-service',
             assetPrefix: '/energy-calc-service',
         }),
     } : {
-        // 開発・本番サーバー用設定（API Routes有効）
+        // 開発環境設定
         images: {
-            domains: ['lh3.googleusercontent.com'], // Google OAuth用
+            domains: ['lh3.googleusercontent.com'],
         },
     }),
 }
