@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       // GitHub Pages用のモックユーザー設定（一時的にローカルでも有効）
-      if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
+      if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname.includes('rakuraku-energy.archi-prisma.co.jp') || window.location.hostname === 'localhost')) {
         console.log("GitHub Pages mode: Setting mock user");
         setUser({
           id: 1,
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials = null) => {
     // GitHub Pages用のモックログイン
-    if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
+    if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname.includes('rakuraku-energy.archi-prisma.co.jp') || window.location.hostname === 'localhost')) {
       console.log("GitHub Pages mode: Mock login");
       
       // メール認証の場合、メールアドレスをチェック
@@ -154,7 +154,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    if (typeof window !== 'undefined' && window.location.hostname.includes('github.io')) {
+    if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname.includes('rakuraku-energy.archi-prisma.co.jp'))) {
       setUser(null);
       router.push('/login');
       return;
