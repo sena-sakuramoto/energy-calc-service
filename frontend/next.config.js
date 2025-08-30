@@ -1,5 +1,6 @@
 // frontend/next.config.js
 const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
+const hasCustomDomain = process.env.GITHUB_PAGES_CUSTOM_DOMAIN === 'true';
 
 module.exports = {
     reactStrictMode: true,
@@ -18,9 +19,11 @@ module.exports = {
         images: {
             unoptimized: true // GitHub Pagesでは画像最適化無効
         },
-        // GitHub Pagesのベースパス設定（リポジトリ名）
-        basePath: '/energy-calc-service',
-        assetPrefix: '/energy-calc-service',
+        // カスタムドメイン使用時はbasePathを無効化
+        ...(hasCustomDomain ? {} : {
+            basePath: '/energy-calc-service',
+            assetPrefix: '/energy-calc-service',
+        }),
     } : {
         // 開発・本番サーバー用設定（API Routes有効）
         images: {

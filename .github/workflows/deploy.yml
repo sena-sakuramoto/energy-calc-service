@@ -39,6 +39,7 @@ jobs:
           npm run build
         env:
           GITHUB_ACTIONS: true
+          GITHUB_PAGES_CUSTOM_DOMAIN: true
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
