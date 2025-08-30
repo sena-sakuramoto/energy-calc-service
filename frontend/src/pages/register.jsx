@@ -131,7 +131,7 @@ export default function RegisterPage() {
 
           {/* フッター */}
           <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
-            <p>© 2024 Archi-Prisma Design works 株式会社</p>
+            <p>© 2025 Archi-Prisma Design works 株式会社</p>
           </div>
         </div>
       </Layout>
@@ -245,7 +245,7 @@ export default function RegisterPage() {
 
           {/* フッター */}
           <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
-            <p>© 2024 Archi-Prisma Design works 株式会社</p>
+            <p>© 2025 Archi-Prisma Design works 株式会社</p>
           </div>
         </div>
       </Layout>

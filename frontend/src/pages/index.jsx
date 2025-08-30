@@ -44,7 +44,7 @@ export default function Home() {
                 <span className="font-bold text-xl">🎉 完全無料キャンペーン実施中！</span>
               </div>
               <p className="text-center text-lg font-medium mb-3">
-                <span className="text-2xl font-bold text-red-600">2024年12月末まで</span>
+                <span className="text-2xl font-bold text-red-600">2025年12月末まで</span>
                 <span className="block text-sm text-red-700 mt-1">
                   通常月額19,800円のサービスが完全無料でご利用いただけます
                 </span>

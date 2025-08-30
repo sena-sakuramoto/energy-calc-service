@@ -19,7 +19,7 @@ export default function Campaign() {
           </h1>
           <p className="text-2xl text-gray-700 mb-6">
             通常月額19,800円の省エネ計算サービスが<br />
-            <strong className="text-red-600 text-3xl">2024年12月末まで完全無料</strong>
+            <strong className="text-red-600 text-3xl">2025年12月末まで完全無料</strong>
           </p>
           <div className="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-4 max-w-2xl mx-auto">
             <FaClock className="inline mr-2 text-yellow-600" />
@@ -37,7 +37,7 @@ export default function Campaign() {
               <div className="bg-white bg-opacity-20 rounded-lg p-6">
                 <FaClock className="text-4xl mb-4 mx-auto" />
                 <h3 className="text-xl font-bold mb-2">無料期間</h3>
-                <div className="text-2xl font-bold mb-2">2024年12月31日まで</div>
+                <div className="text-2xl font-bold mb-2">2025年12月31日まで</div>
                 <p className="text-sm opacity-90">
                   期間中は全機能が完全無料でご利用いただけます
                 </p>
@@ -86,7 +86,7 @@ export default function Campaign() {
                 ¥0
                 <span className="text-lg text-red-400">/月</span>
               </div>
-              <p className="text-red-600 font-bold mb-4">2024年12月末まで</p>
+              <p className="text-red-600 font-bold mb-4">2025年12月末まで</p>
               <div className="space-y-2 text-sm text-red-700">
                 <div>✓ BEI計算機能（同じ機能）</div>
                 <div>✓ PDF・Excel出力（同じ機能）</div>
@@ -155,7 +155,7 @@ export default function Campaign() {
           <h2 className="text-3xl font-bold mb-4">⏰ 今すぐ始めないと損します！</h2>
           <p className="text-xl mb-6">
             月額19,800円のサービスを完全無料で使えるのは<br />
-            <strong className="text-yellow-300 text-2xl">2024年12月31日まで</strong>
+            <strong className="text-yellow-300 text-2xl">2025年12月31日まで</strong>
           </p>
           
           <div className="mb-6">
@@ -192,7 +192,7 @@ export default function Campaign() {
           <div className="space-y-6">
             <div className="border-b border-gray-200 pb-4">
               <h3 className="font-bold text-gray-900 mb-2">Q. 本当に無料ですか？隠れた料金はありませんか？</h3>
-              <p className="text-gray-700">A. はい、2024年12月31日まで完全無料です。隠れた料金は一切ありません。</p>
+              <p className="text-gray-700">A. はい、2025年12月31日まで完全無料です。隠れた料金は一切ありません。</p>
             </div>
             
             <div className="border-b border-gray-200 pb-4">

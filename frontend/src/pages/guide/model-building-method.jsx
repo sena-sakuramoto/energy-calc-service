@@ -28,7 +28,7 @@ export default function ModelBuildingMethodGuide() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "モデル建物法とは？適用条件から計算方法まで完全解説【2024年最新版】",
+    "headline": "モデル建物法とは？適用条件から計算方法まで完全解説【2025年最新版】",
     "description": "建築物省エネ法のモデル建物法について、適用条件・計算方法・標準入力法との違いを建築士向けに詳しく解説。BEI計算が5分で完了する理由とは？",
     "author": {
       "@type": "Organization",
@@ -42,8 +42,8 @@ export default function ModelBuildingMethodGuide() {
         "url": "https://sena-sakuramoto.github.io/energy-calc-service/logo.png"
       }
     },
-    "datePublished": "2024-08-27",
-    "dateModified": "2024-08-27",
+    "datePublished": "2025-08-30",
+    "dateModified": "2025-08-30",
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": "https://sena-sakuramoto.github.io/energy-calc-service/guide/model-building-method"
@@ -79,12 +79,12 @@ export default function ModelBuildingMethodGuide() {
     <>
       <Head>
         {/* SEO最適化タイトル・メタタグ */}
-        <title>モデル建物法とは？適用条件から計算方法まで完全解説【2024年最新版】| BEI計算ツール</title>
+        <title>モデル建物法とは？適用条件から計算方法まで完全解説【2025年最新版】| BEI計算ツール</title>
         <meta name="description" content="建築物省エネ法のモデル建物法について、適用条件・計算方法・標準入力法との違いを建築士向けに詳しく解説。BEI計算が5分で完了する理由とは？無料計算ツールも提供。" />
         <meta name="keywords" content="モデル建物法,BEI計算,建築物省エネ法,適合性判定,標準入力法,省エネ基準,建築士,設計事務所,審査機関,国土交通省" />
         
         {/* OGP設定 */}
-        <meta property="og:title" content="モデル建物法とは？適用条件から計算方法まで完全解説【2024年最新版】" />
+        <meta property="og:title" content="モデル建物法とは？適用条件から計算方法まで完全解説【2025年最新版】" />
         <meta property="og:description" content="建築物省エネ法のモデル建物法について建築士向けに詳しく解説。BEI計算が5分で完了する理由とは？" />
         <meta property="og:type" content="article" />
         <meta property="og:url" content="https://sena-sakuramoto.github.io/energy-calc-service/guide/model-building-method" />
@@ -123,10 +123,10 @@ export default function ModelBuildingMethodGuide() {
           {/* メインタイトル */}
           <header className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              モデル建物法とは？適用条件から計算方法まで完全解説【2024年最新版】
+              モデル建物法とは？適用条件から計算方法まで完全解説【2025年最新版】
             </h1>
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
-              <time dateTime="2024-08-27">更新日：2024年8月27日</time>
+              <time dateTime="2025-08-30">更新日：2025年8月30日</time>
               <span>•</span>
               <span>建築士向け</span>
               <span>•</span>

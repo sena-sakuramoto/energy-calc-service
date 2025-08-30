@@ -63,7 +63,7 @@ export default function SystemStatus() {
       name: '法令準拠チェック',
       status: 'operational',
       description: '建築物省エネ法完全準拠',
-      version: '2024.1',
+      version: '2025.1',
       icon: FaCog,
       color: 'green'
     },

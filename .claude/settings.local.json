@@ -23,7 +23,8 @@
       "Bash(openssl rand:*)",
       "Bash(timeout:*)",
       "Bash(curl:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(sed:*)"
     ],
     "additionalDirectories": [
       "C:\\temp",
