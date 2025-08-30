@@ -159,17 +159,25 @@ export default function Campaign() {
           </p>
           
           <div className="mb-6">
-            <p className="text-lg mb-2">🎯 アカウント登録は不要</p>
-            <p className="text-lg mb-2">🎯 今すぐ5分で計算完了</p>
+            <p className="text-lg mb-2">🎯 簡単30秒でアカウント作成</p>
+            <p className="text-lg mb-2">🎯 登録後すぐ5分で計算完了</p>
             <p className="text-lg">🎯 申請書類も即座にダウンロード</p>
           </div>
 
-          <Link
-            href="/tools/bei-calculator"
-            className="inline-block bg-yellow-400 hover:bg-yellow-300 text-red-900 font-bold py-6 px-12 rounded-2xl shadow-2xl transition-all duration-300 transform hover:scale-105 text-2xl mr-4"
-          >
-            🔥 今すぐ無料で始める
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/register"
+              className="inline-block bg-yellow-400 hover:bg-yellow-300 text-red-900 font-bold py-6 px-12 rounded-2xl shadow-2xl transition-all duration-300 transform hover:scale-105 text-2xl"
+            >
+              🔥 無料アカウント作成
+            </Link>
+            <Link
+              href="/login"
+              className="inline-block bg-white border-4 border-yellow-400 text-red-900 hover:bg-yellow-50 font-bold py-6 px-8 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-105 text-xl"
+            >
+              ログインして開始
+            </Link>
+          </div>
           
           <div className="mt-6 text-sm opacity-90">
             <p>※ キャンペーン期間終了後は通常料金となります</p>

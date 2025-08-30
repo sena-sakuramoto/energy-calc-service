@@ -1,8 +1,10 @@
 // frontend/src/components/Footer.jsx
 import { FaBuilding, FaEnvelope, FaPhone, FaGlobe, FaShieldAlt, FaHeart } from 'react-icons/fa';
 import Link from 'next/link';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Footer() {
+  const { isAuthenticated } = useAuth();
   return (
     <footer className="bg-gradient-to-r from-gray-800 to-gray-900 text-white">
       <div className="container mx-auto px-4 py-12">
@@ -37,11 +39,13 @@ export default function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-4 text-blue-300">主要サービス</h4>
             <ul className="space-y-2">
-              <li>
-                <Link href="/tools/bei-calculator" className="text-gray-300 hover:text-blue-300 transition-colors text-sm">
-                  🔥 BEI計算（無料）
-                </Link>
-              </li>
+              {isAuthenticated && (
+                <li>
+                  <Link href="/tools/bei-calculator" className="text-gray-300 hover:text-blue-300 transition-colors text-sm">
+                    🔥 BEI計算（無料）
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link href="/campaign" className="text-gray-300 hover:text-blue-300 transition-colors text-sm">
                   🎁 期間限定キャンペーン

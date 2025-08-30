@@ -69,13 +69,13 @@ export default function Home() {
               {/* メインCTAボタン */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
                 <Link
-                  href="/tools/bei-calculator"
+                  href="/register"
                   className="relative bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold py-5 px-10 rounded-xl shadow-2xl transition-all duration-300 transform hover:scale-105 text-xl"
                 >
                   <span className="absolute -top-2 -right-2 bg-yellow-400 text-red-900 text-xs font-bold px-2 py-1 rounded-full animate-pulse">
                     無料
                   </span>
-                  🔥 今すぐ無料で省エネ計算
+                  🔥 無料アカウント作成して開始
                 </Link>
                 <Link
                   href="/campaign"
@@ -85,19 +85,23 @@ export default function Home() {
                 </Link>
               </div>
               
-              {/* サブツール */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto">
+              {/* ログイン案内 */}
+              <div className="text-center mb-6">
+                <p className="text-gray-600">
+                  既にアカウントをお持ちの方は
+                  <Link href="/login" className="text-blue-600 hover:text-blue-800 font-bold ml-2">
+                    こちらからログイン
+                  </Link>
+                </p>
+              </div>
+              
+              {/* 公開情報 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
                 <Link
-                  href="/tools/energy-calculator"
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 text-center"
+                  href="/campaign"
+                  className="bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 text-center"
                 >
-                  エネルギー計算
-                </Link>
-                <Link
-                  href="/tools/tariff-calculator"
-                  className="bg-purple-500 hover:bg-purple-600 text-white font-medium py-3 px-4 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 text-center"
-                >
-                  電力料金計算
+                  🎁 無料キャンペーン詳細
                 </Link>
                 <Link
                   href="/system/status"
