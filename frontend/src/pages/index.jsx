@@ -51,7 +51,7 @@ export default function Home() {
               </p>
               <div className="text-center">
                 <p className="text-sm text-red-800 mb-3">
-                  ✓ アカウント登録不要　✓ すぐに使える　✓ 全機能利用可能<br />
+                  ✓ 簡単30秒でアカウント作成　✓ 登録後すぐ使える　✓ 全機能利用可能<br />
                   ✓ 省エネ計算が5分で完了　✓ 申請書類自動作成
                 </p>
                 <Link 

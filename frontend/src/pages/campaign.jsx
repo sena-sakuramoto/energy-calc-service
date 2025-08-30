@@ -197,7 +197,7 @@ export default function Campaign() {
             
             <div className="border-b border-gray-200 pb-4">
               <h3 className="font-bold text-gray-900 mb-2">Q. アカウント登録は必要ですか？</h3>
-              <p className="text-gray-700">A. いいえ、アカウント登録不要です。ウェブサイトにアクセスするだけで即座に利用開始できます。</p>
+              <p className="text-gray-700">A. はい、簡単30秒でアカウント作成が必要です。Googleアカウントまたはメールアドレスでご登録いただけます。</p>
             </div>
             
             <div className="border-b border-gray-200 pb-4">

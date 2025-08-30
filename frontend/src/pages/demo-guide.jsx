@@ -152,7 +152,7 @@ export default function DemoGuide() {
                 登録は必要ですか？
               </h3>
               <p className="text-gray-600 pl-6">
-                いいえ、登録不要です。すぐに全機能をお試しいただけます。
+                はい、簡単30秒でアカウント作成が必要です。GoogleアカウントまたはメールアドレスでOK。
               </p>
             </div>
 
