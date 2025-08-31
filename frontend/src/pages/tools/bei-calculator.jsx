@@ -58,6 +58,118 @@ export default function BEICalculator() {
   const [isLoading, setIsLoading] = useState(false);
   const [showReport, setShowReport] = useState(false);
 
+  // サンプルデータ
+  const sampleData = {
+    office_small: {
+      name: "小規模事務所ビル",
+      description: "地上3階建ての一般的な事務所ビル（ZEB Ready仕様）",
+      formData: {
+        calculation_method: 'model_building',
+        building_type: 'office',
+        climate_zone: '6',
+        floor_area: '1200',
+        is_mixed_use: false,
+        design_energy: {
+          heating: '180000',
+          cooling: '220000',
+          ventilation: '95000',
+          hot_water: '15000',
+          lighting: '85000',
+          elevator: '12000'
+        },
+        envelope_performance: {
+          ua_value: '0.87',
+          eta_ac_value: '2.8',
+          perimeter_annual_load: '300'
+        },
+        renewable_energy: '50000'
+      }
+    },
+    hotel_medium: {
+      name: "中規模ホテル",
+      description: "地上8階建てのビジネスホテル（高効率設備導入）",
+      formData: {
+        calculation_method: 'model_building',
+        building_type: 'hotel',
+        climate_zone: '5',
+        floor_area: '3500',
+        is_mixed_use: false,
+        design_energy: {
+          heating: '850000',
+          cooling: '720000',
+          ventilation: '280000',
+          hot_water: '450000',
+          lighting: '180000',
+          elevator: '45000'
+        },
+        envelope_performance: {
+          ua_value: '0.75',
+          eta_ac_value: '2.2',
+          perimeter_annual_load: '420'
+        },
+        renewable_energy: '120000'
+      }
+    },
+    mixed_complex: {
+      name: "複合用途ビル",
+      description: "商業施設+事務所の複合ビル（省エネ基準適合）",
+      formData: {
+        calculation_method: 'model_building',
+        building_type: '',
+        climate_zone: '4',
+        floor_area: '2800',
+        is_mixed_use: true,
+        mixed_uses: [
+          {
+            use_type: 'retail',
+            area_m2: '1200',
+            area_share: '42.9'
+          },
+          {
+            use_type: 'office',
+            area_m2: '1600',
+            area_share: '57.1'
+          }
+        ],
+        design_energy: {
+          heating: '420000',
+          cooling: '580000',
+          ventilation: '195000',
+          hot_water: '85000',
+          lighting: '240000',
+          elevator: '28000'
+        },
+        envelope_performance: {
+          ua_value: '0.85',
+          eta_ac_value: '2.7',
+          perimeter_annual_load: '350'
+        },
+        renewable_energy: '80000'
+      }
+    }
+  };
+
+  // サンプルデータ適用関数
+  const applySampleData = (sampleKey) => {
+    const sample = sampleData[sampleKey];
+    if (!sample) return;
+    
+    setProjectInfo({
+      name: sample.name,
+      buildingOwner: '（サンプル）株式会社○○',
+      designer: '（サンプル）建築設計事務所',
+      designFirm: '（サンプル）○○設計',
+      location: '（サンプル）東京都内',
+      description: sample.description
+    });
+    
+    setFormData(sample.formData);
+    setCurrentStep(1);
+    setResult(null);
+    setValidationErrors({});
+    setValidationWarnings({});
+  };
+
   // 入力検証の実行
   const runInputValidation = (updatedFormData = formData) => {
     const warnings = validateAllInputs(updatedFormData);
@@ -459,6 +571,45 @@ export default function BEICalculator() {
             </div>
           </div>
         </div>
+        {/* サンプルデータ選択 */}
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <FaLightbulb className="text-green-600 text-lg" />
+              <h3 className="font-semibold text-green-800">サンプルデータで試してみる</h3>
+            </div>
+            <p className="text-sm text-green-700 mb-4">
+              実際の建築事例を参考にしたサンプルデータを使って、すぐに計算結果を確認できます。
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <button
+                onClick={() => applySampleData('office_small')}
+                className="text-left p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200"
+              >
+                <div className="font-medium text-gray-900 mb-1">小規模事務所ビル</div>
+                <div className="text-xs text-gray-600 mb-2">延床面積: 1,200m² / 地域区分: 6</div>
+                <div className="text-xs text-blue-600">ZEB Ready仕様</div>
+              </button>
+              <button
+                onClick={() => applySampleData('hotel_medium')}
+                className="text-left p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200"
+              >
+                <div className="font-medium text-gray-900 mb-1">中規模ホテル</div>
+                <div className="text-xs text-gray-600 mb-2">延床面積: 3,500m² / 地域区分: 5</div>
+                <div className="text-xs text-blue-600">高効率設備導入</div>
+              </button>
+              <button
+                onClick={() => applySampleData('mixed_complex')}
+                className="text-left p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200"
+              >
+                <div className="font-medium text-gray-900 mb-1">複合用途ビル</div>
+                <div className="text-xs text-gray-600 mb-2">延床面積: 2,800m² / 地域区分: 4</div>
+                <div className="text-xs text-blue-600">商業+事務所</div>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* ステップインジケーター */}
         <div className="mb-8">
           {formData.calculation_method === 'model_building' ? (
