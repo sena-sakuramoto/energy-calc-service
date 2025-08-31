@@ -67,9 +67,9 @@ export default function Login() {
             <p className="text-gray-600">楽々省エネ計算にサインインして始めましょう</p>
             
             {/* 30日無料トライアル案内 */}
-            <div className="mt-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
-              <p className="text-sm font-medium">
-                🎉 30日間完全無料でお試しください！
+            <div className="mt-4 bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 rounded">
+              <p className="text-sm">
+                30日間無料トライアル実施中
               </p>
             </div>
           </div>
