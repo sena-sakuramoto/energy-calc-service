@@ -52,8 +52,6 @@ export default function Campaign() {
             </div>
           </div>
         </div>
-          </div>
-        </div>
 
         {/* 料金プラン */}
         <div className="bg-gray-50 rounded-lg p-12 mb-16">
