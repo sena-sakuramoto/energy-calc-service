@@ -15,29 +15,29 @@ export default function Campaign() {
             </span>
           </div>
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            <span className="text-red-600">完全無料</span>で使えるチャンス！
+            <span className="text-red-600">初月無料</span>で始められます！
           </h1>
           <p className="text-2xl text-gray-700 mb-6">
-            通常月額19,800円の省エネ計算サービスが<br />
-            <strong className="text-red-600 text-3xl">2025年12月末まで完全無料</strong>
+            プロ品質の省エネ計算サービスを<br />
+            <strong className="text-red-600 text-3xl">30日間完全無料</strong>でお試しください
           </p>
-          <div className="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-4 max-w-2xl mx-auto">
-            <FaClock className="inline mr-2 text-yellow-600" />
-            <span className="font-bold text-yellow-800">
-              キャンペーン終了まで残りわずか！今すぐご利用ください
+          <div className="bg-green-100 border-2 border-green-400 rounded-lg p-4 max-w-2xl mx-auto">
+            <FaGift className="inline mr-2 text-green-600" />
+            <span className="font-bold text-green-800">
+              登録後30日間は完全無料！クレジットカード登録でいつでも解約可能
             </span>
           </div>
         </div>
 
         {/* 無料で使える期間と内容 */}
-        <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl p-8 mb-12 shadow-2xl">
+        <div className="bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-2xl p-8 mb-12 shadow-2xl">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-4">🎁 無料期間と内容</h2>
+            <h2 className="text-3xl font-bold mb-4">🎁 30日間無料トライアル</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="bg-white bg-opacity-20 rounded-lg p-6">
                 <FaClock className="text-4xl mb-4 mx-auto" />
                 <h3 className="text-xl font-bold mb-2">無料期間</h3>
-                <div className="text-2xl font-bold mb-2">2025年12月31日まで</div>
+                <div className="text-2xl font-bold mb-2">登録から30日間</div>
                 <p className="text-sm opacity-90">
                   期間中は全機能が完全無料でご利用いただけます
                 </p>
