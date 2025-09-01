@@ -357,7 +357,7 @@ export default function Campaign() {
             
             <div className="border-b border-gray-200 pb-4">
               <h3 className="font-bold text-gray-900 mb-2">Q. 2025年1月以降はどうなりますか？</h3>
-              <p className="text-gray-700">A. 2025年1月以降は月額19,800円となりますが、引き続き同じ高品質なサービスをご利用いただけます。</p>
+              <p className="text-gray-700">A. 2025年1月以降の料金は現在調整中です。お得な価格設定を検討しており、引き続き同じ高品質なサービスをご利用いただけます。</p>
             </div>
             
             <div className="border-b border-gray-200 pb-4">

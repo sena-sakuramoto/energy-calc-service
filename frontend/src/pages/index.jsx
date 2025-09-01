@@ -46,7 +46,7 @@ export default function Home() {
               <p className="text-center text-lg font-medium mb-3">
                 <span className="text-2xl font-bold text-red-600">2025年12月末まで</span>
                 <span className="block text-sm text-red-700 mt-1">
-                  通常月額19,800円のサービスが完全無料でご利用いただけます
+                  料金調整中のサービスが完全無料でご利用いただけます
                 </span>
               </p>
               <div className="text-center">
