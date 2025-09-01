@@ -122,7 +122,7 @@ export default function Campaign() {
                 料金プラン
               </h2>
               <p className="text-lg text-gray-600">
-                30日間無料トライアル後、月額19,800円でご利用いただけます
+                30日間無料トライアル後の料金は現在調整中です
               </p>
             </div>
             
@@ -174,11 +174,11 @@ export default function Campaign() {
                 <h3 className="text-2xl font-bold text-gray-800 mb-4">正式版</h3>
                 <div className="mb-6">
                   <div className="text-4xl font-bold text-gray-900 mb-2">
-                    ¥19,800
+                    調整中
                   </div>
-                  <div className="text-gray-500">月額（税込）</div>
+                  <div className="text-gray-500">月額料金</div>
                   <div className="text-sm text-gray-600 mt-1">
-                    1日あたり約660円
+                    価格設定を検討中です
                   </div>
                 </div>
                 
@@ -217,7 +217,7 @@ export default function Campaign() {
                 </div>
                 <p className="text-gray-700">
                   外注費用：<strong className="text-gray-900">1件あたり5万円～</strong><br />
-                  月額利用：<strong className="text-blue-600">19,800円で計算し放題</strong>
+                  月額利用：<strong className="text-blue-600">料金調整中（お得な価格設定を検討中）</strong>
                 </p>
               </div>
             </div>
