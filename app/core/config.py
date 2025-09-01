@@ -5,7 +5,12 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     app_name: str = "Energy Calculation API"
-    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:8000"]
+    cors_origins: List[str] = [
+        "http://localhost:3000", 
+        "http://localhost:8000",
+        "https://rakuraku-energy.archi-prisma.co.jp",
+        "https://sena-sakuramoto.github.io"
+    ]
     default_tariff_per_kwh: float = 25.0
     
     class Config:
