@@ -611,7 +611,7 @@ export default function ModelBuildingMethodGuide() {
 
             <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-8 text-center">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                🚀 今すぐ無料でBEI計算！
+                🚀 無料BEI計算
               </h3>
               <p className="text-gray-700 mb-6">
                 モデル建物法による正確なBEI計算が5分で完了。PDF・Excel出力も可能！

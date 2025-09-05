@@ -84,7 +84,7 @@ export default function RegisterPage() {
             {/* 共同開発企画案内 */}
             <div className="mt-4 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
               <p className="text-sm">
-                🤝 協力者様と一緒に作るサービス - デモ版無料体験中
+                🤝 協力者様と一緒に作るサービス - 無料体験
               </p>
             </div>
           </div>
@@ -122,7 +122,7 @@ export default function RegisterPage() {
               <strong>省エネ計算を、もっとシンプルに。</strong>
             </p>
             <p>
-              現在デモ版を無料でお使いいただきながら、皆様のフィードバックでより良いサービスへ成長させていただいています。
+              無料でお使いいただきながら、皆様のフィードバックでより良いサービスへ成長させていただいています。
             </p>
           </div>
 

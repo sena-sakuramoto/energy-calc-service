@@ -138,7 +138,7 @@ export default function Campaign() {
                 企画参加方法
               </h2>
               <p className="text-lg text-gray-600">
-                現在デモ版を無料でお試しいただき、フィードバックをお寄せください
+                無料でお試しいただき、フィードバックをお寄せください
               </p>
             </div>
             
@@ -201,7 +201,7 @@ export default function Campaign() {
                   <div>
                     <div className="text-3xl mb-2">🔥</div>
                     <div className="font-semibold text-gray-800">無料で体験</div>
-                    <div className="text-gray-600 text-sm">デモ版をいつまでも無料で利用可能</div>
+                    <div className="text-gray-600 text-sm">デモ版を無料でお使いいただけます</div>
                   </div>
                   <div>
                     <div className="text-3xl mb-2">💬</div>
@@ -220,7 +220,7 @@ export default function Campaign() {
                 </div>
                 <p className="text-gray-700">
                   外注費用：<strong className="text-gray-900">1件あたり5万円～</strong><br />
-                  月額利用：<strong className="text-blue-600">料金調整中（お得な価格設定を検討中）</strong>
+                  正式版：<strong className="text-blue-600">無料です</strong>
                 </p>
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function Campaign() {
               </div>
               <div className="text-center">
                 <div className="text-2xl mb-2">💳</div>
-                <div className="text-sm text-blue-100">30日間無料</div>
+                <div className="text-sm text-blue-100">無料</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl mb-2">📞</div>
@@ -345,7 +345,7 @@ export default function Campaign() {
           <div className="space-y-6">
             <div className="border-b border-gray-200 pb-4">
               <h3 className="font-bold text-gray-900 mb-2">Q. 本当に無料ですか？隠れた料金はありませんか？</h3>
-              <p className="text-gray-700">A. はい、現在デモ版を完全無料でお使いいただけます。協力者様と一緒により良いサービスを作り上げるためのフィードバック期間です。隠れた料金は一切ありません。</p>
+              <p className="text-gray-700">A. はい、無料でお使いいただけます。協力者様と一緒により良いサービスを作り上げている最中です。隠れた料金は一切ありません。</p>
             </div>
             
             <div className="border-b border-gray-200 pb-4">

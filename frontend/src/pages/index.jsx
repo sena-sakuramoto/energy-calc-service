@@ -36,12 +36,12 @@ export default function Home() {
             <span className="font-semibold text-green-600">簡単・正確・安心</span>な省エネ計算ツール
           </p>
           
-          {/* 期間限定無料キャンペーン */}
+          {/* 共同開発企画 */}
           <div className="mb-8 max-w-3xl mx-auto">
             <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 text-red-900 px-8 py-6 rounded-xl shadow-lg">
               <div className="flex items-center justify-center mb-3">
                 <span className="bg-red-600 text-white px-4 py-1 rounded-full text-sm font-bold mr-3">期間限定</span>
-                <span className="font-bold text-xl">🎉 完全無料キャンペーン実施中！</span>
+                <span className="font-bold text-xl">🎉 共同開発企画進行中！</span>
               </div>
               <p className="text-center text-lg font-medium mb-3">
                 <span className="text-xl font-bold text-red-600">協力者様と一緒に完成を目指します！</span>
@@ -58,7 +58,7 @@ export default function Home() {
                   href="/campaign" 
                   className="text-sm text-red-800 hover:text-red-900 font-bold underline"
                 >
-                  🔥 キャンペーン詳細を見る
+                  🎆 企画詳細を見る
                 </Link>
               </div>
             </div>
@@ -81,7 +81,7 @@ export default function Home() {
                   href="/campaign"
                   className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-5 px-8 rounded-xl shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
                 >
-                  🎉 キャンペーン詳細
+                  🎆 企画詳細
                 </Link>
               </div>
               
@@ -101,7 +101,7 @@ export default function Home() {
                   href="/campaign"
                   className="bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 text-center"
                 >
-                  🎁 無料キャンペーン詳細
+                  🤝 共同開発企画
                 </Link>
                 <Link
                   href="/system/status"
@@ -303,7 +303,7 @@ export default function Home() {
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
             「楽々省エネ計算」で、設計業務をもっとクリエイティブに。<br />
-            今すぐ無料でお試しください。
+            無料でお試しください。
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
