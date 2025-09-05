@@ -17,38 +17,47 @@ export default function Campaign() {
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-8 leading-tight text-gray-900">
-              建築物省エネ計算を<br />
-              <span className="bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">効率的に</span>
+              省エネ計算ツール<br />
+              <span className="text-blue-600">共同開発企画</span>
             </h1>
             
             <div className="mb-6">
-              <span className="bg-green-100 text-green-800 px-4 py-2 rounded-md text-sm font-medium shadow-sm">
-                🚀 協力者様と一緒に完成を目指して奔闘中！
+              <span className="bg-blue-100 text-blue-800 px-6 py-3 rounded-lg text-lg font-medium">
+                🎆 協力者様と一緒に作るサービス
               </span>
             </div>
             
-            <p className="text-xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
-              手作業なら<strong className="text-gray-900">数日かかる</strong>BEI計算が、<br />
-              わずか<strong className="text-blue-600">5分で完了</strong>する専門システム<br />
-              <span className="text-green-600 font-semibold">皆様のご意見でより良いサービスへ育ててください</span>
-            </p>
+            <div className="max-w-3xl mx-auto mb-8">
+              <p className="text-xl text-gray-700 mb-6 leading-relaxed">
+                建築業界の皆様と一緒に、<strong className="text-blue-600">本当に使える省エネ計算ツール</strong>を
+                作り上げていく共同開発プロジェクトです。
+              </p>
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">🎯 この企画の目的</h3>
+                <ul className="text-gray-700 space-y-2">
+                  <li>• 実務で必要な機能を理解し、使いやすいツールを作る</li>
+                  <li>• 業界のリアルな声を反映したサービスを提供</li>
+                  <li>• 継続的な改善で皆様の業務効率化に貢献</li>
+                </ul>
+              </div>
+            </div>
             
-            {/* 特徴アイコン */}
+            {/* 企画の特徴 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <div className="text-2xl mb-3">⚡</div>
-                <div className="font-semibold mb-2 text-gray-900">高速計算</div>
-                <div className="text-gray-600 text-sm">複雑な計算も瞬時に完了</div>
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <div className="text-2xl mb-3">💬</div>
+                <div className="font-semibold mb-2 text-gray-800">ユーザーフィードバック</div>
+                <div className="text-gray-600 text-sm">実際に使っていただき、改善点を教えてください</div>
               </div>
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <div className="text-2xl mb-3">🎯</div>
-                <div className="font-semibold mb-2 text-gray-900">正確性</div>
-                <div className="text-gray-600 text-sm">建築物省エネ法完全準拠</div>
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <div className="text-2xl mb-3">🤝</div>
+                <div className="font-semibold mb-2 text-gray-800">共同開発</div>
+                <div className="text-gray-600 text-sm">業界の皆様と一緒に作り上げていくスタイル</div>
               </div>
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <div className="text-2xl mb-3">📊</div>
-                <div className="font-semibold mb-2 text-gray-900">プロ仕様</div>
-                <div className="text-gray-600 text-sm">申請書類も自動生成</div>
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <div className="text-2xl mb-3">🎆</div>
+                <div className="font-semibold mb-2 text-gray-800">継続改善</div>
+                <div className="text-gray-600 text-sm">定期的なアップデートでより使いやすく</div>
               </div>
             </div>
           </div>
@@ -121,96 +130,83 @@ export default function Campaign() {
           </div>
         </div>
 
-        {/* 料金プラン */}
+        {/* 参加方法 */}
         <div className="py-20 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-gray-800 mb-4">
-                料金プラン
+                企画参加方法
               </h2>
               <p className="text-lg text-gray-600">
-                30日間無料トライアル後の料金は現在調整中です
+                現在デモ版を無料でお試しいただき、フィードバックをお寄せください
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              {/* 無料トライアル */}
-              <div className="relative">
-                <div className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-blue-600">
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-blue-600 text-white px-4 py-1 rounded-md text-sm font-medium">
-                      無料トライアル
-                    </span>
+            <div className="max-w-6xl mx-auto">
+              {/* Step 1: デモ版体験 */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-blue-200">
+                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <span className="text-blue-600 font-bold text-xl">1</span>
                   </div>
-                  
-                  <h3 className="text-2xl font-bold mb-4 mt-4 text-gray-800">30日間無料</h3>
-                  <div className="mb-6">
-                    <div className="text-4xl font-bold mb-2 text-gray-900">¥0</div>
-                    <div className="text-gray-600">初月完全無料</div>
-                  </div>
-                  
-                  <ul className="space-y-3 mb-8">
-                    <li className="flex items-center space-x-2">
-                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
-                      <span className="text-gray-700">BEI計算（無制限）</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
-                      <span className="text-gray-700">PDF・Excel出力</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
-                      <span className="text-gray-700">申請書類自動作成</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <FaCheckCircle className="text-green-500 flex-shrink-0" />
-                      <span className="text-gray-700">メールサポート</span>
-                    </li>
+                  <h3 className="text-xl font-bold text-gray-800 mb-3">デモ版を体験</h3>
+                  <p className="text-gray-600 mb-4">
+                    まずは無料でデモ版をお試しください。実際の業務で使えるかどうかを確かめてください。
+                  </p>
+                  <ul className="text-sm text-gray-600 space-y-2">
+                    <li>• BEI計算機能</li>
+                    <li>• PDF出力</li>
+                    <li>• 計算書作成</li>
+                    <li>• プロジェクト管理</li>
                   </ul>
-                  
-                  <div className="text-center">
-                    <div className="text-sm text-gray-600">
-                      期間終了前にメール通知
-                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-green-200">
+                  <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <span className="text-green-600 font-bold text-xl">2</span>
                   </div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-3">フィードバック</h3>
+                  <p className="text-gray-600 mb-4">
+                    使ってみた感想や改善点を教えてください。皆様の声がサービスをより使いやすくします。
+                  </p>
+                  <ul className="text-sm text-gray-600 space-y-2">
+                    <li>• 操作性の感想</li>
+                    <li>• 欠けている機能</li>
+                    <li>• 使いにくい点</li>
+                    <li>• 業界のニーズ</li>
+                  </ul>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-purple-200">
+                  <div className="bg-purple-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <span className="text-purple-600 font-bold text-xl">3</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-3">共同改善</h3>
+                  <p className="text-gray-600 mb-4">
+                    いただいたフィードバックを元に、協力者様と一緒に改善を進めていきます。
+                  </p>
+                  <ul className="text-sm text-gray-600 space-y-2">
+                    <li>• 機能改善</li>
+                    <li>• UI/UX向上</li>
+                    <li>• 新機能追加</li>
+                    <li>• バグ修正</li>
+                  </ul>
                 </div>
               </div>
 
-              {/* 正式版 */}
-              <div className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-green-600">
-                <h3 className="text-2xl font-bold text-gray-800 mb-4">正式版</h3>
-                <div className="mb-6">
-                  <div className="text-4xl font-bold text-gray-900 mb-2">
-                    調整中
+              {/* 参加特典 */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-8 text-center">
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">🎁 参加特典</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <div className="text-3xl mb-2">🔥</div>
+                    <div className="font-semibold text-gray-800">無料で体験</div>
+                    <div className="text-gray-600 text-sm">デモ版をいつまでも無料で利用可能</div>
                   </div>
-                  <div className="text-gray-500">月額料金</div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    価格設定を検討中です
-                  </div>
-                </div>
-                
-                <ul className="space-y-3 mb-8 text-gray-700">
-                  <li className="flex items-center space-x-2">
-                    <FaCheckCircle className="text-green-500 flex-shrink-0" />
-                    <span>全機能無制限利用</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <FaCheckCircle className="text-green-500 flex-shrink-0" />
-                    <span>優先サポート</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <FaCheckCircle className="text-green-500 flex-shrink-0" />
-                    <span>定期アップデート</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <FaCheckCircle className="text-green-500 flex-shrink-0" />
-                    <span>プロジェクト無制限</span>
-                  </li>
-                </ul>
-                
-                <div className="text-center">
-                  <div className="text-sm text-gray-500">
-                    いつでもキャンセル可能
+                  <div>
+                    <div className="text-3xl mb-2">💬</div>
+                    <div className="font-semibold text-gray-800">直接サポート</div>
+                    <div className="text-gray-600 text-sm">開発チームと直接やり取り</div>
                   </div>
                 </div>
               </div>

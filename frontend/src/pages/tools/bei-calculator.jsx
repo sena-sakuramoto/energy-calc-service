@@ -14,6 +14,7 @@ import { beiAPI } from '../../utils/api';
 import { createProjectData, saveProject } from '../../utils/projectStorage';
 import { validateEnergyInput, validateFloorArea, validateAllInputs, WARNING_LEVELS } from '../../utils/inputValidation';
 import ValidationAlert, { ValidationSummary } from '../../components/ValidationAlert';
+import { analyzeEnergyConsumption, analyzeBEI, getEnergyTypeName, getImprovementSuggestions } from '../../utils/energyComparison';
 
 export default function BEICalculator() {
   const [currentProject, setCurrentProject] = useState(null);
@@ -1459,6 +1460,50 @@ export default function BEICalculator() {
                           <div className="text-gray-800 font-medium">昇降機</div>
                           <div className="text-gray-900">{getStandardEnergyByType(formData.building_type)?.elevator || '-'}</div>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* 設計値と基準値の比較分析 */}
+                    <div className="mb-4">
+                      <div className="text-sm font-medium text-gray-700 mb-3">設計値分析・参考コメント</div>
+                      <div className="space-y-2 text-xs">
+                        {Object.entries(formData.design_energy).map(([key, value]) => {
+                          if (!value || value === '') return null;
+                          
+                          const designValuePerM2 = parseFloat(value) / parseFloat(formData.floor_area || 1000);
+                          const analysis = analyzeEnergyConsumption(designValuePerM2, formData.building_type, key);
+                          
+                          return (
+                            <div key={key} className={`${analysis.bgColor} border-l-4 border-current p-3 rounded-r`}>
+                              <div className={`flex items-center ${analysis.color} mb-1`}>
+                                <span className="mr-2">{analysis.icon}</span>
+                                <span className="font-medium">{getEnergyTypeName(key)}</span>
+                                <span className="ml-auto">
+                                  {designValuePerM2.toFixed(1)} MJ/m²年
+                                </span>
+                              </div>
+                              <div className={`${analysis.color.replace('600', '700')} text-xs`}>
+                                {analysis.comment}
+                              </div>
+                              {analysis.detail && (
+                                <div className={`${analysis.color.replace('600', '600')} text-xs mt-1 opacity-80`}>
+                                  {analysis.detail}
+                                </div>
+                              )}
+                              {/* 改善提案 */}
+                              {analysis.level === 'high' || analysis.level === 'very_high' ? (
+                                <div className="mt-2 pt-2 border-t border-current opacity-20">
+                                  <div className="text-xs font-medium mb-1">💡 改善案:</div>
+                                  <ul className="text-xs space-y-1">
+                                    {getImprovementSuggestions(key, analysis.level).slice(0, 2).map((suggestion, idx) => (
+                                      <li key={idx}>• {suggestion}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 

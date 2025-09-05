@@ -26,7 +26,9 @@
       "Bash(grep:*)",
       "Bash(sed:*)",
       "Bash(nslookup:*)",
-      "WebFetch(domain:rakuraku-energy.archi-prisma.co.jp)"
+      "WebFetch(domain:rakuraku-energy.archi-prisma.co.jp)",
+      "Bash(gh run list:*)",
+      "WebFetch(domain:github.com)"
     ],
     "additionalDirectories": [
       "C:\\temp",

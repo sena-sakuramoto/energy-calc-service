@@ -321,6 +321,48 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* 協力者様への感謝セクション */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 py-12">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6">
+            🙏 協力者様への感謝
+          </h2>
+          <div className="max-w-4xl mx-auto">
+            <p className="text-lg text-gray-700 mb-4 leading-relaxed">
+              このサービスは、<span className="font-semibold text-purple-600">多くの協力者様の貴重なサポート</span>のおかげで
+              ここまで開発を進めることができました。
+            </p>
+            <p className="text-gray-600 mb-6">
+              現在はデモ版として皆様にお使いいただきながら、
+              <strong className="text-blue-600">皆様のご意見やフィードバックを元に</strong>、
+              協力者様と一緒にさらに良いサービスへと成長させていただいています。
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <div className="text-2xl mb-2">💬</div>
+                <div className="font-semibold text-gray-800 mb-1">フィードバック</div>
+                <div className="text-sm text-gray-600">皆様の声が開発の原動力</div>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <div className="text-2xl mb-2">🤝</div>
+                <div className="font-semibold text-gray-800 mb-1">協同開発</div>
+                <div className="text-sm text-gray-600">協力者様と一緒に成長</div>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <div className="text-2xl mb-2">🎆</div>
+                <div className="font-semibold text-gray-800 mb-1">継続改善</div>
+                <div className="text-sm text-gray-600">日々より良いサービスへ</div>
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-purple-600 font-medium">
+                🙏 皆様の温かいサポートに心から感謝いたします 🙏
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </Layout>
   );
 }
