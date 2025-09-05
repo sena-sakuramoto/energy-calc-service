@@ -101,6 +101,8 @@ function getScaleFactor(floorArea) {
 // BEI計算（建築物省エネ法準拠）
 export function mockBEICalculation(requestData) {
   try {
+    console.log('BEI計算開始:', requestData);
+    
     const {
       building_area_m2,
       use,
@@ -109,6 +111,19 @@ export function mockBEICalculation(requestData) {
       renewable_energy_deduction_mj = 0,
       design_energy
     } = requestData;
+    
+    // 入力データの検証
+    if (!building_area_m2 || building_area_m2 <= 0) {
+      throw new Error('延床面積が正しく入力されていません。');
+    }
+    
+    if (!design_energy || !Array.isArray(design_energy) || design_energy.length === 0) {
+      throw new Error('設計エネルギーデータが正しく入力されていません。');
+    }
+    
+    if (!usage_mix && (!use || !zone)) {
+      throw new Error('建物用途または地域区分が指定されていません。');
+    }
 
     // 設計一次エネルギー消費量計算
     let designPrimaryEnergy = 0;
@@ -172,24 +187,76 @@ export function mockBEICalculation(requestData) {
     const bei = (designPrimaryEnergy / standardPrimaryEnergy);
     const isCompliant = bei <= 1.0;
 
+    // エネルギー種別比較データを生成
+    const energyComparison = {};
+    const standardIntensityData = usage_mix ? null : standardIntensity;
+    
+    if (standardIntensityData) {
+      for (const category of design_energy) {
+        const categoryKey = category.category;
+        const designValuePerM2 = category.value / building_area_m2;
+        const standardValuePerM2 = standardIntensityData[categoryKey] || 0;
+        
+        energyComparison[categoryKey] = {
+          design_value_per_m2: parseFloat(designValuePerM2.toFixed(1)),
+          standard_value_per_m2: standardValuePerM2,
+          ratio: standardValuePerM2 > 0 ? parseFloat((designValuePerM2 / standardValuePerM2).toFixed(2)) : null,
+          comparison_status: standardValuePerM2 > 0 ? 
+            (designValuePerM2 < standardValuePerM2 * 0.8 ? 'very_low' :
+             designValuePerM2 < standardValuePerM2 ? 'low' :
+             designValuePerM2 <= standardValuePerM2 * 1.2 ? 'normal' :
+             designValuePerM2 <= standardValuePerM2 * 1.5 ? 'high' : 'very_high') : 'unknown'
+        };
+      }
+    }
+    
+    // 改善提案を生成
+    const suggestions = [];
+    if (!isCompliant) {
+      if (bei > 1.2) {
+        suggestions.push('設備効率の大幅な改善が必要です。');
+        suggestions.push('高効率ヒートポンプやLED照明の導入を検討してください。');
+      } else {
+        suggestions.push('輕微な調整で基準適合できる可能性があります。');
+        suggestions.push('断熱性能や設備効率の小幅改善を検討してください。');
+      }
+    } else {
+      if (bei <= 0.8) {
+        suggestions.push('非常に優秀な省エネ性能です！');
+        suggestions.push('ZEB Ready相当の高性能建築物です。');
+      } else {
+        suggestions.push('省エネ基準に適合しています。');
+        suggestions.push('現在の設計で法的要件を満たしています。');
+      }
+    }
+
     return {
       bei: parseFloat(bei.toFixed(3)),
       is_compliant: isCompliant,
-      design_primary_energy_mj: designPrimaryEnergy,
-      standard_primary_energy_mj: standardPrimaryEnergy,
+      design_primary_energy_mj: Math.round(designPrimaryEnergy),
+      standard_primary_energy_mj: Math.round(standardPrimaryEnergy),
       renewable_deduction_mj: renewable_energy_deduction_mj,
-      design_energy_per_m2: designPrimaryEnergy / building_area_m2,
-      standard_energy_per_m2: standardPrimaryEnergy / building_area_m2,
+      design_energy_per_m2: parseFloat((designPrimaryEnergy / building_area_m2).toFixed(1)),
+      standard_energy_per_m2: parseFloat((standardPrimaryEnergy / building_area_m2).toFixed(1)),
       building_area_m2: building_area_m2,
       use_info: useInfo,
       design_energy_breakdown: designEnergyBreakdown,
+      energy_comparison: energyComparison,
+      suggestions: suggestions,
+      performance_level: isCompliant ? 
+        (bei <= 0.8 ? 'excellent' : bei <= 0.9 ? 'very_good' : 'good') :
+        (bei <= 1.2 ? 'needs_improvement' : 'poor'),
       standard_intensity_source: usage_mix ? `複合用途建物の標準値` : `${use}, ${zone}地域の標準値`,
       compliance_threshold: 1.0,
       bei_round_digits: 3,
+      calculation_method: 'モデル建物法',
+      calculation_date: new Date().toISOString().split('T')[0],
       notes: [
-        `基準エネルギー消費量: ${standardPrimaryEnergy / building_area_m2} MJ/m²年`,
+        `基準エネルギー消費量: ${(standardPrimaryEnergy / building_area_m2).toFixed(1)} MJ/m²年`,
+        `設計エネルギー消費量: ${(designPrimaryEnergy / building_area_m2).toFixed(1)} MJ/m²年`,
         "モデル建物法による標準計算値を使用",
-        "建築物省エネ法に基づく正式計算"
+        "建築物省エネ法に基づく正式計算",
+        "本計算結果は参考値であり、実際の申請時は専門家による確認をお願いします。"
       ]
     };
 

@@ -1425,6 +1425,46 @@ export default function BEICalculator() {
                     </div>
                   </div>
 
+                  {/* 総合評価と改善提案 */}
+                  {result.suggestions && result.suggestions.length > 0 && (
+                    <div className={`border rounded-lg p-4 ${
+                      result.performance_level === 'excellent' ? 'bg-green-50 border-green-200' :
+                      result.performance_level === 'very_good' ? 'bg-blue-50 border-blue-200' :
+                      result.performance_level === 'good' ? 'bg-blue-50 border-blue-200' :
+                      result.performance_level === 'needs_improvement' ? 'bg-yellow-50 border-yellow-200' :
+                      'bg-red-50 border-red-200'
+                    }`}>
+                      <h4 className={`font-medium mb-3 flex items-center ${
+                        result.performance_level === 'excellent' ? 'text-green-700' :
+                        result.performance_level === 'very_good' ? 'text-blue-700' :
+                        result.performance_level === 'good' ? 'text-blue-700' :
+                        result.performance_level === 'needs_improvement' ? 'text-yellow-700' :
+                        'text-red-700'
+                      }`}>
+                        <FaLightbulb className="mr-2" />
+                        総合評価・改善提案
+                      </h4>
+                      <div className="space-y-2">
+                        {result.suggestions.map((suggestion, index) => (
+                          <div key={index} className={`text-sm p-2 rounded ${
+                            result.performance_level === 'excellent' ? 'bg-green-100 text-green-800' :
+                            result.performance_level === 'very_good' ? 'bg-blue-100 text-blue-800' :
+                            result.performance_level === 'good' ? 'bg-blue-100 text-blue-800' :
+                            result.performance_level === 'needs_improvement' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            <span className="mr-2">
+                              {result.performance_level === 'excellent' || result.performance_level === 'very_good' ? '🌟' : 
+                               result.performance_level === 'good' ? '✅' : 
+                               result.performance_level === 'needs_improvement' ? '💡' : '⚠️'}
+                            </span>
+                            {suggestion}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* 計算根拠詳細 */}
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <h4 className="font-medium text-gray-800 mb-3 flex items-center">
