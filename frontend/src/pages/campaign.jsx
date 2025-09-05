@@ -21,9 +21,16 @@ export default function Campaign() {
               <span className="bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">効率的に</span>
             </h1>
             
+            <div className="mb-6">
+              <span className="bg-green-100 text-green-800 px-4 py-2 rounded-md text-sm font-medium shadow-sm">
+                🚀 協力者様と一緒に完成を目指して奔闘中！
+              </span>
+            </div>
+            
             <p className="text-xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
               手作業なら<strong className="text-gray-900">数日かかる</strong>BEI計算が、<br />
-              わずか<strong className="text-blue-600">5分で完了</strong>する専門システム
+              わずか<strong className="text-blue-600">5分で完了</strong>する専門システム<br />
+              <span className="text-green-600 font-semibold">皆様のご意見でより良いサービスへ育ててください</span>
             </p>
             
             {/* 特徴アイコン */}
@@ -342,7 +349,7 @@ export default function Campaign() {
           <div className="space-y-6">
             <div className="border-b border-gray-200 pb-4">
               <h3 className="font-bold text-gray-900 mb-2">Q. 本当に無料ですか？隠れた料金はありませんか？</h3>
-              <p className="text-gray-700">A. はい、2025年12月31日まで完全無料です。隠れた料金は一切ありません。</p>
+              <p className="text-gray-700">A. はい、現在デモ版を完全無料でお使いいただけます。協力者様と一緒により良いサービスを作り上げるためのフィードバック期間です。隠れた料金は一切ありません。</p>
             </div>
             
             <div className="border-b border-gray-200 pb-4">
@@ -356,8 +363,8 @@ export default function Campaign() {
             </div>
             
             <div className="border-b border-gray-200 pb-4">
-              <h3 className="font-bold text-gray-900 mb-2">Q. 2025年1月以降はどうなりますか？</h3>
-              <p className="text-gray-700">A. 2025年1月以降の料金は現在調整中です。お得な価格設定を検討しており、引き続き同じ高品質なサービスをご利用いただけます。</p>
+              <h3 className="font-bold text-gray-900 mb-2">Q. 正式版のリリースはいつ頃ですか？</h3>
+              <p className="text-gray-700">A. デモ版で皆様からいただく貴重なフィードバックやご意見を元に、協力者様と一緒に改善を重ねながら正式版の完成を目指しています。皆様の声が私たちの原動力です！</p>
             </div>
             
             <div className="border-b border-gray-200 pb-4">

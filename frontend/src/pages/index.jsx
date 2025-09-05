@@ -44,9 +44,9 @@ export default function Home() {
                 <span className="font-bold text-xl">🎉 完全無料キャンペーン実施中！</span>
               </div>
               <p className="text-center text-lg font-medium mb-3">
-                <span className="text-2xl font-bold text-red-600">2025年12月末まで</span>
+                <span className="text-xl font-bold text-red-600">協力者様と一緒に完成を目指します！</span>
                 <span className="block text-sm text-red-700 mt-1">
-                  料金調整中のサービスが完全無料でご利用いただけます
+                  デモ版で皆様のご意見をお聞かせいただきながら、協力者様と共に奔闘中です
                 </span>
               </p>
               <div className="text-center">
