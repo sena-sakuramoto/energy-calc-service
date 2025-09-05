@@ -5,6 +5,8 @@ import { useRouter } from 'next/router';
 import { auth, googleProvider } from '../utils/firebase';
 import { signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 import { authAPI } from '../utils/api';
+import bcrypt from 'bcryptjs';
+import CryptoJS from 'crypto-js';
 
 const AuthContext = createContext({
   user: null,
@@ -23,17 +25,33 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      // 静的サイト用のLocalStorage認証チェック
       if (typeof window !== 'undefined') {
-        const storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-          try {
-            const userData = JSON.parse(storedUser);
-            setUser(userData);
-            console.log("Restored user from localStorage:", userData.email);
-          } catch (error) {
-            console.error("Failed to parse stored user data:", error);
-            localStorage.removeItem('currentUser');
+        const sessionToken = localStorage.getItem('sessionToken');
+        const sessionExpiry = localStorage.getItem('sessionExpiry');
+        
+        if (sessionToken && sessionExpiry) {
+          const now = new Date().getTime();
+          if (now < parseInt(sessionExpiry)) {
+            try {
+              // セッショントークンを検証
+              const decryptedUser = CryptoJS.AES.decrypt(sessionToken, 'energy-calc-secret-key').toString(CryptoJS.enc.Utf8);
+              if (decryptedUser) {
+                const userData = JSON.parse(decryptedUser);
+                setUser(userData);
+                console.log("Valid session restored:", userData.email);
+              } else {
+                throw new Error('Invalid session token');
+              }
+            } catch (error) {
+              console.error("Invalid session:", error);
+              localStorage.removeItem('sessionToken');
+              localStorage.removeItem('sessionExpiry');
+              setUser(null);
+            }
+          } else {
+            console.log("Session expired");
+            localStorage.removeItem('sessionToken');
+            localStorage.removeItem('sessionExpiry');
             setUser(null);
           }
         } else {
@@ -47,32 +65,43 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (credentials = null) => {
-    // 静的サイト用の実際のログインシステム
     if (typeof window !== 'undefined') {
       // メール認証の場合
       if (credentials?.email && credentials?.password) {
-        // LocalStorageから登録済みユーザーを取得
-        const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-        const user = registeredUsers.find(u => u.email === credentials.email);
-        
-        if (user && user.password === credentials.password) {
-          const loginUser = {
-            id: user.id,
-            email: user.email,
-            full_name: user.full_name,
-            company: user.company,
-            is_active: true,
-            authType: 'email',
-            registrationDate: user.registrationDate
-          };
+        try {
+          const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+          const user = registeredUsers.find(u => u.email === credentials.email);
           
-          setUser(loginUser);
-          localStorage.setItem('currentUser', JSON.stringify(loginUser));
-          console.log("User logged in:", loginUser.email);
-          router.push('/');
-          return true;
-        } else {
-          throw new Error('メールアドレスまたはパスワードが正しくありません');
+          if (user && await bcrypt.compare(credentials.password, user.hashedPassword)) {
+            const loginUser = {
+              id: user.id,
+              email: user.email,
+              full_name: user.full_name,
+              company: user.company,
+              is_active: true,
+              authType: 'email',
+              registrationDate: user.registrationDate,
+              loginTime: new Date().toISOString()
+            };
+            
+            // セッショントークン生成（24時間有効）
+            const sessionToken = CryptoJS.AES.encrypt(JSON.stringify(loginUser), 'energy-calc-secret-key').toString();
+            const sessionExpiry = new Date().getTime() + (24 * 60 * 60 * 1000); // 24時間
+            
+            localStorage.setItem('sessionToken', sessionToken);
+            localStorage.setItem('sessionExpiry', sessionExpiry.toString());
+            localStorage.removeItem('currentUser'); // 古い認証方式を削除
+            
+            setUser(loginUser);
+            console.log("User logged in securely:", loginUser.email);
+            router.push('/');
+            return true;
+          } else {
+            throw new Error('メールアドレスまたはパスワードが正しくありません');
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          throw error;
         }
       }
       
@@ -88,11 +117,19 @@ export const AuthProvider = ({ children }) => {
             full_name: firebaseUser.displayName,
             image: firebaseUser.photoURL,
             is_active: true,
-            authType: 'google'
+            authType: 'google',
+            loginTime: new Date().toISOString()
           };
           
+          // セッショントークン生成
+          const sessionToken = CryptoJS.AES.encrypt(JSON.stringify(loginUser), 'energy-calc-secret-key').toString();
+          const sessionExpiry = new Date().getTime() + (24 * 60 * 60 * 1000);
+          
+          localStorage.setItem('sessionToken', sessionToken);
+          localStorage.setItem('sessionExpiry', sessionExpiry.toString());
+          localStorage.removeItem('currentUser');
+          
           setUser(loginUser);
-          localStorage.setItem('currentUser', JSON.stringify(loginUser));
           console.log("User logged in with Google:", loginUser.email);
           router.push('/');
           return true;
@@ -111,7 +148,15 @@ export const AuthProvider = ({ children }) => {
     
     try {
       if (typeof window !== 'undefined') {
-        // 既存ユーザーリストを取得
+        // 入力検証
+        if (!userData.email || !userData.password) {
+          throw new Error('メールアドレスとパスワードは必須です');
+        }
+        
+        if (userData.password.length < 8) {
+          throw new Error('パスワードは8文字以上である必要があります');
+        }
+        
         const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
         
         // 重複チェック
@@ -120,15 +165,20 @@ export const AuthProvider = ({ children }) => {
           throw new Error('このメールアドレスは既に登録されています');
         }
         
-        // 新しいユーザーを作成
+        // パスワードハッシュ化
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
+        
+        // 新しいユーザーを作成（パスワードは保存しない）
         const newUser = {
-          id: Date.now(), // 簡易的なID生成
+          id: Date.now(),
           email: userData.email,
-          password: userData.password,
+          hashedPassword: hashedPassword, // ハッシュ化されたパスワード
           full_name: userData.full_name || userData.firstName + ' ' + userData.lastName,
           company: userData.company || '',
           registrationDate: new Date().toISOString(),
-          is_active: true
+          is_active: true,
+          lastLogin: null
         };
         
         // ユーザーリストに追加
@@ -156,10 +206,12 @@ export const AuthProvider = ({ children }) => {
         }
       }
       
-      // 現在のユーザー情報をクリア
-      localStorage.removeItem('currentUser');
+      // すべての認証情報をクリア
+      localStorage.removeItem('sessionToken');
+      localStorage.removeItem('sessionExpiry');
+      localStorage.removeItem('currentUser'); // 旧方式も削除
       setUser(null);
-      console.log("User logged out");
+      console.log("User logged out securely");
       router.push('/login');
     }
   };
