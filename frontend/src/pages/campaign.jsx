@@ -1,7 +1,7 @@
 // frontend/src/pages/campaign.jsx
 import Layout from '../components/Layout';
 import Link from 'next/link';
-import { FaGift, FaClock, FaCheckCircle, FaCalculator, FaFileDownload, FaStar, FaArrowRight } from 'react-icons/fa';
+import { FaGift, FaClock, FaCheckCircle, FaCalculator, FaFileDownload, FaStar, FaArrowRight, FaChartBar } from 'react-icons/fa';
 
 export default function Campaign() {
   return (
