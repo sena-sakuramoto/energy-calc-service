@@ -5,14 +5,14 @@ import { FaGift, FaClock, FaCheckCircle, FaCalculator, FaFileDownload, FaStar, F
 
 export default function Campaign() {
   return (
-    <Layout title="期間限定無料キャンペーン - 楽々省エネ計算">
+    <Layout title="共同開発企画 - 楽々省エネ計算">
       <div className="max-w-5xl mx-auto">
         {/* ヒーローセクション */}
         <div className="bg-gradient-to-br from-blue-50 via-white to-green-50 py-16 rounded-lg mb-16">
           <div className="container mx-auto text-center px-8">
             <div className="mb-8">
               <span className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm font-medium shadow-sm">
-                30日間無料トライアル実施中
+                共同開発プロジェクト進行中
               </span>
             </div>
             
@@ -291,10 +291,10 @@ export default function Campaign() {
           <div className="max-w-3xl mx-auto">
             <div className="mb-8">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
-                30日間無料トライアルを開始
+                共同開発企画に参加しませんか
               </h2>
               <p className="text-xl text-blue-100 mb-6">
-                効率的な省エネ計算を今すぐ体験してください
+                皆様の声でより良いサービスへ成長させてください
               </p>
             </div>
             
@@ -340,7 +340,7 @@ export default function Campaign() {
 
         {/* よくある質問 */}
         <div className="mt-12 bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">❓ キャンペーンについて よくある質問</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">❓ 共同開発企画について よくある質問</h2>
           
           <div className="space-y-6">
             <div className="border-b border-gray-200 pb-4">

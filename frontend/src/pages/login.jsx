@@ -66,10 +66,10 @@ export default function Login() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">ログイン</h1>
             <p className="text-gray-600">楽々省エネ計算にサインインして始めましょう</p>
             
-            {/* 30日無料トライアル案内 */}
-            <div className="mt-4 bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 rounded">
+            {/* 共同開発企画案内 */}
+            <div className="mt-4 bg-purple-50 border border-purple-200 text-purple-700 px-4 py-3 rounded">
               <p className="text-sm">
-                30日間無料トライアル実施中
+                🎆 協力者様と一緒に成長するサービス
               </p>
             </div>
           </div>

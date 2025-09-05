@@ -48,7 +48,7 @@ export default function Footer() {
               )}
               <li>
                 <Link href="/campaign" className="text-gray-300 hover:text-blue-300 transition-colors text-sm">
-                  🎁 期間限定キャンペーン
+                  🤝 共同開発企画
                 </Link>
               </li>
               <li>

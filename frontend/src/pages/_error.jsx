@@ -44,7 +44,7 @@ function Error({ statusCode, hasGetInitialPropsRun, err }) {
               href="/campaign"
               className="block w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
             >
-              🎁 キャンペーン詳細
+              🤝 共同開発企画
             </Link>
             <Link 
               href="/system/status"

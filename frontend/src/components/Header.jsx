@@ -36,12 +36,12 @@ export default function Header() {
               </li>
             )}
             
-            {/* キャンペーン */}
+            {/* 共同開発 */}
             <li className="list-none">
               <Link href="/campaign" className="flex items-center hover:text-blue-200 transition-colors">
                 <FaGift className="mr-2 text-yellow-300" />
-                <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold mr-2">無料</span>
-                キャンペーン
+                <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold mr-2">企画</span>
+                共同開発
               </Link>
             </li>
             
@@ -145,15 +145,15 @@ export default function Header() {
                 </Link>
               )}
               
-              {/* キャンペーン (モバイル) */}
+              {/* 共同開発 (モバイル) */}
               <Link
                 href="/campaign"
                 className="flex items-center hover:text-blue-200 transition-colors"
                 onClick={closeMenus}
               >
                 <FaGift className="mr-2 text-yellow-300" />
-                <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold mr-2">無料</span>
-                キャンペーン
+                <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold mr-2">企画</span>
+                共同開発
               </Link>
               
               {/* サービス状況 (モバイル) */}

@@ -81,10 +81,10 @@ export default function RegisterPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">新規登録</h1>
             <p className="text-gray-600">楽々省エネ計算のアカウントを作成</p>
             
-            {/* 30日無料トライアル案内 */}
-            <div className="mt-4 bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 rounded">
+            {/* 共同開発企画案内 */}
+            <div className="mt-4 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
               <p className="text-sm">
-                30日間無料トライアル実施中
+                🤝 協力者様と一緒に作るサービス - デモ版無料体験中
               </p>
             </div>
           </div>
@@ -122,7 +122,7 @@ export default function RegisterPage() {
               <strong>省エネ計算を、もっとシンプルに。</strong>
             </p>
             <p>
-              30日間の無料トライアルで、建築物の省エネ性能計算を簡単・正確に実行できます。
+              現在デモ版を無料でお使いいただきながら、皆様のフィードバックでより良いサービスへ成長させていただいています。
             </p>
           </div>
 

@@ -224,7 +224,7 @@ export default function About() {
               href="/campaign"
               className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 inline-block ml-2"
             >
-              🔥 期間限定無料キャンペーン
+              🤝 共同開発企画に参加
             </Link>
           </div>
         </div>
