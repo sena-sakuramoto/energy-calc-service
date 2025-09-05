@@ -3,9 +3,10 @@
 import axios from 'axios';
 import { mockBEICalculation, mockPowerCalculation, mockTariffCalculation } from './mockCalculations';
 
-// GitHub Pages用のモックモード検出
+// GitHub Pages/静的デプロイ用のモックモード検出
 const isGitHubPages = typeof window !== 'undefined' && 
-  window.location.hostname.includes('github.io');
+  (window.location.hostname.includes('github.io') || 
+   window.location.hostname.includes('archi-prisma.co.jp'));
 
 // 環境変数からAPIのベースURLを取得。NEXT_PUBLIC_ を接頭辞にすること。
 const API_BASE_URL = isGitHubPages ? 'https://mock-api.example.com/api/v1' : 
