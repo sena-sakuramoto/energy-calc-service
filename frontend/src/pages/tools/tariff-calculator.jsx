@@ -1,6 +1,6 @@
 // frontend/src/pages/tools/tariff-calculator.jsx
 import { useState } from 'react';
-import Layout from '../../components/Layout';
+import CalculatorLayout from '../../components/CalculatorLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorAlert from '../../components/ErrorAlert';
 import { tariffAPI, apiRequest } from '../../utils/api';
@@ -147,7 +147,7 @@ export default function TariffCalculator() {
   };
 
   return (
-    <Layout>
+    <CalculatorLayout title="料金計算機" subtitle="電気料金・コスト分析" icon={FaDollarSign}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto">
@@ -559,6 +559,6 @@ export default function TariffCalculator() {
           </div>
         </div>
       </div>
-    </Layout>
+    </CalculatorLayout>
   );
 }

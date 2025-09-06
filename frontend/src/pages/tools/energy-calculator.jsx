@@ -1,6 +1,6 @@
 // frontend/src/pages/tools/energy-calculator.jsx
 import { useState } from 'react';
-import Layout from '../../components/Layout';
+import CalculatorLayout from '../../components/CalculatorLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorAlert from '../../components/ErrorAlert';
 import { energyAPI, apiRequest } from '../../utils/api';
@@ -189,7 +189,11 @@ export default function EnergyCalculator() {
   ];
 
   return (
-    <Layout>
+    <CalculatorLayout 
+      title="エネルギー計算機"
+      subtitle="電力・エネルギー消費量・コスト計算"
+      icon={FaBolt}
+    >
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
@@ -636,6 +640,6 @@ export default function EnergyCalculator() {
           </div>
         </div>
       </div>
-    </Layout>
+    </CalculatorLayout>
   );
 }
