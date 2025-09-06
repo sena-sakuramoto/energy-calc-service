@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://rakuraku-energy.archi-prisma.co.jp/sitemap.xml
+
+# Disallow admin pages
+Disallow: /admin/
+
+# Disallow API endpoints if any
+Disallow: /api/
+
+# Allow important pages
+Allow: /
+Allow: /about
+Allow: /contact
+Allow: /pricing
+Allow: /calculator
+Allow: /register
+Allow: /login

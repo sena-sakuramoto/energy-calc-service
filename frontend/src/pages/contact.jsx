@@ -34,8 +34,8 @@ export default function Contact() {
     // EmailJS設定を読み込み
     const { SERVICE_ID, TEMPLATE_ID, PUBLIC_KEY, recipients } = emailjsConfig;
 
-    // 開発環境ではコンソールログのみ
-    if (!SERVICE_ID || SERVICE_ID === 'service_xxxxxxx') {
+    // 開発環境またはキー未設定の場合はコンソールログのみ
+    if (!SERVICE_ID || PUBLIC_KEY === 'YOUR_EMAILJS_PUBLIC_KEY') {
       console.log('Contact form submitted (dev mode):', formData);
       setTimeout(() => {
         setSending(false);
