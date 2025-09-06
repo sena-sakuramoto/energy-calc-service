@@ -31,11 +31,11 @@ export default function Contact() {
     setSending(true);
     setError('');
 
-    // EmailJS設定を読み込み
-    const { SERVICE_ID, TEMPLATE_ID, PUBLIC_KEY, recipients } = emailjsConfig;
-
-    // 開発環境またはキー未設定の場合はコンソールログのみ
-    if (!SERVICE_ID || PUBLIC_KEY === 'YOUR_EMAILJS_PUBLIC_KEY') {
+    // 簡単な方法: Formspree使用（EmailJS不要）
+    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/YOUR_FORM_ID'; // Formspreeで取得
+    
+    // 開発環境の場合はコンソールログのみ
+    if (FORMSPREE_ENDPOINT.includes('YOUR_FORM_ID')) {
       console.log('Contact form submitted (dev mode):', formData);
       setTimeout(() => {
         setSending(false);
@@ -58,41 +58,26 @@ export default function Contact() {
     }
 
     try {
-      // メール送信データを準備
-      const emailData = {
-        from_name: formData.name,
-        from_email: formData.email,
-        company: formData.company,
-        category: categoryLabels[formData.category] || formData.category,
-        subject: formData.subject,
-        message: formData.message,
-        to_email: recipients.primary,
-        timestamp: new Date().toLocaleString('ja-JP')
-      };
-
-      // 1. 管理者向けメール送信
-      await emailjs.send(SERVICE_ID, TEMPLATE_ID, emailData, PUBLIC_KEY);
-      
-      // 2. 問い合わせ者への自動返信メール送信
-      if (emailjsConfig.template.autoReplyTemplate) {
-        const autoReplyData = {
-          to_email: formData.email,
-          from_name: emailjsConfig.sender.name,
-          from_email: emailjsConfig.sender.supportEmail,
-          user_name: formData.name,
+      // Formspreeで簡単送信
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          company: formData.company,
           category: categoryLabels[formData.category] || formData.category,
           subject: formData.subject,
           message: formData.message,
-          timestamp: new Date().toLocaleString('ja-JP'),
-          support_email: emailjsConfig.sender.supportEmail
-        };
-        
-        try {
-          await emailjs.send(SERVICE_ID, emailjsConfig.template.autoReplyTemplate, autoReplyData, PUBLIC_KEY);
-        } catch (autoReplyError) {
-          console.warn('自動返信メール送信に失敗:', autoReplyError);
-          // 自動返信の失敗は全体の処理を止めない
-        }
+          _replyto: formData.email, // 返信先
+          _subject: `【楽々省エネ計算】${categoryLabels[formData.category]} - ${formData.subject}`,
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('送信に失敗しました');
       }
 
       setSubmitted(true);
