@@ -56,18 +56,27 @@ export const FirebaseAuthProvider = ({ children }) => {
           setFirebaseUser(firebaseUser);
         } catch (error) {
           console.error('Error loading user profile:', error);
-          // Firebase認証はあるが、Firestoreプロフィールがない場合は作成
-          await createUserProfile(firebaseUser);
-          setUser({
+          // Firebase接続エラー時のフォールバック処理
+          const fallbackUser = {
             id: firebaseUser.uid,
             email: firebaseUser.email,
             full_name: firebaseUser.displayName,
             displayName: firebaseUser.displayName,
             authType: 'google',
             isActive: true,
-            isAdmin: firebaseUser.email === 's.sakuramoto@archi-prisma.co.jp' || firebaseUser.email === 'admin@archi-prisma.co.jp'
-          });
+            isAdmin: firebaseUser.email === 's.sakuramoto@archi-prisma.co.jp' || firebaseUser.email === 'admin@archi-prisma.co.jp',
+            offline: true // オフライン状態を示すフラグ
+          };
+          
+          setUser(fallbackUser);
           setFirebaseUser(firebaseUser);
+          
+          // バックグラウンドでFirestoreプロフィール作成を試行（エラー無視）
+          try {
+            await createUserProfile(firebaseUser);
+          } catch (retryError) {
+            console.warn('Could not create user profile, continuing in offline mode:', retryError);
+          }
         }
       } else {
         // ログアウト状態

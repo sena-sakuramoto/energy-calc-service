@@ -14,12 +14,33 @@ const firebaseConfig = {
 };
 
 // Firebase初期化
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const googleProvider = new GoogleAuthProvider();
+let app, auth, db, googleProvider;
 
-// プロバイダー設定
-googleProvider.setCustomParameters({
-  prompt: 'select_account'
-});
+try {
+  // 環境変数チェック
+  if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+    console.warn('Firebase configuration is incomplete. Some features may not work.');
+  }
+  
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  googleProvider = new GoogleAuthProvider();
+  
+  console.log('Firebase initialized successfully');
+} catch (error) {
+  console.error('Firebase initialization failed:', error);
+  // フォールバック処理
+  auth = null;
+  db = null;
+  googleProvider = null;
+}
+
+export { auth, db, googleProvider };
+
+// プロバイダー設定（googleProviderが初期化されている場合のみ）
+if (googleProvider) {
+  googleProvider.setCustomParameters({
+    prompt: 'select_account'
+  });
+}
