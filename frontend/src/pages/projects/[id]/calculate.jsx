@@ -1,7 +1,7 @@
 ﻿// frontend/src/pages/projects/[id]/calculate.jsx
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '../../../components/Layout';
+import CalculatorLayout from '../../../components/CalculatorLayout';
 import { projectsAPI, calcAPI } from '../../../utils/api';
 import { getProject, saveProject } from '../../../utils/projectStorage';
 import { Formik, Form, Field, ErrorMessage, FieldArray } from 'formik';
@@ -219,17 +219,17 @@ export default function Calculate() {
 
   if (loading) {
     return (
-      <Layout>
+      <CalculatorLayout>
         <div className="text-center py-8">
           <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
           <p>プロジェクトを読み込み中...</p>
         </div>
-      </Layout>
+      </CalculatorLayout>
     );
   }
 
   return (
-    <Layout>
+    <CalculatorLayout>
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
@@ -926,6 +926,6 @@ name={`envelope.parts.${index}.area`}
           </Form>
         )}
       </Formik>
-    </Layout>
+    </CalculatorLayout>
   );
 }

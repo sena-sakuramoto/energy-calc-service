@@ -1,7 +1,7 @@
 ﻿// frontend/src/pages/projects/[id]/result.jsx
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '../../../components/Layout';
+import CalculatorLayout from '../../../components/CalculatorLayout';
 import { projectsAPI, reportAPI } from '../../../utils/api';
 import { getProject } from '../../../utils/projectStorage';
 import Link from 'next/link';
@@ -114,18 +114,18 @@ export default function Result() {
 
   if (loading) {
     return (
-      <Layout>
+      <CalculatorLayout>
         <div className="text-center py-8">
           <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
           <p>結果を読み込み中...</p>
         </div>
-      </Layout>
+      </CalculatorLayout>
     );
   }
 
   if (!project || (!project.result_data && !project.result)) {
     return (
-      <Layout>
+      <CalculatorLayout>
         <div className="text-center py-8">
           <p>計算データがありません。計算を実行してください。</p>
           <div className="mt-4">
@@ -137,7 +137,7 @@ export default function Result() {
             </Link>
           </div>
         </div>
-      </Layout>
+      </CalculatorLayout>
     );
   }
 
@@ -197,7 +197,7 @@ export default function Result() {
   };
 
   return (
-    <Layout>
+    <CalculatorLayout>
       <div className="mb-6 flex flex-wrap justify-between items-center">
         <h1 className="text-2xl font-bold">計算結果 - {project.name}</h1>
         <div className="flex space-x-2 mt-2 sm:mt-0">
@@ -433,6 +433,6 @@ export default function Result() {
           </div>
         </div>
       </div>
-    </Layout>
+    </CalculatorLayout>
   );
 }

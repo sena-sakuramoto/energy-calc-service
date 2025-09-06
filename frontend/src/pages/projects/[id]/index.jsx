@@ -1,8 +1,8 @@
 // frontend/src/pages/projects/[id]/index.jsx
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import AuthContext from '../../../contexts/AuthContext';
+import { useAuth } from '../../../contexts/FirebaseAuthContext';
 import { projectsAPI } from '../../../utils/api';
 import { getProject, deleteProject as deleteLocalProject } from '../../../utils/projectStorage';
 import { useNotification } from '../../../components/ErrorAlert';
@@ -12,7 +12,7 @@ import { FaCalculator, FaEdit, FaTrash, FaArrowLeft, FaEye } from 'react-icons/f
 const ProjectDetail = () => {
   const router = useRouter();
   const { id } = router.query;
-  const { user } = useContext(AuthContext);
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { showError, showSuccess } = useNotification();
   
   const [project, setProject] = useState(null);
@@ -20,10 +20,14 @@ const ProjectDetail = () => {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    if (id && user) {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login?redirect=' + encodeURIComponent(router.asPath));
+      return;
+    }
+    if (id && isAuthenticated) {
       fetchProject();
     }
-  }, [id, user]);
+  }, [id, isAuthenticated, authLoading, router]);
 
   const fetchProject = async () => {
     try {
@@ -80,22 +84,19 @@ const ProjectDetail = () => {
     }
   };
 
-  if (!user) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            ログインが必要です
-          </h2>
-          <button
-            onClick={() => router.push('/login')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            ログインページへ
-          </button>
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>認証確認中...</p>
         </div>
       </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   if (loading) {

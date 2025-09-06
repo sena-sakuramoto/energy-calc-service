@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
+import { useAuth } from '../../contexts/FirebaseAuthContext';
 import { projectsAPI } from '../../utils/api';
 import { getProjects as getLocalProjects, deleteProject as deleteLocalProject } from '../../utils/projectStorage';
 import Link from 'next/link';
@@ -12,10 +13,17 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login?redirect=' + encodeURIComponent(router.asPath));
+      return;
+    }
+    if (isAuthenticated) {
+      fetchProjects();
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const fetchProjects = async () => {
     try {
@@ -58,6 +66,21 @@ export default function Projects() {
       }
     }
   };
+
+  if (authLoading) {
+    return (
+      <Layout>
+        <div className="text-center py-8">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>認証確認中...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <Layout>

@@ -1,7 +1,7 @@
 // frontend/src/pages/projects/new.jsx
-import { useState, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import AuthContext from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/FirebaseAuthContext';
 import { projectsAPI } from '../../utils/api';
 import { createProjectData, saveProject } from '../../utils/projectStorage';
 import { useNotification } from '../../components/ErrorAlert';
@@ -9,13 +9,19 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 
 const NewProject = () => {
   const router = useRouter();
-  const { user } = useContext(AuthContext);
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { showError, showSuccess } = useNotification();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: ''
   });
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login?redirect=' + encodeURIComponent(router.asPath));
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,22 +73,20 @@ const NewProject = () => {
     }));
   };
 
-  if (!user) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            ログインが必要です
-          </h2>
-          <button
-            onClick={() => router.push('/login')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            ログインページへ
-          </button>
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>認証確認中...</p>
         </div>
       </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    router.push('/login?redirect=' + encodeURIComponent(router.asPath));
+    return null;
   }
 
   return (
