@@ -1,9 +1,9 @@
 // EmailJS設定ファイル
 export const emailjsConfig = {
-  // GitHub Pages用の設定（本番環境で実際の値に置き換え）
-  SERVICE_ID: 'service_contact_form', // EmailJSで作成したサービスID
-  TEMPLATE_ID: 'template_contact_form', // EmailJSで作成したテンプレートID  
-  PUBLIC_KEY: 'YOUR_EMAILJS_PUBLIC_KEY', // EmailJSの実際のパブリックキー
+  // 本番環境設定（実際のEmailJS値を設定）
+  SERVICE_ID: 'service_gmail123', // ← EmailJSで取得したサービスID に置き換え
+  TEMPLATE_ID: 'template_contact_form', // ← EmailJSで作成したテンプレートID に置き換え  
+  PUBLIC_KEY: 'user_abc123def456', // ← EmailJSで取得したパブリックキー に置き換え
   
   // 送信先設定
   recipients: {

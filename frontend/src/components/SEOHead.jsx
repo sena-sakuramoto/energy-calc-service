@@ -90,8 +90,8 @@ export default function SEOHead({
         }}
       />
 
-      {/* Google Search Console */}
-      <meta name="google-site-verification" content="GOOGLE_VERIFICATION_CODE" />
+      {/* Google Search Console - 実際の確認コードに置き換えてください */}
+      <meta name="google-site-verification" content="abcdef123456_REPLACE_WITH_ACTUAL_CODE" />
     </Head>
   );
 }
