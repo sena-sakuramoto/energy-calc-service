@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Footer() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   return (
     <footer className="bg-gradient-to-r from-gray-800 to-gray-900 text-white">
       <div className="container mx-auto px-4 py-12">
@@ -61,6 +61,14 @@ export default function Footer() {
                   💬 お問い合わせ
                 </Link>
               </li>
+              {/* 管理者専用リンク */}
+              {isAuthenticated && (user?.email === 's.sakuramoto@archisoft.co.jp' || user?.email === 'admin@archi-prisma.co.jp') && (
+                <li>
+                  <Link href="/admin/users" className="text-yellow-300 hover:text-yellow-100 transition-colors text-sm">
+                    ⚙️ ユーザー管理
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 
