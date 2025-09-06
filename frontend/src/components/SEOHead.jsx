@@ -75,14 +75,14 @@ export default function SEOHead({
       />
 
       {/* Google Analytics */}
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-G2EC11VXSL" />
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-8R1NSSH8KP" />
       <script
         dangerouslySetInnerHTML={{
           __html: `
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-G2EC11VXSL', {
+            gtag('config', 'G-8R1NSSH8KP', {
               page_title: '${title}',
               page_location: '${url}'
             });
