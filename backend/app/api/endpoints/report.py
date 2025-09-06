@@ -17,41 +17,43 @@ router = APIRouter()
 
 def _get_project_data_for_report(db: Session, project_id: int, current_user: UserModel) -> Dict:
     """
-    Retrieves and structures project data for the reporting service.
+    Retrieves and structures complete project data for the reporting service.
     """
     project = db.query(ProjectModel).filter(ProjectModel.id == project_id, ProjectModel.owner_id == current_user.id).first()
     if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found or not authorized for the current user.")
 
-    # Create a structured dictionary that matches the frontend's data model
-    # and the expectations of the report service. Using dummy data for now.
+    # The frontend stores all input data in a single JSON field `input_data`
     input_data = project.input_data or {}
-    building_data = input_data.get("building", {})
-    systems_data = input_data.get("systems", {})
-    envelope_data = input_data.get("envelope", {})
-
-    # Consolidate all data into a single dictionary to pass to the service
-    # This structure should be refined to match the actual data model from the frontend/database
+    
+    # The service expects a specific nested structure.
+    # We extract the data from the flat `input_data` and build the nested structure.
+    # This acts as an anti-corruption layer.
     report_input_data = {
         "building": {
             "name": project.name,
-            "climate_zone": building_data.get("climate_zone", 6),
-            "building_type": building_data.get("building_type", "office"),
-            "total_floor_area": building_data.get("total_floor_area", 500.0),
-            "total_floor": envelope_data.get("num_stories", 2),
-            "building_height": envelope_data.get("building_height", 8.0),
-            "uvalue_exterior_wall": envelope_data.get("u_value_wall", 0.5),
-            "uvalue_roof": envelope_data.get("u_value_roof", 0.4),
+            "climate_zone": input_data.get("climate_zone"),
+            "building_type": input_data.get("building_type"),
+            "total_floor_area": input_data.get("floor_area"),
+            # Add other building fields from input_data as needed
         },
         "systems": {
-            "cooling": systems_data.get("cooling", {}),
-            "heating": systems_data.get("heating", {}),
-            "ventilation": systems_data.get("ventilation", {}),
-            "hot_water": systems_data.get("hot_water", {}),
-            "lighting": systems_data.get("lighting", {}),
-            "elevator": systems_data.get("elevator", {}),
+            "cooling": input_data.get("design_energy", {}).get("cooling"),
+            "heating": input_data.get("design_energy", {}).get("heating"),
+            "ventilation": input_data.get("design_energy", {}).get("ventilation"),
+            "hot_water": input_data.get("design_energy", {}).get("hot_water"),
+            "lighting": input_data.get("design_energy", {}).get("lighting"),
+            "elevator": input_data.get("design_energy", {}).get("elevator"),
         }
     }
+
+    # It's better to extract the detailed system properties from input_data
+    # For example:
+    # report_input_data["systems"]["cooling"] = {
+    #     "ac_cop_cooling": input_data.get("cooling_cop"),
+    #     # ... etc
+    # }
+    # For now, we pass the raw energy values.
 
     return report_input_data
 
