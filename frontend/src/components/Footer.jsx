@@ -1,7 +1,7 @@
 // frontend/src/components/Footer.jsx
 import { FaBuilding, FaEnvelope, FaPhone, FaGlobe, FaShieldAlt, FaHeart } from 'react-icons/fa';
 import Link from 'next/link';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/FirebaseAuthContext';
 
 export default function Footer() {
   const { isAuthenticated, user } = useAuth();
@@ -62,10 +62,10 @@ export default function Footer() {
                 </Link>
               </li>
               {/* 管理者専用リンク */}
-              {isAuthenticated && (user?.email === 's.sakuramoto@archi-prisma.co.jp' || user?.email === 'admin@archi-prisma.co.jp') && (
+              {isAuthenticated && user?.isAdmin && (
                 <li>
-                  <Link href="/admin/users" className="text-yellow-300 hover:text-yellow-100 transition-colors text-sm">
-                    ⚙️ ユーザー管理
+                  <Link href="/admin/firebase-users" className="text-yellow-300 hover:text-yellow-100 transition-colors text-sm">
+                    🔥 Firebase ユーザー管理
                   </Link>
                 </li>
               )}

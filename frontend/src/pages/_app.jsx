@@ -1,14 +1,14 @@
 // frontend/src/pages/_app.jsx
 import '../styles/globals.css';
-import { AuthProvider } from '../contexts/AuthContext';
+import { FirebaseAuthProvider } from '../contexts/FirebaseAuthContext';
 import { NotificationProvider } from '../components/ErrorAlert';
 
 function MyApp({ Component, pageProps }) {
   return (
     <NotificationProvider>
-      <AuthProvider>
+      <FirebaseAuthProvider>
         <Component {...pageProps} />
-      </AuthProvider>
+      </FirebaseAuthProvider>
     </NotificationProvider>
   );
 }

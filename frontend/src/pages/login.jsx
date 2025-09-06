@@ -1,7 +1,7 @@
 // frontend/src/pages/login.jsx
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/FirebaseAuthContext';
 import Layout from '../components/Layout';
 import Link from 'next/link';
 import { FaGoogle, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';

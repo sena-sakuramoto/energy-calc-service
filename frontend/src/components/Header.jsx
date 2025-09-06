@@ -1,6 +1,6 @@
 // frontend/src/components/Header.jsx
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/FirebaseAuthContext';
 import Link from 'next/link';
 import { FaUser, FaSignOutAlt, FaCalculator, FaChevronDown, FaBars, FaTimes, FaBook, FaChartLine, FaGift } from 'react-icons/fa';
 

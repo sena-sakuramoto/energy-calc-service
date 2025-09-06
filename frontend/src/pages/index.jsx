@@ -1,6 +1,6 @@
 // frontend/src/pages/index.jsx
 import Layout from '../components/Layout';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/FirebaseAuthContext';
 import Link from 'next/link';
 import { FaCalculator, FaChartBar, FaFileDownload, FaCheckCircle, FaBuilding, FaLeaf } from 'react-icons/fa';
 

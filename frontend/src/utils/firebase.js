@@ -1,6 +1,7 @@
 // frontend/src/utils/firebase.js
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 // Firebase設定（GitHub Secretsの環境変数から取得）
 const firebaseConfig = {
@@ -15,6 +16,7 @@ const firebaseConfig = {
 // Firebase初期化
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
 // プロバイダー設定
