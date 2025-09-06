@@ -154,7 +154,7 @@ export default function Home() {
         
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {/* BEI計算カード - Apple風デザイン */}
-            <Link href="/register" className="group">
+            <Link href={isAuthenticated ? "/tools/bei-calculator" : "/register"} className="group">
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 ease-out cursor-pointer">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6">
                   <FaBuilding className="text-white text-2xl" />
@@ -180,7 +180,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="inline-flex items-center text-blue-600 font-medium group-hover:translate-x-1 transition-transform duration-200">
-                  今すぐ計算 
+                  {isAuthenticated ? "今すぐ計算" : "今すぐ計算"} 
                   <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -203,10 +203,10 @@ export default function Home() {
               </ul>
               <div className="mt-6">
                 <Link
-                  href="/register"
+                  href={isAuthenticated ? "/tools/energy-calculator" : "/register"}
                   className="inline-flex items-center text-green-600 hover:text-green-800 font-medium"
                 >
-                  アカウント作成して開始 →
+                  {isAuthenticated ? "エネルギー計算を開始 →" : "アカウント作成して開始 →"}
                 </Link>
               </div>
             </div>
@@ -226,10 +226,10 @@ export default function Home() {
               </ul>
               <div className="mt-6">
                 <Link
-                  href="/register"
+                  href={isAuthenticated ? "/tools/tariff-calculator" : "/register"}
                   className="inline-flex items-center text-purple-600 hover:text-purple-800 font-medium"
                 >
-                  アカウント作成して開始 →
+                  {isAuthenticated ? "料金計算を開始 →" : "アカウント作成して開始 →"}
                 </Link>
               </div>
             </div>
@@ -305,20 +305,37 @@ export default function Home() {
             「楽々省エネ計算」で、設計業務をもっとクリエイティブに。<br />
             無料でお試しください。
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/register"
-              className="bg-white text-blue-600 hover:bg-gray-100 font-bold py-4 px-8 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105"
-            >
-              楽々始める
-            </Link>
-            <Link
-              href="/login"
-              className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-4 px-8 rounded-lg transition-all duration-300"
-            >
-              ログインして開始
-            </Link>
-          </div>
+          {isAuthenticated ? (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/tools/bei-calculator"
+                className="bg-white text-blue-600 hover:bg-gray-100 font-bold py-4 px-8 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                BEI計算を開始
+              </Link>
+              <Link
+                href="/projects"
+                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-4 px-8 rounded-lg transition-all duration-300"
+              >
+                プロジェクト一覧
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/register"
+                className="bg-white text-blue-600 hover:bg-gray-100 font-bold py-4 px-8 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                楽々始める
+              </Link>
+              <Link
+                href="/login"
+                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-4 px-8 rounded-lg transition-all duration-300"
+              >
+                ログインして開始
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
