@@ -92,7 +92,7 @@ export default function FirebaseUserManagement() {
     );
   }
 
-  const activeUsers = users.filter(u => u.isActive !== false);
+  const activeUsers = users.filter(u => u.isActive === true);
   const inactiveUsers = users.filter(u => u.isActive === false);
 
   return (

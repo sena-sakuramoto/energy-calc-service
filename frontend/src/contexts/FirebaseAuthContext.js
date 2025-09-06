@@ -118,6 +118,9 @@ export const FirebaseAuthProvider = ({ children }) => {
         case 'auth/wrong-password':
           errorMessage = 'パスワードが間違っています。';
           break;
+        case 'auth/invalid-credential':
+          errorMessage = 'メールアドレスまたはパスワードが間違っています。';
+          break;
         case 'auth/invalid-email':
           errorMessage = 'メールアドレスの形式が正しくありません。';
           break;

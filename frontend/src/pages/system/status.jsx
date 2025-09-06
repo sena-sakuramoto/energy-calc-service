@@ -12,18 +12,13 @@ export default function SystemStatus() {
   });
 
   useEffect(() => {
-    // 統計情報を収集
-    if (typeof window !== 'undefined') {
-      const projects = JSON.parse(localStorage.getItem('projects') || '[]');
-      const calculationsCount = projects.filter(p => p.result || p.result_data).length;
-      
-      setSystemStats({
-        totalProjects: projects.length,
-        totalCalculations: calculationsCount,
-        storageType: window.location.hostname.includes('github.io') ? 'LocalStorage (Demo)' : 'Cloud Firestore',
-        lastUpdate: new Date().toISOString()
-      });
-    }
+    // Firebase移行後は実際のFirestoreデータを取得するか、モック値を使用
+    setSystemStats({
+      totalProjects: 'N/A', // Firestoreからリアルタイム取得が必要
+      totalCalculations: 'N/A', // Firestoreからリアルタイム取得が必要
+      storageType: 'Cloud Firestore (Firebase)',
+      lastUpdate: new Date().toISOString()
+    });
   }, []);
 
   const systemComponents = [

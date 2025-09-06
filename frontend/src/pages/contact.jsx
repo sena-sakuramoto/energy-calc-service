@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import Layout from '../components/Layout';
 import { FaEnvelope, FaPhone, FaBuilding, FaQuestionCircle, FaBug, FaLightbulb, FaPaperPlane, FaCheckCircle } from 'react-icons/fa';
+import emailjs from '@emailjs/browser';
+import { emailjsConfig, categoryLabels } from '../config/emailjs';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -13,6 +15,8 @@ export default function Contact() {
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,24 +26,96 @@ export default function Contact() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // 実際の環境では、ここでAPIにデータを送信
-    console.log('Contact form submitted:', formData);
-    setSubmitted(true);
-    
-    // フォームをリセット
-    setTimeout(() => {
-      setFormData({
-        name: '',
-        email: '',
-        company: '',
-        category: '',
-        subject: '',
-        message: ''
-      });
-      setSubmitted(false);
-    }, 3000);
+    setSending(true);
+    setError('');
+
+    // EmailJS設定を読み込み
+    const { SERVICE_ID, TEMPLATE_ID, PUBLIC_KEY, recipients } = emailjsConfig;
+
+    // 開発環境ではコンソールログのみ
+    if (!SERVICE_ID || SERVICE_ID === 'service_xxxxxxx') {
+      console.log('Contact form submitted (dev mode):', formData);
+      setTimeout(() => {
+        setSending(false);
+        setSubmitted(true);
+        
+        // フォームをリセット
+        setTimeout(() => {
+          setFormData({
+            name: '',
+            email: '',
+            company: '',
+            category: '',
+            subject: '',
+            message: ''
+          });
+          setSubmitted(false);
+        }, 3000);
+      }, 1000);
+      return;
+    }
+
+    try {
+      // メール送信データを準備
+      const emailData = {
+        from_name: formData.name,
+        from_email: formData.email,
+        company: formData.company,
+        category: categoryLabels[formData.category] || formData.category,
+        subject: formData.subject,
+        message: formData.message,
+        to_email: recipients.primary,
+        timestamp: new Date().toLocaleString('ja-JP')
+      };
+
+      // 1. 管理者向けメール送信
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, emailData, PUBLIC_KEY);
+      
+      // 2. 問い合わせ者への自動返信メール送信
+      if (emailjsConfig.template.autoReplyTemplate) {
+        const autoReplyData = {
+          to_email: formData.email,
+          from_name: emailjsConfig.sender.name,
+          from_email: emailjsConfig.sender.supportEmail,
+          user_name: formData.name,
+          category: categoryLabels[formData.category] || formData.category,
+          subject: formData.subject,
+          message: formData.message,
+          timestamp: new Date().toLocaleString('ja-JP'),
+          support_email: emailjsConfig.sender.supportEmail
+        };
+        
+        try {
+          await emailjs.send(SERVICE_ID, emailjsConfig.template.autoReplyTemplate, autoReplyData, PUBLIC_KEY);
+        } catch (autoReplyError) {
+          console.warn('自動返信メール送信に失敗:', autoReplyError);
+          // 自動返信の失敗は全体の処理を止めない
+        }
+      }
+
+      setSubmitted(true);
+      
+      // フォームをリセット
+      setTimeout(() => {
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          category: '',
+          subject: '',
+          message: ''
+        });
+        setSubmitted(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error('EmailJS Error:', error);
+      setError('メール送信に失敗しました。しばらく時間をおいてから再度お試しください。');
+    } finally {
+      setSending(false);
+    }
   };
 
   const categories = [
@@ -90,6 +166,12 @@ export default function Contact() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">お問い合わせフォーム</h2>
+              
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                  {error}
+                </div>
+              )}
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 基本情報 */}
@@ -222,10 +304,15 @@ export default function Contact() {
 
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center"
+                  disabled={sending}
+                  className={`w-full py-3 px-6 rounded-lg transition-colors font-medium flex items-center justify-center ${
+                    sending 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
                 >
-                  <FaPaperPlane className="mr-2" />
-                  お問い合わせを送信
+                  <FaPaperPlane className={`mr-2 ${sending ? 'animate-spin' : ''}`} />
+                  {sending ? '送信中...' : 'お問い合わせを送信'}
                 </button>
               </form>
             </div>

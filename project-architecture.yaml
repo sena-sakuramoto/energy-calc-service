@@ -1,0 +1,184 @@
+# 楽々省エネ計算サービス - プロジェクト構成
+# Project: Energy Calculation Service Architecture
+
+project_info:
+  name: "楽々省エネ計算サービス"
+  domain: "https://rakuraku-energy.archi-prisma.co.jp"
+  repository: "https://github.com/sena-sakuramoto/energy-calc-service"
+  company: "Archi-Prisma Design works 株式会社"
+  admin_email: "s.sakuramoto@archi-prisma.co.jp"
+
+# システム構成
+architecture:
+  frontend:
+    framework: "Next.js 14.0.4"
+    deployment: "GitHub Pages (Static Site)"
+    domain: "rakuraku-energy.archi-prisma.co.jp"
+    build_system: "GitHub Actions"
+    
+  backend:
+    type: "Firebase Backend-as-a-Service"
+    authentication: "Firebase Authentication"
+    database: "Firestore (Native Mode)"
+    project_id: "rakuraku-energy-calc"
+
+# 認証システムの進化
+authentication_evolution:
+  phase_1_vulnerable:
+    method: "LocalStorage認証"
+    problems:
+      - "平文パスワード保存"
+      - "認証バイパス可能"
+      - "デバイス間同期不可"
+      - "中央管理不可"
+      - "セキュリティリスク高"
+    
+  phase_2_improved:
+    method: "LocalStorage + bcrypt + 暗号化"
+    improvements:
+      - "パスワードハッシュ化"
+      - "セッショントークン暗号化" 
+      - "自動マイグレーション"
+    limitations:
+      - "まだクライアントサイド"
+      - "デバイス間同期不可"
+      
+  phase_3_firebase:
+    method: "Firebase Authentication + Firestore"
+    benefits:
+      - "サーバーサイド認証"
+      - "リアルタイム同期"
+      - "中央集権管理"
+      - "セキュア認証"
+      - "Google標準セキュリティ"
+
+# Firebase設定要件
+firebase_requirements:
+  authentication:
+    methods:
+      - "Email/Password"
+      - "Google OAuth"
+    authorized_domains:
+      - "rakuraku-energy.archi-prisma.co.jp"
+      - "localhost" # 開発用
+    
+  firestore_database:
+    mode: "Native Mode" # NOT MongoDB compatible
+    region: "asia-northeast1" # Tokyo
+    security_rules:
+      purpose: "ユーザーデータの適切なアクセス制御"
+      current_issue: "全アクセス拒否 (if false)"
+      required_fix: "認証済みユーザー + 権限管理"
+
+# Firestoreセキュリティルール設計
+security_rules_design:
+  current_problem:
+    rule: "allow read, write: if false"
+    effect: "全てのアクセスを拒否"
+    result: "ログイン不可、ユーザー管理不可"
+    
+  required_solution:
+    collections:
+      users:
+        path: "/users/{userId}"
+        read_access:
+          - "認証済み かつ 本人のデータ"
+          - "または 管理者"
+        write_access:
+          - "認証済み かつ 本人のデータ"  
+          - "または 管理者"
+        admin_emails:
+          - "s.sakuramoto@archi-prisma.co.jp"
+          - "admin@archi-prisma.co.jp"
+
+# ユーザー管理システム
+user_management:
+  old_system:
+    storage: "各ブラウザのLocalStorage"
+    visibility: "デバイス別の孤立したデータ"
+    sync: "不可能"
+    
+  new_system:
+    storage: "Firestore Database"
+    visibility: "管理者が全ユーザー確認可能"
+    sync: "リアルタイム同期"
+    admin_panel: "/admin/firebase-users"
+
+# データフロー
+data_flow:
+  user_registration:
+    1: "ユーザーがフォーム入力"
+    2: "Firebase Authentication で認証情報作成"
+    3: "Firestore /users/{uid} にプロフィール保存"
+    4: "管理者画面で即座に確認可能"
+    
+  user_login:
+    1: "Firebase Authentication で認証"
+    2: "Firestore からユーザープロフィール取得"
+    3: "アプリケーション状態更新"
+    4: "認証済み機能にアクセス可能"
+
+# 現在の技術的問題と解決
+current_issues:
+  firestore_offline_error:
+    error: "Failed to get document because the client is offline"
+    cause: "セキュリティルールが全アクセス拒否"
+    solution: "適切なセキュリティルール設定"
+    
+  authentication_failure:
+    error: "ログイン後にユーザーデータ取得失敗"
+    cause: "Firestoreアクセス権限なし"
+    solution: "認証済みユーザーへの読み書き許可"
+
+# 必要な設定作業
+required_configuration:
+  1_firestore_security_rules:
+    location: "Firebase Console > Firestore Database > ルール"
+    action: "セキュリティルールを認証済みユーザー許可に変更"
+    
+  2_authentication_domains:
+    location: "Firebase Console > Authentication > Settings"
+    action: "承認済みドメインに本番環境追加"
+    
+  3_google_oauth:
+    location: "Firebase Console > Authentication > Sign-in method > Google"
+    action: "OAuth設定でドメイン承認"
+
+# サービスの価値提案
+service_value:
+  target_users: "建築設計者・設計事務所"
+  problem_solved: "複雑化する省エネ法計算の負担軽減"
+  key_features:
+    - "BEI計算（建築物エネルギー消費性能）"
+    - "モデル建物法対応"
+    - "エネルギー消費量比較・分析"
+    - "改善提案機能"
+  collaboration_model: "協力者と共に製品化を目指すデモ版"
+
+# デプロイメントフロー
+deployment_flow:
+  repository: "GitHub Repository"
+  ci_cd: "GitHub Actions"
+  hosting: "GitHub Pages"
+  domain: "Custom Domain (archi-prisma.co.jp)"
+  backend: "Firebase (Google Cloud)"
+  
+# セキュリティ要件
+security_requirements:
+  authentication:
+    - "Firebase標準セキュリティ"
+    - "HTTPS必須"
+    - "適切なセッション管理"
+  
+  data_protection:
+    - "ユーザーデータの適切な権限管理"
+    - "管理者権限の制限"
+    - "個人情報保護"
+
+# 運用要件  
+operational_requirements:
+  availability: "99.99% (Firebase SLA)"
+  region: "asia-northeast1 (東京)"
+  backup: "Firestore自動バックアップ"
+  monitoring: "Firebase Analytics + Console"
+  support: "管理者による直接サポート"
