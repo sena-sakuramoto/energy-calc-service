@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from fastapi import APIRouter
 
-from app.api.endpoints import auth, users, projects, calc, report # 各エンドポイントモジュールをインポート
+from app.api.endpoints import users, projects, calc, report # 各エンドポイントモジュールをインポート
 
 api_router = APIRouter()
 
