@@ -1,6 +1,6 @@
 // frontend/src/utils/firebase.js
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // Firebase設定（GitHub Secretsの環境変数から取得）
@@ -26,6 +26,13 @@ try {
   auth = getAuth(app);
   db = getFirestore(app);
   googleProvider = new GoogleAuthProvider();
+  
+  // 認証状態の永続化設定
+  setPersistence(auth, browserLocalPersistence).then(() => {
+    console.log('Firebase auth persistence set to LOCAL');
+  }).catch((error) => {
+    console.warn('Failed to set auth persistence:', error);
+  });
   
   console.log('Firebase initialized successfully');
 } catch (error) {

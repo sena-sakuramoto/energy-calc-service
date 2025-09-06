@@ -32,6 +32,7 @@ export const FirebaseAuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+      console.log('Auth state changed:', firebaseUser ? 'User logged in' : 'User logged out');
       if (firebaseUser) {
         // Firebase認証済みユーザーの場合、Firestoreから詳細情報取得
         try {
@@ -103,7 +104,10 @@ export const FirebaseAuthProvider = ({ children }) => {
       }
       
       console.log('Login successful:', firebaseUser.email);
-      router.push('/');
+      
+      // ログイン後のリダイレクト先を確認
+      const redirectUrl = router.query.redirect || '/';
+      router.push(redirectUrl);
       return true;
     } catch (error) {
       console.error('Login failed:', error);
