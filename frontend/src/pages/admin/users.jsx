@@ -44,7 +44,7 @@ export default function UserManagement() {
   };
 
   // 管理者チェック（仮の実装 - 実際は適切な権限管理を実装）
-  const isAdmin = user?.email === 's.sakuramoto@archisoft.co.jp' || 
+  const isAdmin = user?.email === 's.sakuramoto@archi-prisma.co.jp' || 
                   user?.email === 'admin@archi-prisma.co.jp';
 
   if (!isAuthenticated) {

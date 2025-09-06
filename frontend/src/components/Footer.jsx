@@ -62,7 +62,7 @@ export default function Footer() {
                 </Link>
               </li>
               {/* 管理者専用リンク */}
-              {isAuthenticated && (user?.email === 's.sakuramoto@archisoft.co.jp' || user?.email === 'admin@archi-prisma.co.jp') && (
+              {isAuthenticated && (user?.email === 's.sakuramoto@archi-prisma.co.jp' || user?.email === 'admin@archi-prisma.co.jp') && (
                 <li>
                   <Link href="/admin/users" className="text-yellow-300 hover:text-yellow-100 transition-colors text-sm">
                     ⚙️ ユーザー管理
