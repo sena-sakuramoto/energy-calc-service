@@ -51,8 +51,13 @@ export default function Home() {
               </p>
               <div className="text-center">
                 <p className="text-sm text-red-800 mb-3">
-                  ✓ 簡単30秒でアカウント作成　✓ 登録後すぐ使える　✓ 全機能利用可能<br />
-                  ✓ 省エネ計算が5分で完了　✓ 申請書類自動作成
+                  {isAuthenticated ? (
+                    <>✓ 全機能利用可能　✓ 省エネ計算が5分で完了　✓ 申請書類自動作成<br />
+                    ✓ プロジェクト管理機能　✓ 計算結果の保存・共有</>
+                  ) : (
+                    <>✓ 簡単30秒でアカウント作成　✓ 登録後すぐ使える　✓ 全機能利用可能<br />
+                    ✓ 省エネ計算が5分で完了　✓ 申請書類自動作成</>
+                  )}
                 </p>
                 <Link 
                   href="/campaign" 
@@ -303,7 +308,7 @@ export default function Home() {
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
             「楽々省エネ計算」で、設計業務をもっとクリエイティブに。<br />
-            無料でお試しください。
+            {isAuthenticated ? 'いつでもご利用いただけます。' : '無料でお試しください。'}
           </p>
           {isAuthenticated ? (
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
