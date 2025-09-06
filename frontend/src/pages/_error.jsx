@@ -1,8 +1,10 @@
 // frontend/src/pages/_error.jsx
 import React from 'react';
 import Link from 'next/link';
+import { useAuth } from '../contexts/FirebaseAuthContext';
 
 function Error({ statusCode, hasGetInitialPropsRun, err }) {
+  const { isAuthenticated } = useAuth();
   // GitHub Pages環境での特別な処理
   const isGitHubPages = typeof window !== 'undefined' && 
     window.location.hostname.includes('github.io');
@@ -34,12 +36,29 @@ function Error({ statusCode, hasGetInitialPropsRun, err }) {
           </div>
 
           <div className="space-y-3">
-            <Link 
-              href="/register"
-              className="block w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              🔥 無料アカウント作成
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link 
+                  href="/tools/bei-calculator"
+                  className="block w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  🧮 BEI計算ツール
+                </Link>
+                <Link 
+                  href="/projects"
+                  className="block w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  📁 プロジェクト管理
+                </Link>
+              </>
+            ) : (
+              <Link 
+                href="/register"
+                className="block w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                🔥 無料アカウント作成
+              </Link>
+            )}
             <Link 
               href="/campaign"
               className="block w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"

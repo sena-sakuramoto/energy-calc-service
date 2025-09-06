@@ -1,9 +1,11 @@
 // frontend/src/pages/campaign.jsx
 import Layout from '../components/Layout';
 import Link from 'next/link';
+import { useAuth } from '../contexts/FirebaseAuthContext';
 import { FaGift, FaClock, FaCheckCircle, FaCalculator, FaFileDownload, FaStar, FaArrowRight, FaChartBar } from 'react-icons/fa';
 
 export default function Campaign() {
+  const { isAuthenticated } = useAuth();
   return (
     <Layout title="共同開発企画 - 楽々省エネ計算">
       <div className="max-w-5xl mx-auto">
@@ -300,18 +302,37 @@ export default function Campaign() {
             
             <div className="mb-8">
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  href="/register"
-                  className="bg-white text-blue-600 hover:bg-gray-100 font-bold py-4 px-12 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
-                >
-                  無料で始める
-                </Link>
-                <Link
-                  href="/tools/bei-calculator"
-                  className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-4 px-8 rounded-lg transition-all duration-300"
-                >
-                  まずは機能を確認
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      href="/tools/bei-calculator"
+                      className="bg-white text-blue-600 hover:bg-gray-100 font-bold py-4 px-12 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
+                    >
+                      計算ツールを使用
+                    </Link>
+                    <Link
+                      href="/projects"
+                      className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-4 px-8 rounded-lg transition-all duration-300"
+                    >
+                      プロジェクト管理
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/register"
+                      className="bg-white text-blue-600 hover:bg-gray-100 font-bold py-4 px-12 rounded-lg shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
+                    >
+                      無料で始める
+                    </Link>
+                    <Link
+                      href="/tools/bei-calculator"
+                      className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-4 px-8 rounded-lg transition-all duration-300"
+                    >
+                      まずは機能を確認
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
             
@@ -348,10 +369,12 @@ export default function Campaign() {
               <p className="text-gray-700">A. はい、無料でお使いいただけます。協力者様と一緒により良いサービスを作り上げている最中です。隠れた料金は一切ありません。</p>
             </div>
             
-            <div className="border-b border-gray-200 pb-4">
-              <h3 className="font-bold text-gray-900 mb-2">Q. アカウント登録は必要ですか？</h3>
-              <p className="text-gray-700">A. はい、簡単30秒でアカウント作成が必要です。Googleアカウントまたはメールアドレスでご登録いただけます。</p>
-            </div>
+            {!isAuthenticated && (
+              <div className="border-b border-gray-200 pb-4">
+                <h3 className="font-bold text-gray-900 mb-2">Q. アカウント登録は必要ですか？</h3>
+                <p className="text-gray-700">A. はい、簡単30秒でアカウント作成が必要です。Googleアカウントまたはメールアドレスでご登録いただけます。</p>
+              </div>
+            )}
             
             <div className="border-b border-gray-200 pb-4">
               <h3 className="font-bold text-gray-900 mb-2">Q. 計算精度は有料版と同じですか？</h3>
