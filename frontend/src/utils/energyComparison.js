@@ -11,7 +11,7 @@ const ENERGY_RANGES = {
     heating: { low: 80, high: 150, typical: 115 },
     cooling: { low: 60, high: 120, typical: 90 },
     ventilation: { low: 40, high: 80, typical: 60 },
-    hot_water: { low: 5, high: 20, typical: 12 },
+    hot_water: { low: 5, high: 30, typical: 12 },
     lighting: { low: 80, high: 140, typical: 110 },
     elevator: { low: 15, high: 30, typical: 22 }
   },
