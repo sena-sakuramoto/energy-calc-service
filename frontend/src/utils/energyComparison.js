@@ -8,7 +8,7 @@
 const ENERGY_RANGES = {
   // 事務所等
   'offices': {
-    heating: { low: 80, high: 150, typical: 115 },
+    heating: { low: 80, high: 180, typical: 115 },
     cooling: { low: 60, high: 120, typical: 90 },
     ventilation: { low: 40, high: 80, typical: 60 },
     hot_water: { low: 5, high: 30, typical: 12 },
