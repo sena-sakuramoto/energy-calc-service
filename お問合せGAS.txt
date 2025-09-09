@@ -1,0 +1,213 @@
+/**
+ * お問い合わせ受付（ユーザー宛 自動返信 + 公式宛 通知）
+ *
+ * 重要: GAS はレスポンスヘッダー（Access-Control-Allow-Origin 等）を任意に付与できません。
+ * そのため CORS プリフライトを発生させない設計（FormData / text/plain、独自ヘッダを付けない）を前提とします。
+ * フロントは fetch(url, { method:'POST', body: new FormData(form) }) を推奨。
+ * 応答を読めない環境向けには、フロント側で mode:'no-cors' フォールバックを入れてください。
+ *
+ * From: 公式アドレスにしたい場合は、実行アカウントの Gmail に送信元エイリアスを追加し、
+ * Apps Script の「高度な Google サービス」で Gmail API を有効化（GCP 側 API も ON）してください。
+ */
+
+var OFFICIAL_EMAIL   = 'rse-support@archi-prisma.co.jp';
+var SERVICE_NAME     = '楽々省エネ計算サポート';
+var TIMEZONE         = 'Asia/Tokyo';
+var MIN_INTERVAL_SEC = 20; // 同一メールからの短時間連投を抑制（秒）
+
+/* -------------------- HTTP -------------------- */
+function doGet(e) {
+  return respond_({ ok: true, method: 'GET' });
+}
+
+function doPost(e) {
+  try {
+    var data = parsePayload_(e);
+
+    if (!data.email || !validateEmail_(data.email)) {
+      return respond_({ ok: false, error: '有効な email が必要です' });
+    }
+    if (!data.message || String(data.message).trim().length === 0) {
+      return respond_({ ok: false, error: 'message は必須です' });
+    }
+    if (!throttleByEmail_(data.email, MIN_INTERVAL_SEC)) {
+      return respond_({ ok: false, error: '短時間に連続送信されています。少し待って再送してください。' });
+    }
+    if (!verifyRecaptchaIfConfigured_(data.token)) {
+      return respond_({ ok: false, error: 'reCAPTCHA 検証に失敗しました' });
+    }
+
+    var now        = Utilities.formatDate(new Date(), TIMEZONE, 'yyyy/MM/dd HH:mm:ss');
+    var safeName   = esc_(data.name || 'お客さま');
+    var safeEmail  = esc_(data.email);
+    var safeMsgHtml= esc_(data.message).replace(/\n/g, '<br>');
+    var topicLine  = data.topic ? '<p><b>件名/カテゴリ:</b> ' + esc_(data.topic) + '</p>' : '';
+
+    // 1) 問い合わせ者宛（自動返信）
+    var userSubject = '【' + SERVICE_NAME + '】お問い合わせを受け付けました';
+    var userHtml = [
+      '<p>' + safeName + ' 様</p>',
+      '<p>' + SERVICE_NAME + 'へのお問い合わせありがとうございます。以下の内容で受け付けました。</p>',
+      '<hr>',
+      '<p><b>日時:</b> ' + now + '</p>',
+      (data.name ? '<p><b>お名前:</b> ' + esc_(data.name) + '</p>' : ''),
+      '<p><b>メール:</b> ' + safeEmail + '</p>',
+      (topicLine || ''),
+      '<p><b>内容:</b><br>' + safeMsgHtml + '</p>',
+      '<hr>',
+      '<p>本メールにご返信いただければ、担当よりご連絡します。</p>',
+      '<p>このメールは自動送信です。</p>'
+    ].filter(Boolean).join('\n');
+
+    var userSendResult = sendFromOfficial_(data.email, userSubject, userHtml, OFFICIAL_EMAIL);
+
+    // 2) 公式宛（通知・返信で問い合わせ者へ飛ぶ）
+    var adminSubject = '【楽々省エネ計算】新規お問い合わせ ' + (data.name ? data.name + ' ' : '') + '<' + data.email + '>';
+    var adminHtml = [
+      '<p>新規お問い合わせを受信しました。</p>',
+      '<p><b>日時:</b> ' + now + '</p>',
+      (data.name ? '<p><b>名前:</b> ' + esc_(data.name) + '</p>' : ''),
+      '<p><b>メール:</b> ' + safeEmail + '</p>',
+      (topicLine || ''),
+      '<p><b>内容:</b><br>' + safeMsgHtml + '</p>',
+      (data.userAgent ? '<hr><p><b>User-Agent:</b> ' + esc_(data.userAgent) + '</p>' : '')
+    ].filter(Boolean).join('\n');
+
+    var adminSendResult = sendFromOfficial_(OFFICIAL_EMAIL, adminSubject, adminHtml, data.email);
+
+    return respond_({ ok: true, delivery: { user: userSendResult, admin: adminSendResult } });
+  } catch (err) {
+    return respond_({ ok: false, error: String(err) });
+  }
+}
+
+/* -------------------- Mail Sender (Gmail API -> MailApp) -------------------- */
+function sendFromOfficial_(to, subject, html, replyTo) {
+  try {
+    // Advanced Gmail Service が有効で、送信元エイリアスが使えるか確認
+    if (typeof Gmail !== 'undefined' && Gmail.Users && Gmail.Users.Settings && Gmail.Users.Settings.SendAs) {
+      var sendAsResp = Gmail.Users.Settings.SendAs.list('me');
+      var list = (sendAsResp && sendAsResp.sendAs) ? sendAsResp.sendAs : [];
+      var canSendAs = false;
+      for (var i = 0; i < list.length; i++) {
+        var sa = list[i];
+        if (sa.sendAsEmail === OFFICIAL_EMAIL && (sa.isDefault === true || sa.verificationStatus === 'accepted' || sa.treatAsAlias === true)) {
+          canSendAs = true; break;
+        }
+      }
+      // RFC822 RAW（Gmail API）
+      var headers = '';
+      headers += 'From: ' + SERVICE_NAME + ' <' + OFFICIAL_EMAIL + '>\r\n';
+      headers += 'To: ' + to + '\r\n';
+      headers += 'Subject: ' + subject + '\r\n';
+      if (replyTo) headers += 'Reply-To: ' + replyTo + '\r\n';
+      headers += 'MIME-Version: 1.0\r\n';
+      headers += 'Content-Type: text/html; charset=UTF-8\r\n\r\n';
+      var rawMsg = headers + html;
+
+      if (canSendAs) {
+        var raw = Utilities.base64EncodeWebSafe(Utilities.newBlob(rawMsg, 'message/rfc822').getBytes());
+        Gmail.Users.Messages.send({ raw: raw }, 'me');
+        return { method: 'gmail_api', from: OFFICIAL_EMAIL };
+      }
+    }
+  } catch (e) {
+    // 続行してフォールバック
+  }
+
+  // フォールバック: MailApp（From は実行ユーザー）。Reply-To で導線を確保
+  MailApp.sendEmail({
+    to: to,
+    subject: subject,
+    name: SERVICE_NAME,
+    replyTo: replyTo || OFFICIAL_EMAIL,
+    htmlBody: html
+  });
+
+  var fromAddr = 'me';
+  try { fromAddr = Session.getActiveUser().getEmail(); } catch (e2) {}
+  return { method: 'mailapp_fallback', from: fromAddr };
+}
+
+/* -------------------- Helpers -------------------- */
+function parsePayload_(e) {
+  var ct = (e && e.postData && e.postData.type) ? e.postData.type : '';
+  // プリフライト回避の観点では FormData（multipart/form-data）か text/plain を推奨
+  if (ct.indexOf('application/json') >= 0 || ct.indexOf('text/plain') >= 0) {
+    var o = {};
+    try { o = JSON.parse((e && e.postData && e.postData.contents) ? e.postData.contents : '{}'); } catch (err) { o = {}; }
+    return {
+      name: o.name,
+      email: o.email,
+      message: o.message,
+      topic: o.topic,
+      token: o.token,
+      userAgent: o.userAgent
+    };
+  }
+  var p = (e && e.parameter) ? e.parameter : {};
+  return {
+    name: p.name,
+    email: p.email,
+    message: p.message,
+    topic: p.topic,
+    token: p.token,
+    userAgent: p.userAgent
+  };
+}
+
+function validateEmail_(email) {
+  var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(String(email || '').trim());
+}
+
+function throttleByEmail_(email, minSec) {
+  try {
+    var key   = 'last_ts_' + String(email).toLowerCase();
+    var props = PropertiesService.getScriptProperties();
+    var now   = Date.now();
+    var last  = Number(props.getProperty(key) || 0);
+    if (now - last < (minSec * 1000)) return false;
+    props.setProperty(key, String(now));
+    return true;
+  } catch (e) {
+    return true; // 失敗時は通す
+  }
+}
+
+function verifyRecaptchaIfConfigured_(token) {
+  try {
+    var secret = PropertiesService.getScriptProperties().getProperty('RECAPTCHA_SECRET');
+    if (!secret) return true; // 未設定ならスキップ
+    if (!token)  return false; // トークン必須
+    var res = UrlFetchApp.fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'post',
+      payload: { secret: secret, response: token },
+      muteHttpExceptions: true
+    });
+    var json = {};
+    try { json = JSON.parse(res.getContentText() || '{}'); } catch (e) { json = {}; }
+    return !!json.success;
+  } catch (e) {
+    return false;
+  }
+}
+
+function esc_(s) {
+  s = String(s || '');
+  return s.replace(/[&<>"']/g, function (m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    if (m === '"') return '&quot;';
+    if (m === "'") return '&#39;';
+    return m;
+  });
+}
+
+function respond_(obj) {
+  // 注意: GAS では Access-Control-Allow-Origin などの任意ヘッダは付与できません
+  // レスポンス本文の読取がどうしても必要なら、プロキシ（例: Cloudflare Workers）を併用してください
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}

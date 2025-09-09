@@ -94,7 +94,7 @@ export default function Contact() {
 
   if (submitted) {
     return (
-      <Layout title="お問い合わせ - 楽々エネ計算">
+      <Layout title="お問い合わせ - 楽々省エネ計算">
         <div className="max-w-2xl mx-auto text-center py-16">
           <div className="bg-green-100 p-6 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
             <FaCheckCircle className="text-green-600 text-4xl" />
@@ -110,7 +110,7 @@ export default function Contact() {
   }
 
   return (
-    <Layout title="お問い合わせ - 楽々エネ計算">
+    <Layout title="お問い合わせ - 楽々省エネ計算">
       <div className="max-w-4xl mx-auto">
         {/* ヘッダー */}
         <div className="text-center mb-12">
@@ -195,7 +195,7 @@ export default function Contact() {
                   <FaBuilding className="text-gray-400 mt-1 mr-3" />
                   <div>
                     <p className="font-medium text-gray-900">Archi-Prisma Design works 株式会社</p>
-                    <p className="text-sm text-gray-600">楽々エネ計算 開発・運営</p>
+                    <p className="text-sm text-gray-600">楽々省エネ計算 開発・運営</p>
                   </div>
                 </div>
                 <div className="flex items-start">
@@ -242,4 +242,3 @@ export default function Contact() {
     </Layout>
   );
 }
-
