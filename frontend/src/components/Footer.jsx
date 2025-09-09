@@ -113,9 +113,12 @@ export default function Footer() {
             All Rights Reserved.
           </p>
           <p className="text-xs text-gray-500 mt-2">Powered by Next.js · Made for Architects · v1.0.0</p>
+          <div className="text-xs text-gray-400 mt-3 space-x-4">
+            <Link href="/privacy" className="hover:text-gray-200 underline">プライバシーポリシー</Link>
+            <Link href="/legal" className="hover:text-gray-2 00 underline">特定商取引法に基づく表記</Link>
+          </div>
         </div>
       </div>
     </footer>
   );
 }
-

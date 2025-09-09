@@ -5,6 +5,8 @@ import { FaEnvelope, FaPhone, FaBuilding, FaQuestionCircle, FaBug, FaLightbulb, 
 
 // Google Apps Script endpoint (use /macros/s/.../exec URL if possible)
 const GAS_ENDPOINT = 'https://script.google.com/a/macros/archi-prisma.co.jp/s/AKfycbzlnLWsQqgN8Vt79i_T4BlWKCxp22ByDprQGtbYMbnL04WOxH64QryZwRmdBQcoo1su/exec';
+// /a/macros を /macros に変換した安定URL（匿名公開向け）
+const ALT_GAS_ENDPOINT = GAS_ENDPOINT.replace(/\/a\/macros\/[\w.-]+/, '/macros');
 const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const categoryLabels = {
@@ -71,6 +73,10 @@ export default function Contact() {
     fd.append('email', formData.email || '');
     if (topic) fd.append('topic', topic);
     fd.append('message', bodyParts.join('\n'));
+    // 個別フィールドも送信（GAS側での整形用）
+    if (formData.company) fd.append('company', formData.company);
+    if (formData.category) fd.append('category', formData.category);
+    if (formData.subject) fd.append('subject', formData.subject);
 
     // reCAPTCHA トークンを付与（設定がある場合のみ）
     async function withRecaptcha(formData) {
@@ -86,8 +92,12 @@ export default function Contact() {
     await withRecaptcha(fd);
 
     try {
-      // Normal fetch: if CORS is properly open, this succeeds and we can read JSON
-      const res = await fetch(GAS_ENDPOINT, { method: 'POST', body: fd });
+      // まず /macros/s/.../exec を試す（CORS/認可が安定しやすい）
+      let res = await fetch(ALT_GAS_ENDPOINT, { method: 'POST', body: fd });
+      if (!res.ok) {
+        // ドメインURLが必要な場合に備えて元の /a/macros も試す
+        res = await fetch(GAS_ENDPOINT, { method: 'POST', body: fd });
+      }
       const text = await res.text();
       const json = JSON.parse(text);
       if (!json.ok) throw new Error(json.error || '送信に失敗しました');
@@ -100,7 +110,8 @@ export default function Contact() {
     } catch (err) {
       // CORS などで応答を読めない場合は no-cors でフォールバック送信
       try {
-        await fetch(GAS_ENDPOINT, { method: 'POST', body: fd, mode: 'no-cors' });
+        // no-cors フォールバック（応答は読めないが送信はされる）
+        await fetch(ALT_GAS_ENDPOINT, { method: 'POST', body: fd, mode: 'no-cors' });
         setSubmitted(true);
         setTimeout(() => {
           setFormData({ name: '', email: '', company: '', category: '', subject: '', message: '' });

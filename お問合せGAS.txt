@@ -37,11 +37,14 @@ function doPost(e) {
       return respond_({ ok: false, error: 'reCAPTCHA 検証に失敗しました' });
     }
 
-    var now        = Utilities.formatDate(new Date(), TIMEZONE, 'yyyy/MM/dd HH:mm:ss');
-    var safeName   = esc_(data.name || 'お客さま');
-    var safeEmail  = esc_(data.email);
-    var safeMsgHtml= esc_(data.message).replace(/\n/g, '<br>');
-    var topicLine  = data.topic ? '<p><b>件名/カテゴリ:</b> ' + esc_(data.topic) + '</p>' : '';
+    var now         = Utilities.formatDate(new Date(), TIMEZONE, 'yyyy/MM/dd HH:mm:ss');
+    var safeName    = esc_(data.name || 'お客さま');
+    var safeEmail   = esc_(data.email);
+    var safeCompany = data.company ? esc_(data.company) : '';
+    var safeSubject = data.subject ? esc_(data.subject) : '';
+    var safeCategory= data.category ? esc_(data.category) : '';
+    var safeMsgHtml = esc_(data.message).replace(/\n/g, '<br>');
+    var topicLine   = data.topic ? '<p><b>件名/カテゴリ:</b> ' + esc_(data.topic) + '</p>' : '';
 
     // 1) 問い合わせ者宛（自動返信）
     var userSubject = '【' + SERVICE_NAME + '】お問い合わせを受け付けました';
@@ -51,6 +54,9 @@ function doPost(e) {
       '<hr>',
       '<p><b>日時:</b> ' + now + '</p>',
       (data.name ? '<p><b>お名前:</b> ' + esc_(data.name) + '</p>' : ''),
+      (safeCompany ? '<p><b>会社名/事務所名:</b> ' + safeCompany + '</p>' : ''),
+      (safeSubject ? '<p><b>件名:</b> ' + safeSubject + '</p>' : ''),
+      (safeCategory ? '<p><b>種別:</b> ' + safeCategory + '</p>' : ''),
       '<p><b>メール:</b> ' + safeEmail + '</p>',
       (topicLine || ''),
       '<p><b>内容:</b><br>' + safeMsgHtml + '</p>',
@@ -62,11 +68,15 @@ function doPost(e) {
     var userSendResult = sendFromOfficial_(data.email, userSubject, userHtml, OFFICIAL_EMAIL);
 
     // 2) 公式宛（通知・返信で問い合わせ者へ飛ぶ）
-    var adminSubject = '【楽々省エネ計算】新規お問い合わせ ' + (data.name ? data.name + ' ' : '') + '<' + data.email + '>';
+    var subjectPart = safeSubject ? ('：' + safeSubject) : '';
+    var adminSubject = '【楽々省エネ計算】新規お問い合わせ' + subjectPart + ' ' + (data.name ? esc_(data.name) + ' ' : '') + '<' + data.email + '>';
     var adminHtml = [
       '<p>新規お問い合わせを受信しました。</p>',
       '<p><b>日時:</b> ' + now + '</p>',
       (data.name ? '<p><b>名前:</b> ' + esc_(data.name) + '</p>' : ''),
+      (safeCompany ? '<p><b>会社名/事務所名:</b> ' + safeCompany + '</p>' : ''),
+      (safeSubject ? '<p><b>件名:</b> ' + safeSubject + '</p>' : ''),
+      (safeCategory ? '<p><b>種別:</b> ' + safeCategory + '</p>' : ''),
       '<p><b>メール:</b> ' + safeEmail + '</p>',
       (topicLine || ''),
       '<p><b>内容:</b><br>' + safeMsgHtml + '</p>',
