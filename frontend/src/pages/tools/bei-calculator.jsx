@@ -275,7 +275,18 @@ export default function BEICalculator() {
   };
 
   const handleCalculate = async () => {
-    if (!validateStep3()) return;
+    // 厳格チェック: ステップ検証 + 全体警告のERRORレベルがある場合は中断
+    const okStep1 = validateStep1();
+    const okStep3 = validateStep3();
+    const warnings = runInputValidation();
+    const hasErrorWarnings = Object.values(warnings).some(list => Array.isArray(list) && list.some(w => (w.level || w?.level) === WARNING_LEVELS.ERROR));
+    if (!okStep1 || !okStep3 || hasErrorWarnings) {
+      setValidationErrors(prev => ({
+        ...prev,
+        blocking: hasErrorWarnings ? '入力に重大な問題があります（単位・桁数・負値など）。修正してください。' : (prev.blocking || '')
+      }));
+      return;
+    }
 
     setIsLoading(true);
     try {
