@@ -1,10 +1,11 @@
 // frontend/src/pages/contact.jsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { FaEnvelope, FaPhone, FaBuilding, FaQuestionCircle, FaBug, FaLightbulb, FaPaperPlane, FaCheckCircle } from 'react-icons/fa';
 
 // Google Apps Script endpoint (use /macros/s/.../exec URL if possible)
 const GAS_ENDPOINT = 'https://script.google.com/a/macros/archi-prisma.co.jp/s/AKfycbzlnLWsQqgN8Vt79i_T4BlWKCxp22ByDprQGtbYMbnL04WOxH64QryZwRmdBQcoo1su/exec';
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const categoryLabels = {
   general: '一般的なお問い合わせ',
@@ -26,6 +27,23 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+
+  // reCAPTCHA スクリプトを必要時のみ読み込み
+  useEffect(() => {
+    if (!RECAPTCHA_SITE_KEY) return;
+    if (typeof window === 'undefined') return;
+    const id = 'recaptcha-v3';
+    if (document.getElementById(id)) return;
+    const s = document.createElement('script');
+    s.id = id;
+    s.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
+    s.async = true;
+    document.head.appendChild(s);
+    return () => {
+      // そのまま残しても問題ありませんが、ページ離脱時に消すなら以下
+      // const el = document.getElementById(id); if (el) el.remove();
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,6 +71,19 @@ export default function Contact() {
     fd.append('email', formData.email || '');
     if (topic) fd.append('topic', topic);
     fd.append('message', bodyParts.join('\n'));
+
+    // reCAPTCHA トークンを付与（設定がある場合のみ）
+    async function withRecaptcha(formData) {
+      if (!RECAPTCHA_SITE_KEY || typeof window === 'undefined' || !window.grecaptcha) return formData;
+      try {
+        await window.grecaptcha.ready(async () => {});
+        const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'contact' });
+        if (token) formData.append('token', token);
+      } catch (_) {}
+      return formData;
+    }
+
+    await withRecaptcha(fd);
 
     try {
       // Normal fetch: if CORS is properly open, this succeeds and we can read JSON
