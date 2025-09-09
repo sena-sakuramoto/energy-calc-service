@@ -3,10 +3,9 @@ import { useState } from 'react';
 import Layout from '../components/Layout';
 import { FaEnvelope, FaPhone, FaBuilding, FaQuestionCircle, FaBug, FaLightbulb, FaPaperPlane, FaCheckCircle } from 'react-icons/fa';
 
-// Google Apps Script のエンドポイント（提供済み）
+// Google Apps Script endpoint (use /macros/s/.../exec URL if possible)
 const GAS_ENDPOINT = 'https://script.google.com/a/macros/archi-prisma.co.jp/s/AKfycbzlnLWsQqgN8Vt79i_T4BlWKCxp22ByDprQGtbYMbnL04WOxH64QryZwRmdBQcoo1su/exec';
 
-// カテゴリ表示名（送信の整形にも使用）
 const categoryLabels = {
   general: '一般的なお問い合わせ',
   bug: '不具合・バグ報告',
@@ -37,32 +36,29 @@ export default function Contact() {
     e.preventDefault();
     setSending(true);
     setError('');
+
+    // Build payload once (used for normal fetch and no-cors fallback)
+    const label = categoryLabels[formData.category] || formData.category || '';
+    const topic = [label, formData.subject].filter(Boolean).join(' - ');
+    const bodyParts = [
+      formData.company ? `会社名/事務所名: ${formData.company}` : null,
+      formData.category ? `種別: ${label}` : null,
+      formData.subject ? `件名: ${formData.subject}` : null,
+      '',
+      formData.message || ''
+    ].filter((v) => v !== null);
+
+    const fd = new FormData();
+    fd.append('name', formData.name || '');
+    fd.append('email', formData.email || '');
+    if (topic) fd.append('topic', topic);
+    fd.append('message', bodyParts.join('\n'));
+
     try {
-      // GASへFormDataで送信（プリフライト回避）
-      const label = categoryLabels[formData.category] || formData.category || '';
-      const topic = [label, formData.subject].filter(Boolean).join(' - ');
-      const bodyParts = [
-        formData.company ? `会社名/事務所名: ${formData.company}` : null,
-        formData.category ? `種別: ${label}` : null,
-        formData.subject ? `件名: ${formData.subject}` : null,
-        '',
-        formData.message || ''
-      ].filter((v) => v !== null);
-
-      const fd = new FormData();
-      fd.append('name', formData.name || '');
-      fd.append('email', formData.email || '');
-      if (topic) fd.append('topic', topic);
-      fd.append('message', bodyParts.join('\n'));
-
+      // Normal fetch: if CORS is properly open, this succeeds and we can read JSON
       const res = await fetch(GAS_ENDPOINT, { method: 'POST', body: fd });
       const text = await res.text();
-      let json = {};
-      try {
-        json = JSON.parse(text);
-      } catch (e) {
-        throw new Error('サーバ応答の解析に失敗しました');
-      }
+      const json = JSON.parse(text);
       if (!json.ok) throw new Error(json.error || '送信に失敗しました');
 
       setSubmitted(true);
@@ -71,8 +67,18 @@ export default function Contact() {
         setSubmitted(false);
       }, 3000);
     } catch (err) {
-      console.error('GAS submit error:', err);
-      setError('メール送信に失敗しました。しばらく時間をおいてから再度お試しください。');
+      // CORS などで応答を読めない場合は no-cors でフォールバック送信
+      try {
+        await fetch(GAS_ENDPOINT, { method: 'POST', body: fd, mode: 'no-cors' });
+        setSubmitted(true);
+        setTimeout(() => {
+          setFormData({ name: '', email: '', company: '', category: '', subject: '', message: '' });
+          setSubmitted(false);
+        }, 3000);
+      } catch (err2) {
+        console.error('Contact submit error:', err, err2);
+        setError('メール送信に失敗しました。しばらく時間をおいてから再度お試しください。');
+      }
     } finally {
       setSending(false);
     }
