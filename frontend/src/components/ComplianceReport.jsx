@@ -34,6 +34,14 @@ const getCategoryName = (category) => {
   return names[category] || category;
 };
 
+// BEIの表示丸め（第3位を切り上げ→第2位表示）
+const formatBEIValue = (value) => {
+  const v = Number(value);
+  if (!Number.isFinite(v)) return '';
+  const up3 = Math.ceil(v * 1000) / 1000;
+  return up3.toFixed(2);
+};
+
 // 基準エネルギー消費量原単位データ（簡易版）
 const getStandardIntensities = (buildingType, climateZone) => {
   // 実際の標準値（一部）
@@ -677,7 +685,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
               </tr>
               <tr className="bg-yellow-50">
                 <td className="border border-black p-2 font-bold">BEI値</td>
-                <td className="border border-black p-2 text-right font-bold text-lg">{Number(result.bei).toFixed(3)}</td>
+                <td className="border border-black p-2 text-right font-bold text-lg">{formatBEIValue(result.bei)}</td>
               </tr>
               <tr className={result.is_compliant ? 'bg-green-50' : 'bg-red-50'}>
                 <td className="border border-black p-2 font-bold">適合判定</td>
@@ -692,7 +700,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
             <p className="font-bold">計算式:</p>
             <p>BEI = 設計一次エネルギー消費量 ÷ 基準一次エネルギー消費量</p>
             <p>= {result.design_primary_energy_mj?.toLocaleString()} ÷ {result.standard_primary_energy_mj?.toLocaleString()}</p>
-            <p>= <strong>{Number(result.bei).toFixed(3)}</strong></p>
+            <p>= <strong>{formatBEIValue(result.bei)}</strong></p>
             <p className="mt-2 text-sm">※ BEI ≤ 1.0 で省エネ基準適合</p>
           </div>
         </section>
@@ -724,6 +732,71 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
             </tbody>
           </table>
         </section>
+
+        {/* 3.x カテゴリ別BEI・優先度（単一用途時） */}
+        {!formData.is_mixed_use && (
+          <section className="mb-6">
+            <h3 className="text-lg font-bold border-b border-black mb-3">3.x カテゴリ別BEI・優先度</h3>
+            {(() => {
+              try {
+                const area = Number(formData.floor_area || result.building_area_m2) || 0;
+                const std = getStandardIntensities(formData.building_type, formData.climate_zone);
+                const stdPerCat = Object.fromEntries(Object.entries(std).map(([k,v]) => [k, v.corrected]));
+                const cats = ['heating','cooling','ventilation','hot_water','lighting','elevator'];
+                const designMap = Object.fromEntries((result.design_energy_breakdown||[]).map(x => [x.category, x.primary_energy_mj ?? x.value ?? 0]));
+                const rows = cats.map(cat => {
+                  const Ei = Number(designMap[cat]||0);
+                  const ESi = Number(stdPerCat[cat]||0) * area;
+                  const bei = ESi>0 ? (Ei/ESi) : 0;
+                  return { cat, Ei, ESi, bei };
+                });
+                const totalEi = rows.reduce((s,r)=>s+r.Ei,0);
+                const totalEx = rows.reduce((s,r)=>s+Math.max(0,r.Ei-r.ESi),0);
+                const rows2 = rows.map(r => {
+                  const excess = Math.max(0, r.Ei - r.ESi);
+                  const excessShare = totalEx>0 ? excess/totalEx : 0;
+                  const contrib = totalEi>0 ? r.Ei/totalEi : 0;
+                  const band = (r.bei<=0.90)?'low':(r.bei<=1.05)?'typical':(r.bei>=1.15 && excessShare>=0.35)?'high-major':'high';
+                  const priority = 0.7*Math.max(0,r.bei-1.0)+0.3*contrib;
+                  return { ...r, excess, excessShare, contrib, band, priority };
+                });
+                const highMajor = rows2.filter(x=>x.band==='high-major').sort((a,b)=>b.priority-a.priority);
+                const others = rows2.filter(x=>x.band!=='high-major').sort((a,b)=>b.priority-a.priority);
+                const ordered = [...highMajor, ...others];
+                const label = (b)=> b==='low'?'良好': b==='typical'?'標準': b==='high-major'?'要改善（重点）':'要改善';
+                const color = (b)=> b==='low'?'text-green-700': b==='typical'?'text-gray-700': b==='high-major'?'text-red-700':'text-orange-700';
+                return (
+                  <table className="w-full border-collapse border border-black">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border border-black p-2">カテゴリ</th>
+                        <th className="border border-black p-2">設計E (MJ/年)</th>
+                        <th className="border border-black p-2">基準E (MJ/年)</th>
+                        <th className="border border-black p-2">BEI_i</th>
+                        <th className="border border-black p-2">判定</th>
+                        <th className="border border-black p-2">偏差/寄与度</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ordered.map(r => (
+                        <tr key={r.cat}>
+                          <td className="border border-black p-2">{getCategoryName(r.cat)}</td>
+                          <td className="border border-black p-2 text-right">{Math.round(r.Ei).toLocaleString()}</td>
+                          <td className="border border-black p-2 text-right">{Math.round(r.ESi).toLocaleString()}</td>
+                          <td className="border border-black p-2 text-right">{formatBEIValue(r.bei)}</td>
+                          <td className={`border border-black p-2 font-semibold ${color(r.band)}`}>{label(r.band)}</td>
+                          <td className="border border-black p-2 text-right">偏差 +{(Math.max(0,r.bei-1)*100).toFixed(0)}% ／ 寄与度 {(r.contrib*100).toFixed(0)}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                );
+              } catch (e) {
+                return <p className="text-sm text-gray-500">カテゴリ別BEIの集計に失敗しました</p>;
+              }
+            })()}
+          </section>
+        )}
 
         {/* 基準一次エネルギー消費量算定 */}
         <section className="mb-6">
