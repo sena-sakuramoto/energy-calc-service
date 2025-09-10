@@ -3,37 +3,42 @@
 import axios from 'axios';
 import { mockBEICalculation, mockPowerCalculation, mockTariffCalculation } from './mockCalculations';
 
-// GitHub Pages/静的デプロイ用のモックモード検出
+// GitHub Pages/静的チE�Eロイ用のモチE��モード検�E
 const isGitHubPages = typeof window !== 'undefined' && 
   (window.location.hostname.includes('github.io') || 
    window.location.hostname.includes('archi-prisma.co.jp'));
+// 環墁E��数でモチE��利用可否を上書きできるようにする
+const __shouldMock = (typeof process !== 'undefined' && process.env && typeof process.env.NEXT_PUBLIC_USE_MOCK !== 'undefined')
+  ? String(process.env.NEXT_PUBLIC_USE_MOCK).toLowerCase() === 'true'
+  : undefined;
+const isMockMode = () => (typeof __shouldMock !== 'undefined' ? __shouldMock : isGitHubPages);
 
-// 環境変数からAPIのベースURLを取得。NEXT_PUBLIC_ を接頭辞にすること。
-const API_BASE_URL = isGitHubPages ? 'https://mock-api.example.com/api/v1' : 
+// 環墁E��数からAPIのベ�EスURLを取得、EEXT_PUBLIC_ を接頭辞にすること、E
+const EFFECTIVE_API_BASE_URL = isMockMode() ? 'https://mock-api.example.com/api/v1' : 
   (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1');
 
-console.log('API Config:', { API_BASE_URL, isGitHubPages, hostname: typeof window !== 'undefined' ? window.location.hostname : 'server' });
+console.log('API Config:', { API_BASE_URL: EFFECTIVE_API_BASE_URL, mock: isMockMode(), hostname: typeof window !== 'undefined' ? window.location.hostname : 'server' });
 
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: EFFECTIVE_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// ローカルストレージからトークンを取得するヘルパー関数
+// ローカルストレージからト�Eクンを取得する�Eルパ�E関数
 const getToken = () => {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('authToken'); // トークンのキー名を 'authToken' と仮定
+    return localStorage.getItem('authToken'); // ト�Eクンのキー名を 'authToken' と仮宁E
   }
   return null;
 };
 
-// APIクライアントに認証トークンをセットするインターセプタ
+// APIクライアントに認証ト�EクンをセチE��するインターセプタ
 apiClient.interceptors.request.use(
   (config) => {
-    // GitHub Pagesの場合は実際のAPIリクエストをブロック
-    if (isGitHubPages) {
+    // GitHub Pagesの場合�E実際のAPIリクエストをブロチE��
+    if (isMockMode()) {
       return Promise.reject(new Error('GitHub Pages mode: API requests are mocked'));
     }
     
@@ -48,7 +53,7 @@ apiClient.interceptors.request.use(
   }
 );
 
-// レスポンスインターセプター（エラーハンドリング強化）
+// レスポンスインターセプター�E�エラーハンドリング強化！E
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -61,7 +66,7 @@ apiClient.interceptors.response.use(
     });
 
     if (error.response?.status === 401) {
-      // 認証エラー時の処理
+      // 認証エラー時�E処琁E
       if (typeof window !== 'undefined') {
         localStorage.removeItem('authToken');
         console.error("API request 401 Unauthorized. Token might be invalid or expired.");
@@ -76,41 +81,41 @@ apiClient.interceptors.response.use(
   }
 );
 
-// エラーハンドリングヘルパー関数
+// エラーハンドリングヘルパ�E関数
 export const handleApiError = (error) => {
   if (error.response) {
-    // サーバーからのレスポンスがある場合
+    // サーバ�Eからのレスポンスがある場吁E
     const status = error.response.status;
     const detail = error.response.data?.detail || error.response.data?.message || 'Unknown error';
     
     switch (status) {
       case 400:
-        return `入力データに問題があります: ${detail}`;
+        return `入力データに問題がありまぁE ${detail}`;
       case 401:
-        return '認証が必要です。再度ログインしてください。';
+        return '認証が忁E��です。�E度ログインしてください、E;
       case 403:
-        return 'このリソースにアクセスする権限がありません。';
+        return 'こ�Eリソースにアクセスする権限がありません、E;
       case 404:
-        return '要求されたリソースが見つかりません。';
+        return '要求されたリソースが見つかりません、E;
       case 422:
-        return `データの形式が正しくありません: ${detail}`;
+        return `チE�Eタの形式が正しくありません: ${detail}`;
       case 500:
-        return 'サーバーでエラーが発生しました。しばらく待ってから再度お試しください。';
+        return 'サーバ�Eでエラーが発生しました。しばらく征E��てから再度お試しください、E;
       case 503:
-        return 'サービスが一時的に利用できません。しばらく待ってから再度お試しください。';
+        return 'サービスが一時的に利用できません。しばらく征E��てから再度お試しください、E;
       default:
         return `エラーが発生しました (${status}): ${detail}`;
     }
   } else if (error.request) {
     // ネットワークエラー
-    return 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+    return 'ネットワークエラーが発生しました。インターネット接続を確認してください、E;
   } else {
-    // その他のエラー
-    return `予期しないエラーが発生しました: ${error.message}`;
+    // そ�E他�Eエラー
+    return `予期しなぁE��ラーが発生しました: ${error.message}`;
   }
 };
 
-// APIリクエストのラッパー関数（エラーハンドリング付き）
+// APIリクエスト�EラチE��ー関数�E�エラーハンドリング付き�E�E
 export const apiRequest = async (requestFn, errorContext = '') => {
   try {
     const response = await requestFn();
@@ -131,10 +136,10 @@ export const apiRequest = async (requestFn, errorContext = '') => {
 // 認証関連API
 export const authAPI = {
   login: async (credentials) => { // credentials は { email, password }
-    // GitHub Pages用のモック機能
-    if (isGitHubPages) {
+    // GitHub Pages用のモチE��機�E
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock login");
-      await new Promise(resolve => setTimeout(resolve, 800)); // 待機
+      await new Promise(resolve => setTimeout(resolve, 800)); // 征E��E
       return {
         data: {
           access_token: "mock_token_" + Date.now(),
@@ -150,12 +155,12 @@ export const authAPI = {
       };
     }
 
-    // FastAPIのOAuth2準拠のトークンエンドポイントは通常 application/x-www-form-urlencoded を期待
+    // FastAPIのOAuth2準拠のト�Eクンエンド�Eイント�E通常 application/x-www-form-urlencoded を期征E
     const params = new URLSearchParams();
-    params.append('username', credentials.email); // FastAPI側が username を期待する場合
+    params.append('username', credentials.email); // FastAPI側ぁEusername を期征E��る場吁E
     params.append('password', credentials.password);
 
-    // バックエンドのトークン取得パス (例: /auth/token)
+    // バックエンド�Eト�Eクン取得パス (侁E /auth/token)
     const response = await apiClient.post('/auth/token', params, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -166,11 +171,11 @@ export const authAPI = {
   register: async (userData) => { // userData は { email, password, full_name }
     console.log("Submitting to API /users/ with data (from api.js):", JSON.stringify(userData));
     
-    // GitHub Pages用のモック機能
-    if (isGitHubPages) {
+    // GitHub Pages用のモチE��機�E
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock registration");
-      // モック成功レスポンス
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒のフェイク待機
+      // モチE��成功レスポンス
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒�Eフェイク征E��E
       return {
         data: {
           id: Math.floor(Math.random() * 1000),
@@ -183,13 +188,13 @@ export const authAPI = {
       };
     }
     
-    // 通常のAPIリクエスト
+    // 通常のAPIリクエスチE
     const response = await apiClient.post('/users/', userData);
     return response;
   },
   getCurrentUser: async () => {
-    // GitHub Pages用のモック機能
-    if (isGitHubPages) {
+    // GitHub Pages用のモチE��機�E
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock getCurrentUser");
       await new Promise(resolve => setTimeout(resolve, 500));
       return {
@@ -204,11 +209,11 @@ export const authAPI = {
       };
     }
     
-    // バックエンドの現在ユーザー情報取得エンドポイント (例: /users/me)
+    // バックエンド�E現在ユーザー惁E��取得エンド�EインチE(侁E /users/me)
     const response = await apiClient.get('/users/me');
     return response; // レスポンス全体を返す
   },
-  setAuthToken: (token) => { // localStorageへのトークン保存/削除
+  setAuthToken: (token) => { // localStorageへのト�Eクン保孁E削除
     if (typeof window !== 'undefined') {
       if (token) {
         localStorage.setItem('authToken', token);
@@ -219,25 +224,25 @@ export const authAPI = {
   }
 };
 
-// プロジェクト関連API (以前のものをベースに)
+// プロジェクト関連API (以前�Eも�Eを�Eースに)
 export const projectsAPI = {
   getAll: async () => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock getAll projects");
       await new Promise(resolve => setTimeout(resolve, 600));
       return {
         data: [
           {
             id: 1,
-            name: "サンプル建物計算",
-            description: "省エネ法に基づく計算のサンプルプロジェクト",
+            name: "サンプル建物計箁E,
+            description: "省エネ法に基づく計算�EサンプルプロジェクチE,
             owner_id: 1,
             created_at: new Date().toISOString()
           },
           {
             id: 2,
-            name: "オフィスビル省エネ計算",
-            description: "大規模オフィスビルの省エネ法計算",
+            name: "オフィスビル省エネ計箁E,
+            description: "大規模オフィスビルの省エネ法計箁E,
             owner_id: 1,
             created_at: new Date().toISOString()
           }
@@ -248,21 +253,21 @@ export const projectsAPI = {
     return apiClient.get('/projects/');
   },
   getById: async (id) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock getById project");
       await new Promise(resolve => setTimeout(resolve, 400));
-      // プロジェクトID=1の場合は計算結果を含む、それ以外は空
+      // プロジェクチED=1の場合�E計算結果を含む、それ以外�E空
       const hasResults = parseInt(id) === 1;
       return {
         data: {
           id: parseInt(id),
-          name: `プロジェクト ${id}`,
-          description: "デモ用のプロジェクト説明",
+          name: `プロジェクチE${id}`,
+          description: "チE��用のプロジェクト説昁E,
           owner_id: 1,
           created_at: new Date().toISOString(),
           input_data: hasResults ? {
             building: {
-              building_type: "住宅",
+              building_type: "住宁E,
               total_floor_area: 100,
               climate_zone: 6,
               num_stories: 2,
@@ -272,13 +277,13 @@ export const projectsAPI = {
               parts: [
                 {
                   part_name: "外壁北",
-                  part_type: "壁",
+                  part_type: "壁E,
                   area: 30,
                   u_value: 0.4,
                 },
                 {
                   part_name: "窓北",
-                  part_type: "窓",
+                  part_type: "突E,
                   area: 5,
                   u_value: 2.33,
                   eta_value: 0.49,
@@ -290,21 +295,21 @@ export const projectsAPI = {
                 system_type: "ルームエアコン",
                 rated_capacity: 5,
                 efficiency: 4.2,
-                control_method: "インバータ制御",
+                control_method: "インバ�Eタ制御",
               },
               cooling: {
                 system_type: "ルームエアコン",
                 rated_capacity: 5,
                 efficiency: 3.8,
-                control_method: "インバータ制御",
+                control_method: "インバ�Eタ制御",
               },
               ventilation: {
-                system_type: "第3種換気",
+                system_type: "第3種換氁E,
                 air_volume: 150,
                 power_consumption: 15,
               },
               hot_water: {
-                system_type: "エコキュート",
+                system_type: "エコキューチE,
                 efficiency: 3.5,
               },
               lighting: {
@@ -334,7 +339,7 @@ export const projectsAPI = {
               }
             },
             overall_compliance: false,
-            message: "省エネ基準不適合: 一次エネルギー基準不適合 (省エネ率: -21.3%)"
+            message: "省エネ基準不適吁E 一次エネルギー基準不適吁E(省エネ率: -21.3%)"
           } : null
         },
         status: 200
@@ -343,7 +348,7 @@ export const projectsAPI = {
     return apiClient.get(`/projects/${id}/`);
   },
   create: async (data) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock create project");
       await new Promise(resolve => setTimeout(resolve, 800));
       return {
@@ -359,7 +364,7 @@ export const projectsAPI = {
     return apiClient.post('/projects/', data);
   },
   update: async (id, data) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock update project");
       await new Promise(resolve => setTimeout(resolve, 600));
       return {
@@ -370,7 +375,7 @@ export const projectsAPI = {
     return apiClient.put(`/projects/${id}/`, data);
   },
   delete: async (id) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock delete project");
       await new Promise(resolve => setTimeout(resolve, 400));
       return { status: 204 };
@@ -378,9 +383,9 @@ export const projectsAPI = {
     return apiClient.delete(`/projects/${id}/`);
   },
   calculate: async (projectId, inputData) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock calculate");
-      await new Promise(resolve => setTimeout(resolve, 2000)); // 計算時間をシミュレート
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 計算時間をシミュレーチE
       return {
         data: {
           envelope_result: {
@@ -404,7 +409,7 @@ export const projectsAPI = {
             }
           },
           overall_compliance: false,
-          message: "省エネ基準不適合: 一次エネルギー基準不適合 (省エネ率: -21.3%)"
+          message: "省エネ基準不適吁E 一次エネルギー基準不適吁E(省エネ率: -21.3%)"
         },
         status: 200
       };
@@ -413,21 +418,21 @@ export const projectsAPI = {
   },
 };
 
-// レポート関連API (以前のものをベースに)
+// レポ�Eト関連API (以前�Eも�Eを�Eースに)
 export const reportAPI = {
   getPDF: async (projectId) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Mock PDF download");
-      // モックPDFデータ（空のPDF風）
+      // モチE��PDFチE�Eタ�E�空のPDF風�E�E
       const mockPdfData = new Blob(['%PDF-1.4 Mock PDF Content'], { type: 'application/pdf' });
       return { data: mockPdfData, status: 200 };
     }
     return apiClient.get(`/projects/${projectId}/report/pdf/`, { responseType: 'blob' });
   },
   getExcel: async (projectId) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Mock Excel download");
-      // モックExcelデータ
+      // モチE��ExcelチE�Eタ
       const mockExcelData = new Blob(['Mock Excel Content'], { 
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
       });
@@ -447,7 +452,7 @@ export const calcAPI = {
 export const beiAPI = {
   // BEI評価
   evaluate: async (data) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock BEI evaluate");
       await new Promise(resolve => setTimeout(resolve, 1500));
       try {
@@ -464,9 +469,9 @@ export const beiAPI = {
     return apiClient.post('/bei/evaluate', data);
   },
 
-  // カタログ用途取得
+  // カタログ用途取征E
   getUses: async () => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock BEI uses");
       await new Promise(resolve => setTimeout(resolve, 300));
       return {
@@ -481,9 +486,9 @@ export const beiAPI = {
     return apiClient.get('/bei/catalog/uses');
   },
 
-  // カタログ地域取得
+  // カタログ地域取征E
   getZones: async (use) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock BEI zones");
       await new Promise(resolve => setTimeout(resolve, 300));
       return {
@@ -494,9 +499,9 @@ export const beiAPI = {
     return apiClient.get(`/bei/catalog/uses/${use}/zones`);
   },
 
-  // カタログ強度データ取得
+  // カタログ強度チE�Eタ取征E
   getIntensity: async (use, zone) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock BEI intensity");
       await new Promise(resolve => setTimeout(resolve, 400));
       
@@ -522,9 +527,9 @@ export const beiAPI = {
 
 // エネルギー計算API
 export const energyAPI = {
-  // 電力計算
+  // 電力計箁E
   calculatePower: async (data) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock power calculation");
       await new Promise(resolve => setTimeout(resolve, 500));
       try {
@@ -541,9 +546,9 @@ export const energyAPI = {
     return apiClient.post('/calc/power', data);
   },
 
-  // エネルギー計算
+  // エネルギー計箁E
   calculateEnergy: async (data) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock energy calculation");
       await new Promise(resolve => setTimeout(resolve, 500));
       const power_kw = data.power_kw || data.power_w / 1000;
@@ -559,9 +564,9 @@ export const energyAPI = {
     return apiClient.post('/calc/energy', data);
   },
 
-  // コスト計算
+  // コスト計箁E
   calculateCost: async (data) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock cost calculation");
       await new Promise(resolve => setTimeout(resolve, 500));
       const tariff = data.tariff_per_kwh || 25.0;
@@ -582,9 +587,9 @@ export const energyAPI = {
     return apiClient.post('/calc/cost', data);
   },
 
-  // 機器使用量集計
+  // 機器使用量集訁E
   aggregateDevices: async (data) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock device aggregation");
       await new Promise(resolve => setTimeout(resolve, 600));
       let total_energy = 0;
@@ -616,11 +621,11 @@ export const energyAPI = {
   }
 };
 
-// 料金API
+// 料��API
 export const tariffAPI = {
-  // 料金見積もり
+  // 料��見積もめE
   quote: async (data) => {
-    if (isGitHubPages) {
+    if (isMockMode()) {
       console.log("GitHub Pages mode: Using mock tariff quote");
       await new Promise(resolve => setTimeout(resolve, 1000));
       try {
@@ -638,4 +643,4 @@ export const tariffAPI = {
   }
 };
 
-export default apiClient; // デフォルトでAxiosインスタンスをエクスポート
+export default apiClient; // チE��ォルトでAxiosインスタンスをエクスポ�EチE
