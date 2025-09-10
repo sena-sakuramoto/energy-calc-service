@@ -157,7 +157,8 @@ def perform_energy_calculation(input_data: CalculationInput) -> CalculationResul
         standard_energy_consumption=round(standard_energy, 1),
         energy_saving_rate=round(energy_saving_rate, 1),
         is_energy_compliant=is_energy_compliant,
-        energy_by_use={k: round(v, 1) for k, v in actual_energy["actual_energy_by_use"].items()}
+        energy_by_use={k: round(v, 1) for k, v in actual_energy["actual_energy_by_use"].items()},
+        standard_energy_by_use=model_building_standards.get("standard_energy_by_use")
     )
     
     # 総合判定

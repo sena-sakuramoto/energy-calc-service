@@ -2,7 +2,14 @@
 import React from 'react';
 import { FaFileAlt, FaStamp, FaBuilding, FaChartBar, FaDownload, FaFilePdf, FaFileExcel } from 'react-icons/fa';
 import { exportToExcel, exportToExcelXML } from '../utils/excelExport';
-import { exportToProfessionalExcel, exportToSimpleExcel } from '../utils/excelExportProfessional';
+import { exportToProfessionalExcel, exportToSimpleExcel } from '../utils/excelExportDisabled';
+import { formatBEI } from '../utils/number';
+
+// Shared BEI formatter wrapper for this component
+const formatBEIValue2 = (value) => {
+  const v = formatBEI(value);
+  return v == null ? '' : v;
+};
 
 const getBuildingTypeName = (type) => {
   const names = {
@@ -685,7 +692,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
               </tr>
               <tr className="bg-yellow-50">
                 <td className="border border-black p-2 font-bold">BEI値</td>
-                <td className="border border-black p-2 text-right font-bold text-lg">{formatBEIValue(result.bei)}</td>
+                <td className="border border-black p-2 text-right font-bold text-lg">{formatBEIValue2(result.bei)}</td>
               </tr>
               <tr className={result.is_compliant ? 'bg-green-50' : 'bg-red-50'}>
                 <td className="border border-black p-2 font-bold">適合判定</td>
@@ -700,7 +707,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
             <p className="font-bold">計算式:</p>
             <p>BEI = 設計一次エネルギー消費量 ÷ 基準一次エネルギー消費量</p>
             <p>= {result.design_primary_energy_mj?.toLocaleString()} ÷ {result.standard_primary_energy_mj?.toLocaleString()}</p>
-            <p>= <strong>{formatBEIValue(result.bei)}</strong></p>
+            <p>= <strong>{formatBEIValue2(result.bei)}</strong></p>
             <p className="mt-2 text-sm">※ BEI ≤ 1.0 で省エネ基準適合</p>
           </div>
         </section>
@@ -740,8 +747,25 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
             {(() => {
               try {
                 const area = Number(formData.floor_area || result.building_area_m2) || 0;
-                const std = getStandardIntensities(formData.building_type, formData.climate_zone);
-                const stdPerCat = Object.fromEntries(Object.entries(std).map(([k,v]) => [k, v.corrected]));
+                // Prefer backend-provided E_Si if available; fallback to local intensities
+                let stdPerCat;
+                if (result && result.standard_energy_by_use && typeof result.standard_energy_by_use === 'object') {
+                  stdPerCat = Object.fromEntries(
+                    Object.entries(result.standard_energy_by_use)
+                      .filter(([k]) => k !== 'total')
+                      .map(([k, v]) => [k, (Number(v) || 0) / (area || 1)])
+                  );
+                } else if (result && result.primary_energy_result && result.primary_energy_result.standard_energy_by_use) {
+                  const map = result.primary_energy_result.standard_energy_by_use;
+                  stdPerCat = Object.fromEntries(
+                    Object.entries(map)
+                      .filter(([k]) => k !== 'total')
+                      .map(([k, v]) => [k, (Number(v) || 0) / (area || 1)])
+                  );
+                } else {
+                  const std = getStandardIntensities(formData.building_type, formData.climate_zone);
+                  stdPerCat = Object.fromEntries(Object.entries(std).map(([k,v]) => [k, v.corrected]));
+                }
                 const cats = ['heating','cooling','ventilation','hot_water','lighting','elevator'];
                 const designMap = Object.fromEntries((result.design_energy_breakdown||[]).map(x => [x.category, x.primary_energy_mj ?? x.value ?? 0]));
                 const rows = cats.map(cat => {
@@ -783,7 +807,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
                           <td className="border border-black p-2">{getCategoryName(r.cat)}</td>
                           <td className="border border-black p-2 text-right">{Math.round(r.Ei).toLocaleString()}</td>
                           <td className="border border-black p-2 text-right">{Math.round(r.ESi).toLocaleString()}</td>
-                          <td className="border border-black p-2 text-right">{formatBEIValue(r.bei)}</td>
+                          <td className="border border-black p-2 text-right">{formatBEIValue2(r.bei)}</td>
                           <td className={`border border-black p-2 font-semibold ${color(r.band)}`}>{label(r.band)}</td>
                           <td className="border border-black p-2 text-right">偏差 +{(Math.max(0,r.bei-1)*100).toFixed(0)}% ／ 寄与度 {(r.contrib*100).toFixed(0)}%</td>
                         </tr>

@@ -1,5 +1,6 @@
 // frontend/src/components/ProjectManager.jsx
 import React, { useState, useEffect } from 'react';
+import { formatBEI } from '../utils/number';
 import { 
   FaPlus, FaSearch, FaTrash, FaCopy, FaDownload, FaUpload, 
   FaEdit, FaSave, FaFolder, FaCalendar, FaUser, FaBuilding
@@ -95,14 +96,14 @@ export default function ProjectManager({
     });
   };
 
-  // BEI値の表示
-  const formatBEI = (result) => {
-    if (!result || !result.bei) return '未計算';
-    const status = result.is_compliant ? '適合' : '不適合';
-    const color = result.is_compliant ? 'text-green-600' : 'text-red-600';
+  // BEI値の表示（第3位切上→第2位表示）
+  const renderBEI = (res) => {
+    if (!res || typeof res.bei !== 'number') return '未計算';
+    const status = res.is_compliant ? '適合' : '不適合';
+    const color = res.is_compliant ? 'text-green-600' : 'text-red-600';
     return (
       <span className={color}>
-        {result.bei} ({status})
+        {formatBEI(res.bei)} ({status})
       </span>
     );
   };
@@ -229,7 +230,7 @@ export default function ProjectManager({
                             </div>
                             <div>
                               <span className="font-medium">BEI: </span>
-                              {formatBEI(project.result)}
+                              {renderBEI(project.result)}
                             </div>
                           </div>
 

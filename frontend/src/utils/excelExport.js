@@ -77,7 +77,12 @@ export const exportToExcel = (result, formData, projectInfo) => {
   csvRows.push(['項目', '値']);
   csvRows.push(['設計一次エネルギー消費量', `${result.design_primary_energy_mj?.toLocaleString()} MJ/年`]);
   csvRows.push(['基準一次エネルギー消費量', `${result.standard_primary_energy_mj?.toLocaleString()} MJ/年`]);
-  csvRows.push(['BEI値', result.bei]);
+  try {
+    const { formatBEI } = require('./number');
+    csvRows.push(['BEI値', formatBEI(result.bei, true)]);
+  } catch {
+    csvRows.push(['BEI値', result.bei]);
+  }
   csvRows.push(['適合判定', result.is_compliant ? '適合' : '不適合']);
   csvRows.push(['']);
 
@@ -85,7 +90,12 @@ export const exportToExcel = (result, formData, projectInfo) => {
   csvRows.push(['■ 計算式']);
   csvRows.push(['BEI = 設計一次エネルギー消費量 ÷ 基準一次エネルギー消費量']);
   csvRows.push([`= ${result.design_primary_energy_mj?.toLocaleString()} ÷ ${result.standard_primary_energy_mj?.toLocaleString()}`]);
-  csvRows.push([`= ${result.bei}`]);
+  try {
+    const { formatBEI } = require('./number');
+    csvRows.push([`= ${formatBEI(result.bei)}`]);
+  } catch {
+    csvRows.push([`= ${result.bei}`]);
+  }
   csvRows.push(['※ BEI ≤ 1.0 で省エネ基準適合']);
   csvRows.push(['']);
 

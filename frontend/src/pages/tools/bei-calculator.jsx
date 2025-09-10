@@ -15,6 +15,7 @@ import { createProjectData, saveProject } from '../../utils/projectStorage';
 import { validateEnergyInput, validateFloorArea, validateAllInputs, WARNING_LEVELS } from '../../utils/inputValidation';
 import ValidationAlert, { ValidationSummary } from '../../components/ValidationAlert';
 import { analyzeEnergyConsumption, analyzeBEI, getEnergyTypeName, getImprovementSuggestions } from '../../utils/energyComparison';
+import { formatBEI } from '../../utils/number';
 
 export default function BEICalculator() {
   const [currentProject, setCurrentProject] = useState(null);
@@ -417,7 +418,7 @@ export default function BEICalculator() {
     if (!result) return;
     
     const text = `BEI計算結果\n\n` +
-      `BEI値: ${result.bei}\n` +
+          `BEI値: ${formatBEI(result.bei)}\n` +
       `適合判定: ${result.is_compliant ? '適合' : '不適合'}\n` +
       `設計一次エネルギー: ${result.design_primary_energy_mj?.toLocaleString()} MJ/年\n` +
       `基準一次エネルギー: ${result.standard_primary_energy_mj?.toLocaleString()} MJ/年`;
@@ -1385,7 +1386,7 @@ export default function BEICalculator() {
                 <div className="text-center mb-6">
                   <div className="text-4xl font-bold mb-2">
                     <span className={result.is_compliant ? 'text-green-600' : 'text-red-600'}>
-                      {typeof result.bei === 'number' ? result.bei.toFixed(3) : result.bei}
+                      {typeof result.bei === 'number' ? formatBEI(result.bei) : result.bei}
                     </span>
                   </div>
                   <div className="text-sm text-gray-600 mb-4">BEI値 (Building Energy Index)</div>
@@ -1591,7 +1592,7 @@ export default function BEICalculator() {
                       <div className="text-xs text-yellow-900 space-y-1">
                         <div><strong>BEI = 設計一次エネルギー消費量 ÷ 基準一次エネルギー消費量</strong></div>
                         <div>= {result.design_primary_energy_mj?.toLocaleString()} ÷ {result.standard_primary_energy_mj?.toLocaleString()}</div>
-                        <div>= <strong>{result.bei}</strong></div>
+                        <div>= <strong>{formatBEI(result.bei)}</strong></div>
                         <div className="mt-2 pt-2 border-t border-yellow-200">
                           判定基準: BEI ≤ 1.0 で省エネ基準適合
                         </div>
