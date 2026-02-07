@@ -72,3 +72,8 @@ logs/
 # Temporary files
 .tmp/
 temp/
+
+# Playwright
+playwright-report/
+test-results/
+e2e/.auth/
