@@ -21,7 +21,7 @@ test.describe('project CRUD', () => {
     // 5. 作成成功の確認（通知 or ページタイトルが表示される）
     await expect(page.getByText('プロジェクトを作成しました')).toBeVisible();
 
-    // 6. プロジェクト一覧にテーブル行が存在する
-    await expect(page.locator('table tbody tr').first()).toBeVisible();
+    // 6. 作成したプロジェクト名が一覧に表示される
+    await expect(page.getByText(TEST_PROJECT.name)).toBeVisible();
   });
 });

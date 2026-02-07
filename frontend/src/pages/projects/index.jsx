@@ -132,19 +132,19 @@ export default function Projects() {
                 <tr key={project.id} className="hover:bg-gray-50">
                   <td className="py-3 px-4">
                     <Link href={`/projects/${project.id}`} className="text-primary hover:underline">
-                      {project.name}
+                      {project.projectInfo?.name || project.name}
                     </Link>
                   </td>
                   <td className="py-3 px-4">
-                    {new Date(project.created_at).toLocaleDateString('ja-JP')}
+                    {new Date(project.createdAt || project.created_at).toLocaleDateString('ja-JP')}
                   </td>
                   <td className="py-3 px-4">
-                    {project.updated_at
-                      ? new Date(project.updated_at).toLocaleDateString('ja-JP')
+                    {(project.updatedAt || project.updated_at)
+                      ? new Date(project.updatedAt || project.updated_at).toLocaleDateString('ja-JP')
                       : '-'}
                   </td>
                   <td className="py-3 px-4">
-                    {project.result_data ? (
+                    {(project.result || project.result_data) ? (
                       <span className="text-green-600 font-medium">計算済み</span>
                     ) : (
                       <span className="text-amber-600">未計算</span>
@@ -167,7 +167,7 @@ export default function Projects() {
                         <FaPencilAlt />
                       </Link>
                       <button
-                        onClick={() => handleDelete(project.id, project.name)}
+                        onClick={() => handleDelete(project.id, project.projectInfo?.name || project.name)}
                         className="text-red-600 hover:text-red-800"
                         title="削除"
                       >
