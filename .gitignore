@@ -55,6 +55,7 @@ out/
 *.db-*
 database/
 data/
+!app/data/
 backups/
 customer_data/
 
