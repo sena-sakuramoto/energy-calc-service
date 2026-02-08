@@ -1,6 +1,7 @@
 """API v1 routes."""
 
 from fastapi import APIRouter, HTTPException
+from app.core.config import settings
 from app.schemas.calc import (
     PowerRequest, PowerResponse,
     EnergyRequest, EnergyResponse,
@@ -15,8 +16,14 @@ from app.services.energy import (
 from app.services.tariff import quote_bill
 from app.services.bei import evaluate_bei
 from app.api.v1.bei_catalog import router as bei_catalog_router
+from app.api.v1.compliance import router as compliance_router
 
 router = APIRouter()
+
+# Health endpoint under v1
+@router.get("/healthz", summary="API v1 health")
+async def v1_health():
+    return {"status": "ok", "service": settings.app_name, "scope": "v1"}
 
 # Calculation endpoints
 @router.post("/calc/power", response_model=PowerResponse, summary="Calculate power from voltage and current")
@@ -95,3 +102,6 @@ async def evaluate_building_bei(request: BEIRequest) -> BEIResponse:
 
 # Include BEI catalog routes
 router.include_router(bei_catalog_router, prefix="/bei/catalog", tags=["BEI Catalog"])
+
+# Compliance (official calc) routes
+router.include_router(compliance_router, prefix="/compliance", tags=["Compliance"]) 

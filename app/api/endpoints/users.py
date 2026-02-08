@@ -36,9 +36,9 @@ def create_user(
     hashed_password = security.get_password_hash(user_in.password)
     db_user = UserModel(
         email=user_in.email,
+        username=user_in.full_name or user_in.email.split("@")[0],
         hashed_password=hashed_password,
-        full_name=user_in.full_name,
-        is_active=user_in.is_active # UserCreate に is_active があれば
+        is_active=user_in.is_active,
     )
     db.add(db_user)
     db.commit()

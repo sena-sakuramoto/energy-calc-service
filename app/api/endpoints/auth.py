@@ -8,19 +8,15 @@ from fastapi.security import OAuth2PasswordRequestForm # OAuth2PasswordBearerは
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core import security # securityモジュール
+from app.core import security  # securityモジュール
 from app.db.session import get_db
-from app.models.user import User as UserModel # SQLAlchemyモデルを UserModelとしてインポート
+from app.models.user import User as UserModel  # SQLAlchemyモデルを UserModelとしてインポート
 from app.schemas.token import Token
-from app.schemas.user import User as UserSchema # Pydanticモデルを UserSchemaとしてインポート
+from app.schemas.user import User as UserSchema  # Pydanticモデルを UserSchemaとしてインポート
 
 router = APIRouter()
 
-@router.post("/login", response_model=Token)
-def login_access_token(
-    db: Session = Depends(get_db),
-    form_data: OAuth2PasswordRequestForm = Depends()
-) -> Any:
+def _authenticate(db: Session, form_data: OAuth2PasswordRequestForm) -> Token:
     """
     OAuth2 compatible token login, get an access token for future requests.
     (OAuth2互換トークンログイン、将来のリクエストのためのアクセストークンを取得します。)
@@ -36,10 +32,24 @@ def login_access_token(
     access_token = security.create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-    }
+    return Token(access_token=access_token, token_type="bearer")
+
+
+@router.post("/login", response_model=Token, summary="OAuth2 password flow login")
+def login_access_token(
+    db: Session = Depends(get_db),
+    form_data: OAuth2PasswordRequestForm = Depends(),
+) -> Token:
+    return _authenticate(db, form_data)
+
+
+@router.post("/token", response_model=Token, summary="Token issue compatible with legacy client")
+def issue_access_token(
+    db: Session = Depends(get_db),
+    form_data: OAuth2PasswordRequestForm = Depends(),
+) -> Token:
+    """Alias endpoint expected by the legacy front-end (`/auth/token`)."""
+    return _authenticate(db, form_data)
 
 @router.post("/test-token", response_model=UserSchema) # レスポンスモデルをPydanticスキーマに変更
 def test_token(current_user: UserModel = Depends(security.get_current_user)): # Dependsで取得するのはSQLAlchemyモデル

@@ -1,17 +1,32 @@
-"""Main FastAPI application."""
+"""Main FastAPI application entry point."""
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.core.config import settings
-from app.api.v1.routes import router as v1_router
+from app.api.api import api_router as management_router
+from app.api.v1.routes import router as public_router
+from app.db.base import Base
+from app.db.session import engine
+from app.middleware.security import SecurityMiddleware, RateLimitMiddleware, LoggingMiddleware
+
+load_dotenv()
+
+# Create database tables on startup
+Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(
-    title=settings.app_name,
-    description="Energy calculation API with BEI evaluation, tariff quotes, and electrical calculations",
-    version="1.0.0"
+    title=settings.PROJECT_NAME,
+    description="Energy calculation service with compliance-grade BEI evaluation and tariff tools",
+    version="1.0.0",
+    openapi_url=f"{settings.API_PREFIX}/openapi.json",
+    docs_url=f"{settings.API_PREFIX}/docs" if settings.env.lower() == "development" else None,
+    redoc_url=f"{settings.API_PREFIX}/redoc" if settings.env.lower() == "development" else None,
 )
 
-# CORS middleware
+# CORS configuration shared across public/front-end clients
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -20,15 +35,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Health check endpoint
-@app.get("/healthz", summary="Health check")
-async def health_check():
-    """Health check endpoint."""
-    return {"status": "ok", "service": settings.app_name}
+# Security-oriented middleware stack
+app.add_middleware(SecurityMiddleware)
+app.add_middleware(RateLimitMiddleware, calls=100, period=60)
+app.add_middleware(LoggingMiddleware)
 
-# Include API routes
-app.include_router(v1_router, prefix="/api/v1", tags=["Energy Calculations"])
+# Public calculator + compliance endpoints (legacy v1)
+app.include_router(public_router, prefix=settings.API_PREFIX)
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# Authenticated project-management endpoints (production backend)
+app.include_router(management_router, prefix=settings.API_PREFIX)
+
+
+@app.get("/", tags=["Root"], summary="Root status")
+async def read_root() -> dict[str, str]:
+    return {"message": f"Welcome to {settings.APP_NAME} API"}
+
+
+@app.get("/healthz", tags=["Health"], summary="Service health")
+async def health_check() -> dict[str, str]:
+    return {"status": "ok", "service": settings.APP_NAME}

@@ -5,16 +5,17 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 
-# ƒf[ƒ^ƒx[ƒXÚ‘±ƒGƒ“ƒWƒ“ì¬
-engine = create_engine(settings.DATABASE_URL)
+# ï¿½fï¿½[ï¿½^ï¿½xï¿½[ï¿½Xï¿½Ú‘ï¿½ï¿½Gï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½ì¬
+_connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
+engine = create_engine(settings.DATABASE_URL, connect_args=_connect_args)
 
-# ƒZƒbƒVƒ‡ƒ“ƒtƒ@ƒNƒgƒŠì¬
+# ï¿½Zï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½tï¿½@ï¿½Nï¿½gï¿½ï¿½ï¿½ì¬
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# ƒx[ƒXƒ‚ƒfƒ‹ƒNƒ‰ƒX
+# ï¿½xï¿½[ï¿½Xï¿½ï¿½ï¿½fï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½X
 Base = declarative_base()
 
-# ƒZƒbƒVƒ‡ƒ“æ“¾—p‚ÌŠÖ”
+# ï¿½Zï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½æ“¾ï¿½pï¿½ÌŠÖï¿½
 def get_db():
     db = SessionLocal()
     try:
