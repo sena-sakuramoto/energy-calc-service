@@ -47,14 +47,14 @@ uses:
         elevator: 14
         total_MJ_per_m2_year: 302
       "6":
-        lighting: 70
-        cooling: 44
+        lighting: 58
+        cooling: 119
         heating: 32
         ventilation: 28
         hot_water: 3
         outlet_and_others: 105
         elevator: 14
-        total_MJ_per_m2_year: 296
+        total_MJ_per_m2_year: 420
       "7":
         lighting: 70
         cooling: 48
@@ -129,7 +129,7 @@ uses:
         hot_water: 176
         outlet_and_others: 105
         elevator: 14
-        total_MJ_per_m2_year: 500
+        total_MJ_per_m2_year: 732
       "7":
         lighting: 70
         cooling: 68

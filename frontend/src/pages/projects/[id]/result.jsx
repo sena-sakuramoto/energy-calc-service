@@ -12,12 +12,85 @@ import { Pie, Bar } from 'react-chartjs-2';
 // Chart.jsを初期化
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
+const LEAD_CAPTURE_KEY = 'energy_calc_lead_email';
+
+function EmailCaptureGate({ onComplete }) {
+  const [email, setEmail] = useState('');
+  const [company, setCompany] = useState('');
+  const [sending, setSending] = useState(false);
+  const [err, setErr] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email || !email.includes('@')) {
+      setErr('メールアドレスを入力してください');
+      return;
+    }
+    setSending(true);
+    try {
+      await fetch('https://stripe-discord-pro-417218426761.asia-northeast1.run.app/api/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, company, source: 'energy_calc' })
+      }).catch(() => {});
+    } catch {}
+    localStorage.setItem(LEAD_CAPTURE_KEY, email);
+    setSending(false);
+    onComplete(email);
+  };
+
+  return (
+    <div className="max-w-md mx-auto mt-12 bg-white p-8 rounded-xl shadow-lg border">
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+          <FaCheckCircle className="text-green-600 text-3xl" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-800">計算が完了しました</h2>
+        <p className="text-sm text-gray-500 mt-2">
+          結果を表示するにはメールアドレスをご入力ください。省エネ計算に役立つ情報もお届けします。
+        </p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <input
+          type="email"
+          value={email}
+          onChange={e => { setEmail(e.target.value); setErr(''); }}
+          placeholder="example@company.co.jp"
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          required
+        />
+        <input
+          type="text"
+          value={company}
+          onChange={e => setCompany(e.target.value)}
+          placeholder="会社名（任意）"
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+        {err && <p className="text-red-500 text-xs">{err}</p>}
+        <button
+          type="submit"
+          disabled={sending}
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold text-sm disabled:opacity-50"
+        >
+          {sending ? '送信中...' : '結果を表示する'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export default function Result() {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [downloadingExcel, setDownloadingExcel] = useState(false);
+  const [emailCaptured, setEmailCaptured] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !!localStorage.getItem(LEAD_CAPTURE_KEY);
+    }
+    return false;
+  });
   const router = useRouter();
   const { id } = router.query;
 
@@ -137,6 +210,15 @@ export default function Result() {
             </Link>
           </div>
         </div>
+      </CalculatorLayout>
+    );
+  }
+
+  // メアド未取得ならゲート表示
+  if (!emailCaptured) {
+    return (
+      <CalculatorLayout>
+        <EmailCaptureGate onComplete={() => setEmailCaptured(true)} />
       </CalculatorLayout>
     );
   }

@@ -14,21 +14,21 @@ A comprehensive FastAPI service for energy calculations, BEI (Building Energy In
 ### Health Check
 - `GET /healthz` - Service health check
 
-### Energy Calculations (`/v1/calc/`)
-- `POST /v1/calc/power` - Calculate power from voltage, current, and power factor
-- `POST /v1/calc/energy` - Calculate energy consumption from power and time  
-- `POST /v1/calc/cost` - Calculate cost from energy consumption and tariff
-- `POST /v1/calc/device-usage` - Aggregate energy usage from multiple devices
+### Energy Calculations (`/api/v1/calc/`)
+- `POST /api/v1/calc/power` - Calculate power from voltage, current, and power factor
+- `POST /api/v1/calc/energy` - Calculate energy consumption from power and time  
+- `POST /api/v1/calc/cost` - Calculate cost from energy consumption and tariff
+- `POST /api/v1/calc/device-usage` - Aggregate energy usage from multiple devices
 
-### Tariff Quoting (`/v1/tariffs/`)
-- `POST /v1/tariffs/quote` - Generate detailed bill quote based on tariff structure
+### Tariff Quoting (`/api/v1/tariffs/`)
+- `POST /api/v1/tariffs/quote` - Generate detailed bill quote based on tariff structure
 
-### BEI Evaluation (`/v1/bei/`)
-- `POST /v1/bei/evaluate` - Evaluate Building Energy Index
-- `GET /v1/bei/catalog/uses` - List available building use types
-- `GET /v1/bei/catalog/uses/{use}/zones` - List climate zones for a use type
-- `GET /v1/bei/catalog/uses/{use}/zones/{zone}` - Get standard intensity data
-- `POST /v1/bei/catalog/validate` - Validate catalog consistency
+### BEI Evaluation (`/api/v1/bei/`)
+- `POST /api/v1/bei/evaluate` - Evaluate Building Energy Index
+- `GET /api/v1/bei/catalog/uses` - List available building use types
+- `GET /api/v1/bei/catalog/uses/{use}/zones` - List climate zones for a use type
+- `GET /api/v1/bei/catalog/uses/{use}/zones/{zone}` - Get standard intensity data
+- `POST /api/v1/bei/catalog/validate` - Validate catalog consistency
 
 ## Installation
 
@@ -144,21 +144,24 @@ uvicorn app.main:app --reload --port 8000
 
 Run tests:
 ```bash
-pytest
+PYTHONPATH=. pytest
 ```
 
 Run tests with coverage:
 ```bash
-pytest --cov=app tests/
+PYTHONPATH=. pytest --cov=app tests/
 ```
 
 ## Configuration
 
 Environment variables (`.env` file):
-- `APP_NAME`: Application name
+- `ENV`: deployment environment
+- `SECRET_KEY`: JWT signing key
+- `DATABASE_URL`: PostgreSQL connection string
 - `CORS_ORIGINS`: Comma-separated list of allowed origins
 - `DEFAULT_TARIFF_PER_KWH`: Default electricity tariff rate
 
+You can copy `.env.example` to `.env` and adjust the values as needed.
 ## Key Features
 
 ### Tariff System
