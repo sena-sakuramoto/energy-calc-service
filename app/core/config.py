@@ -33,6 +33,8 @@ class Settings(BaseSettings):
         "http://localhost:8000",
         "https://rakuraku-energy.archi-prisma.co.jp",
         "https://sena-sakuramoto.github.io",
+        "https://energy-calc-service.vercel.app",
+        "https://energy-calc-service-*.vercel.app",
     ]
 
     model_config = SettingsConfigDict(
