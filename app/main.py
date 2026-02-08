@@ -49,7 +49,7 @@ app.include_router(management_router, prefix=settings.API_PREFIX)
 
 @app.get("/", tags=["Root"], summary="Root status")
 async def read_root() -> dict[str, str]:
-    return {"message": f"Welcome to {settings.APP_NAME} API"}
+    return {"message": f"Welcome to {settings.APP_NAME}"}
 
 
 @app.get("/healthz", tags=["Health"], summary="Service health")

@@ -10,7 +10,7 @@ class UserBase(BaseModel):
     """
     email: Optional[EmailStr] = None
     is_active: Optional[bool] = True
-    full_name: Optional[str] = None
+    username: Optional[str] = None
 
 class UserCreate(UserBase):
     """

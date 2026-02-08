@@ -9,7 +9,7 @@ class Settings(BaseSettings):
 
     # Core application metadata
     PROJECT_NAME: str = "Energy Calculation Service"
-    APP_NAME: str = "Energy Calculation API"
+    APP_NAME: str = "Energy Calculation Service"
     ENV: str = "development"
 
     # API behaviour
