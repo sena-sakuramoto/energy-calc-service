@@ -64,8 +64,8 @@ export default function FirebaseUserManagement() {
     return (
       <Layout>
         <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">認証が必要です</h1>
-          <p className="text-gray-600">この機能を利用するにはログインが必要です。</p>
+          <h1 className="text-2xl font-bold text-primary-900 mb-4">認証が必要です</h1>
+          <p className="text-primary-600">この機能を利用するにはログインが必要です。</p>
         </div>
       </Layout>
     );
@@ -75,8 +75,8 @@ export default function FirebaseUserManagement() {
     return (
       <Layout>
         <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">アクセス権限がありません</h1>
-          <p className="text-gray-600">この機能は管理者のみ利用できます。</p>
+          <h1 className="text-2xl font-bold text-primary-900 mb-4">アクセス権限がありません</h1>
+          <p className="text-primary-600">この機能は管理者のみ利用できます。</p>
         </div>
       </Layout>
     );
@@ -100,13 +100,13 @@ export default function FirebaseUserManagement() {
       <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
-            <FaUsers className="text-blue-600 mr-3 text-2xl" />
-            <h1 className="text-3xl font-bold text-gray-900">Firebase ユーザー管理</h1>
+            <FaUsers className="text-accent-600 mr-3 text-2xl" />
+            <h1 className="text-3xl font-bold text-primary-900">Firebase ユーザー管理</h1>
           </div>
           <button
             onClick={loadUsers}
             disabled={loading}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+            className="flex items-center px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:bg-primary-400"
           >
             <FaSync className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
             更新
@@ -114,16 +114,16 @@ export default function FirebaseUserManagement() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-blue-50 p-6 rounded-lg">
+          <div className="bg-warm-50 p-6 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-600 font-medium">総ユーザー数</p>
-                <p className="text-3xl font-bold text-blue-700">{users.length}</p>
+                <p className="text-primary-600 font-medium">総ユーザー数</p>
+                <p className="text-3xl font-bold text-primary-700">{users.length}</p>
               </div>
-              <FaUsers className="text-4xl text-blue-400" />
+              <FaUsers className="text-4xl text-primary-400" />
             </div>
           </div>
-          
+
           <div className="bg-green-50 p-6 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
@@ -133,7 +133,7 @@ export default function FirebaseUserManagement() {
               <FaUserCheck className="text-4xl text-green-400" />
             </div>
           </div>
-          
+
           <div className="bg-red-50 p-6 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
@@ -147,58 +147,58 @@ export default function FirebaseUserManagement() {
 
         <div className="overflow-x-auto">
           <table className="min-w-full table-auto">
-            <thead className="bg-gray-50">
+            <thead className="bg-warm-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">
                   ユーザー情報
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">
                   認証方式
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">
                   登録日・最終ログイン
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">
                   ステータス
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">
                   操作
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-primary-200">
               {users.map((userData) => (
-                <tr key={userData.id} className="hover:bg-gray-50">
+                <tr key={userData.id} className="hover:bg-warm-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       {userData.photoURL && (
-                        <img 
-                          className="h-8 w-8 rounded-full mr-3" 
-                          src={userData.photoURL} 
-                          alt="Profile" 
+                        <img
+                          className="h-8 w-8 rounded-full mr-3"
+                          src={userData.photoURL}
+                          alt="Profile"
                         />
                       )}
                       <div>
-                        <div className="text-sm font-medium text-gray-900 flex items-center">
+                        <div className="text-sm font-medium text-primary-900 flex items-center">
                           {userData.displayName || userData.full_name || '名前未設定'}
                           {userData.isAdmin && (
-                            <span className="ml-2 px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full">
+                            <span className="ml-2 px-2 py-1 text-xs bg-primary-100 text-primary-800 rounded-full">
                               管理者
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-500">{userData.email}</div>
+                        <div className="text-sm text-primary-500">{userData.email}</div>
                         {userData.company && (
-                          <div className="text-xs text-gray-400">{userData.company}</div>
+                          <div className="text-xs text-primary-400">{userData.company}</div>
                         )}
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
-                      userData.authType === 'google' 
-                        ? 'bg-red-100 text-red-800' 
-                        : 'bg-blue-100 text-blue-800'
+                      userData.authType === 'google'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-primary-100 text-primary-800'
                     }`}>
                       {userData.authType === 'google' ? (
                         <><FaGoogle className="mr-1" /> Google</>
@@ -207,7 +207,7 @@ export default function FirebaseUserManagement() {
                       )}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-primary-500">
                     <div>
                       <div>登録: {userData.createdAt ? userData.createdAt.toLocaleDateString('ja-JP') : '不明'}</div>
                       <div className="text-xs">
@@ -218,7 +218,7 @@ export default function FirebaseUserManagement() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       userData.isActive !== false
-                        ? 'bg-green-100 text-green-800' 
+                        ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
                       {userData.isActive !== false ? 'アクティブ' : '無効'}
@@ -231,7 +231,7 @@ export default function FirebaseUserManagement() {
                         disabled={actionLoading[userData.id]}
                         className={`flex items-center px-3 py-1 rounded text-xs disabled:opacity-50 ${
                           userData.isActive !== false
-                            ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                            ? 'bg-accent-100 text-accent-700 hover:bg-accent-200'
                             : 'bg-green-100 text-green-700 hover:bg-green-200'
                         }`}
                       >
@@ -262,13 +262,13 @@ export default function FirebaseUserManagement() {
 
         {users.length === 0 && (
           <div className="text-center py-8">
-            <p className="text-gray-500">登録されたユーザーがありません</p>
+            <p className="text-primary-500">登録されたユーザーがありません</p>
           </div>
         )}
 
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <h3 className="font-medium text-blue-800 mb-2">📊 Firebase統合完了</h3>
-          <p className="text-sm text-blue-700">
+        <div className="mt-6 p-4 bg-warm-50 rounded-lg">
+          <h3 className="font-medium text-primary-800 mb-2">Firebase統合完了</h3>
+          <p className="text-sm text-primary-700">
             この管理画面はFirestore Databaseからリアルタイムでユーザーデータを取得します。
             全デバイス・ブラウザでの登録ユーザーが一元管理されています。
           </p>

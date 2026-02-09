@@ -1,4 +1,4 @@
-﻿// frontend/src/pages/projects/[id]/result.jsx
+// frontend/src/pages/projects/[id]/result.jsx
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import CalculatorLayout from '../../../components/CalculatorLayout';
@@ -42,11 +42,11 @@ function EmailCaptureGate({ onComplete }) {
   return (
     <div className="max-w-md mx-auto mt-12 bg-white p-8 rounded-xl shadow-lg border">
       <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-          <FaCheckCircle className="text-green-600 text-3xl" />
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-accent-50 rounded-full mb-4">
+          <FaCheckCircle className="text-accent-500 text-3xl" />
         </div>
-        <h2 className="text-xl font-bold text-gray-800">計算が完了しました</h2>
-        <p className="text-sm text-gray-500 mt-2">
+        <h2 className="text-xl font-bold text-primary-800">計算が完了しました</h2>
+        <p className="text-sm text-primary-500 mt-2">
           結果を表示するにはメールアドレスをご入力ください。省エネ計算に役立つ情報もお届けします。
         </p>
       </div>
@@ -56,7 +56,7 @@ function EmailCaptureGate({ onComplete }) {
           value={email}
           onChange={e => { setEmail(e.target.value); setErr(''); }}
           placeholder="example@company.co.jp"
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full border border-primary-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-400"
           required
         />
         <input
@@ -64,13 +64,13 @@ function EmailCaptureGate({ onComplete }) {
           value={company}
           onChange={e => setCompany(e.target.value)}
           placeholder="会社名（任意）"
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full border border-primary-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-400"
         />
         {err && <p className="text-red-500 text-xs">{err}</p>}
         <button
           type="submit"
           disabled={sending}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold text-sm disabled:opacity-50"
+          className="w-full bg-accent-500 hover:bg-accent-600 text-white py-3 rounded-lg font-bold text-sm disabled:opacity-50"
         >
           {sending ? '送信中...' : '結果を表示する'}
         </button>
@@ -112,11 +112,11 @@ export default function Result() {
         }
         return;
       }
-      
+
       // API環境での取得
       const response = await projectsAPI.getById(projectId);
       setProject(response.data);
-      
+
       // 計算結果がない場合は計算ページにリダイレクト
       if (!response.data.result_data) {
         router.push(`/projects/${projectId}/calculate`);
@@ -143,7 +143,7 @@ export default function Result() {
     try {
       setDownloadingPDF(true);
       const response = await reportAPI.getPDF(id);
-      
+
       // Blobとしてダウンロード
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
@@ -166,7 +166,7 @@ export default function Result() {
     try {
       setDownloadingOfficialReport(true);
       const response = await reportAPI.getExcel(id); // Still calls getExcel which hits the /excel endpoint
-      
+
       // Blobとしてダウンロード (PDF用に変更)
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
@@ -285,21 +285,21 @@ export default function Result() {
         <div className="flex space-x-2 mt-2 sm:mt-0">
           <Link
             href="/projects"
-            className="bg-gray-200 hover:bg-gray-300 py-2 px-3 rounded-md flex items-center"
+            className="bg-primary-200 hover:bg-primary-300 py-2 px-3 rounded-md flex items-center"
           >
             <FaHome className="mr-1" /> 一覧へ
           </Link>
           <button
             onClick={handleDownloadPDF}
             disabled={downloadingPDF}
-            className="bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded-md flex items-center"
+            className="bg-accent-500 hover:bg-accent-600 text-white py-2 px-3 rounded-md flex items-center"
           >
             <FaFileDownload className="mr-1" /> {downloadingPDF ? 'ダウンロード中...' : 'PDF出力'}
           </button>
           <button
             onClick={handleDownloadExcel}
             disabled={downloadingExcel}
-            className="bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-md flex items-center"
+            className="bg-primary-700 hover:bg-primary-800 text-white py-2 px-3 rounded-md flex items-center"
           >
             <FaFileExcel className="mr-1" /> {downloadingExcel ? 'ダウンロード中...' : 'Excel出力'}
           </button>
@@ -314,15 +314,15 @@ export default function Result() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 総合判定 */}
-        <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
+        <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-accent-500">
           <h2 className="text-xl font-bold mb-4 flex items-center">
-            <div className="bg-green-100 p-2 rounded-full mr-3">
-              <FaCheckCircle className="text-green-600" />
+            <div className="bg-accent-50 p-2 rounded-full mr-3">
+              <FaCheckCircle className="text-accent-500" />
             </div>
             総合判定結果
           </h2>
           <div className={`text-center p-6 rounded-lg shadow-inner ${
-            result.overall_compliance ? 'bg-gradient-to-br from-green-50 to-green-100 text-green-800 border-2 border-green-200' : 'bg-gradient-to-br from-red-50 to-red-100 text-red-800 border-2 border-red-200'
+            result.overall_compliance ? 'bg-green-50 text-green-800 border-2 border-green-200' : 'bg-red-50 text-red-800 border-2 border-red-200'
           }`}>
             <div className="text-4xl font-bold mb-3">
               {result.overall_compliance ? (
@@ -350,15 +350,15 @@ export default function Result() {
         </div>
 
         {/* エネルギー消費内訳 */}
-        <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
+        <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-primary-500">
           <h2 className="text-xl font-bold mb-4 flex items-center">
-            <div className="bg-blue-100 p-2 rounded-full mr-3">
-              <FaChartPie className="text-blue-600" />
+            <div className="bg-primary-100 p-2 rounded-full mr-3">
+              <FaChartPie className="text-primary-600" />
             </div>
             エネルギー消費内訳
           </h2>
           <div className="h-64 mb-4">
-            <Pie data={energyByUseData} options={{ 
+            <Pie data={energyByUseData} options={{
               maintainAspectRatio: false,
               plugins: {
                 legend: {
@@ -381,7 +381,7 @@ export default function Result() {
             }} />
           </div>
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-primary-600">
               総エネルギー消費量: {result.primary_energy_result.total_energy_consumption.toFixed(1)} GJ/年
             </p>
           </div>
@@ -390,14 +390,14 @@ export default function Result() {
         {/* 詳細データテーブル */}
         <div className="bg-white p-6 rounded-lg shadow-md lg:col-span-2">
           <h2 className="text-xl font-bold mb-4">詳細データ</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 外皮性能 */}
             <div>
               <h3 className="text-lg font-semibold mb-2">外皮性能</h3>
               <div className="overflow-x-auto">
                 <table className="min-w-full border">
-                  <thead className="bg-gray-100">
+                  <thead className="bg-warm-100">
                     <tr>
                       <th className="py-2 px-3 border text-left">項目</th>
                       <th className="py-2 px-3 border text-left">設計値</th>
@@ -407,9 +407,9 @@ export default function Result() {
                   </thead>
                   <tbody>
                     <tr>
-                      <td className="py-2 px-3 border">UA値 (W/m²K)</td>
+                      <td className="py-2 px-3 border">UA値 (W/m2K)</td>
                       <td className="py-2 px-3 border">{result.envelope_result.ua_value.toFixed(2)}</td>
-                      <td className="py-2 px-3 border">{result.envelope_result.ua_value < 0.6 ? '0.60' : '-'}</td> {/* 仮の基準値 */} 
+                      <td className="py-2 px-3 border">{result.envelope_result.ua_value < 0.6 ? '0.60' : '-'}</td>
                       <td className={`py-2 px-3 border ${
                         result.envelope_result.is_ua_compliant
                           ? 'text-green-600'
@@ -421,7 +421,7 @@ export default function Result() {
                     <tr>
                       <td className="py-2 px-3 border">ηA値</td>
                       <td className="py-2 px-3 border">{result.envelope_result.eta_a_value.toFixed(2)}</td>
-                      <td className="py-2 px-3 border">{result.envelope_result.eta_a_value < 2.8 ? '2.80' : '-'}</td> {/* 仮の基準値 */} 
+                      <td className="py-2 px-3 border">{result.envelope_result.eta_a_value < 2.8 ? '2.80' : '-'}</td>
                       <td className={`py-2 px-3 border ${
                         result.envelope_result.is_eta_a_compliant
                           ? 'text-green-600'
@@ -434,13 +434,13 @@ export default function Result() {
                 </table>
               </div>
             </div>
-            
+
             {/* エネルギー性能 */}
             <div>
               <h3 className="text-lg font-semibold mb-2">一次エネルギー性能</h3>
               <div className="overflow-x-auto">
                 <table className="min-w-full border">
-                  <thead className="bg-gray-100">
+                  <thead className="bg-warm-100">
                     <tr>
                       <th className="py-2 px-3 border text-left">項目</th>
                       <th className="py-2 px-3 border text-left">設計値</th>
@@ -467,7 +467,7 @@ export default function Result() {
               </div>
             </div>
           </div>
-          
+
           {/* 設計値と基準値の比較（棒グラフ） */}
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-2">エネルギー消費量比較</h3>
@@ -485,13 +485,13 @@ export default function Result() {
               />
             </div>
           </div>
-          
+
           {/* 用途別消費量 */}
           <div className="mt-8">
             <h3 className="text-lg font-semibold mb-2">用途別消費量詳細</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full border">
-                <thead className="bg-gray-100">
+                <thead className="bg-warm-100">
                   <tr>
                     <th className="py-2 px-3 border text-left">用途</th>
                     <th className="py-2 px-3 border text-left">設計値 (GJ/年)</th>

@@ -16,7 +16,7 @@ export default function SEOHead({
       <meta name="keywords" content={keywords} />
       <meta name="author" content="Archi-Prisma Design works 株式会社" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      
+
       {/* Open Graph / Facebook */}
       <meta property="og:type" content="website" />
       <meta property="og:url" content={url} />
@@ -41,7 +41,7 @@ export default function SEOHead({
       {/* アプリアイコン */}
       <link rel="icon" href="/favicon.ico" />
       <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-      
+
       {/* JSON-LD 構造化データ */}
       <script
         type="application/ld+json"

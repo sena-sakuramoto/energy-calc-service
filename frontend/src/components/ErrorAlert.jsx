@@ -2,13 +2,13 @@
 import { useState, useEffect } from 'react';
 import { FaExclamationTriangle, FaTimes, FaCheckCircle, FaInfoCircle } from 'react-icons/fa';
 
-const ErrorAlert = ({ 
-  type = 'error', 
-  message, 
-  onClose, 
-  autoClose = true, 
+const ErrorAlert = ({
+  type = 'error',
+  message,
+  onClose,
+  autoClose = true,
   duration = 5000,
-  className = '' 
+  className = ''
 }) => {
   const [visible, setVisible] = useState(true);
 
@@ -38,15 +38,15 @@ const ErrorAlert = ({
       icon: FaCheckCircle
     },
     warning: {
-      bgColor: 'bg-yellow-50 border-yellow-200',
-      textColor: 'text-yellow-800',
-      iconColor: 'text-yellow-400',
+      bgColor: 'bg-accent-50 border-accent-200',
+      textColor: 'text-accent-800',
+      iconColor: 'text-accent-400',
       icon: FaExclamationTriangle
     },
     info: {
-      bgColor: 'bg-blue-50 border-blue-200',
-      textColor: 'text-blue-800',
-      iconColor: 'text-blue-400',
+      bgColor: 'bg-warm-50 border-primary-200',
+      textColor: 'text-primary-800',
+      iconColor: 'text-primary-400',
       icon: FaInfoCircle
     }
   };
@@ -74,7 +74,7 @@ const ErrorAlert = ({
           <div className="-mx-1.5 -my-1.5">
             <button
               type="button"
-              className={`inline-flex rounded-md p-1.5 ${config.textColor} hover:bg-opacity-20 hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2`}
+              className={`inline-flex rounded-md p-1.5 ${config.textColor} hover:bg-opacity-20 hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2`}
               onClick={handleClose}
             >
               <span className="sr-only">閉じる</span>
@@ -120,9 +120,9 @@ export const NotificationProvider = ({ children }) => {
   const showInfo = (message) => addNotification({ type: 'info', message });
 
   return (
-    <NotificationContext.Provider value={{ 
-      notifications, 
-      addNotification, 
+    <NotificationContext.Provider value={{
+      notifications,
+      addNotification,
       removeNotification,
       showError,
       showSuccess,

@@ -75,7 +75,7 @@ const NewProject = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-warm-50">
         <div className="text-center">
           <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
           <p>認証確認中...</p>
@@ -90,21 +90,21 @@ const NewProject = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-warm-50 py-8">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-primary-900 mb-2">
               新規プロジェクト作成
             </h1>
-            <p className="text-gray-600">
+            <p className="text-primary-600">
               省エネ法計算の新しいプロジェクトを作成します
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="name" className="block text-sm font-medium text-primary-700 mb-2">
                 プロジェクト名 <span className="text-red-500">*</span>
               </label>
               <input
@@ -115,12 +115,12 @@ const NewProject = () => {
                 onChange={handleChange}
                 required
                 placeholder="例: オフィスビル A棟 省エネ計算"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400 focus:border-accent-400 transition-colors"
               />
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="description" className="block text-sm font-medium text-primary-700 mb-2">
                 プロジェクト説明
               </label>
               <textarea
@@ -130,7 +130,7 @@ const NewProject = () => {
                 onChange={handleChange}
                 rows="4"
                 placeholder="プロジェクトの詳細説明を入力してください（任意）"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
+                className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400 focus:border-accent-400 transition-colors resize-vertical"
               />
             </div>
 
@@ -138,7 +138,7 @@ const NewProject = () => {
               <button
                 type="button"
                 onClick={() => router.push('/projects')}
-                className="flex-1 bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                className="flex-1 bg-primary-700 text-white py-3 px-6 rounded-lg hover:bg-primary-800 transition-colors font-medium"
                 disabled={loading}
               >
                 キャンセル
@@ -147,7 +147,7 @@ const NewProject = () => {
               <button
                 type="submit"
                 disabled={loading || !formData.name.trim()}
-                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center"
+                className="flex-1 bg-accent-500 text-white py-3 px-6 rounded-lg hover:bg-accent-600 disabled:bg-primary-400 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center"
               >
                 {loading ? (
                   <>

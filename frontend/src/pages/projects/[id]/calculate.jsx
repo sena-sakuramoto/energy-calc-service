@@ -233,18 +233,18 @@ export default function Calculate() {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">建築物省エネ法計算</h1>
-            <p className="text-lg text-gray-600 mt-1">{project?.projectInfo?.name || project?.name}</p>
-            <div className="flex items-center mt-2 text-sm text-gray-500">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <h1 className="text-3xl font-bold text-primary-900">建築物省エネ法計算</h1>
+            <p className="text-lg text-primary-600 mt-1">{project?.projectInfo?.name || project?.name}</p>
+            <div className="flex items-center mt-2 text-sm text-primary-500">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-50 text-accent-700">
                 モデル建物法
               </span>
               <span className="ml-2">国土交通省告示準拠</span>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-sm text-gray-500">最終更新</div>
-            <div className="text-sm text-gray-900">
+            <div className="text-sm text-primary-500">最終更新</div>
+            <div className="text-sm text-primary-900">
               {new Date().toLocaleDateString('ja-JP')}
             </div>
           </div>
@@ -268,21 +268,21 @@ export default function Calculate() {
             <div className="flex border-b">
               <button
                 type="button"
-                className={`py-3 px-6 ${activeTab === 'building' ? 'bg-primary text-white' : 'bg-gray-100'}`}
+                className={`py-3 px-6 ${activeTab === 'building' ? 'bg-primary text-white' : 'bg-warm-100'}`}
                 onClick={() => setActiveTab('building')}
               >
                 1. 建物情報
               </button>
               <button
                 type="button"
-                className={`py-3 px-6 ${activeTab === 'envelope' ? 'bg-primary text-white' : 'bg-gray-100'}`}
+                className={`py-3 px-6 ${activeTab === 'envelope' ? 'bg-primary text-white' : 'bg-warm-100'}`}
                 onClick={() => setActiveTab('envelope')}
               >
                 2. 外皮情報
               </button>
               <button
                 type="button"
-                className={`py-3 px-6 ${activeTab === 'systems' ? 'bg-primary text-white' : 'bg-gray-100'}`}
+                className={`py-3 px-6 ${activeTab === 'systems' ? 'bg-primary text-white' : 'bg-warm-100'}`}
                 onClick={() => setActiveTab('systems')}
               >
                 3. 設備情報
@@ -303,7 +303,7 @@ export default function Calculate() {
                       <Field
                         as="select"
                         name="building.building_type"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-primary-300 rounded-md focus:ring-accent-400 focus:border-accent-400"
                       >
                         <option value="">-- 建物用途を選択してください --</option>
                         <optgroup label="住宅系">
@@ -358,7 +358,7 @@ export default function Calculate() {
                       <Field
                         as="select"
                         name="building.climate_zone"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-primary-300 rounded-md focus:ring-accent-400 focus:border-accent-400"
                       >
                         <option value="">-- 地域区分を選択してください --</option>
                         <option value={1}>1地域（旭川、帯広等）- 極寒冷地</option>
@@ -429,7 +429,7 @@ export default function Calculate() {
                       <div>
                         <div className="overflow-x-auto">
                           <table className="min-w-full mb-4">
-                            <thead className="bg-gray-100">
+                            <thead className="bg-warm-100">
                               <tr>
                                 <th className="py-2 px-3 text-left">部位名</th>
                                 <th className="py-2 px-3 text-left">部位種別</th>
@@ -531,7 +531,7 @@ name={`envelope.parts.${index}.area`}
                         
                         <button
                           type="button"
-                          className="bg-gray-200 hover:bg-gray-300 py-2 px-4 rounded-md mb-4"
+                          className="bg-primary-200 hover:bg-primary-300 py-2 px-4 rounded-md mb-4"
                           onClick={() => push({
                             part_name: '',
                             part_type: '壁',
@@ -548,7 +548,7 @@ name={`envelope.parts.${index}.area`}
                   <div className="mt-6 flex justify-between">
                     <button
                       type="button"
-                      className="bg-gray-200 hover:bg-gray-300 py-2 px-6 rounded-md"
+                      className="bg-primary-200 hover:bg-primary-300 py-2 px-6 rounded-md"
                       onClick={() => setActiveTab('building')}
                     >
                       戻る
@@ -907,7 +907,7 @@ name={`envelope.parts.${index}.area`}
                   <div className="mt-6 flex justify-between">
                     <button
                       type="button"
-                      className="bg-gray-200 hover:bg-gray-300 py-2 px-6 rounded-md"
+                      className="bg-primary-200 hover:bg-primary-300 py-2 px-6 rounded-md"
                       onClick={() => setActiveTab('envelope')}
                     >
                       戻る

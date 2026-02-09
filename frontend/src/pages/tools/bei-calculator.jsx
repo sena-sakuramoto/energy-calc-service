@@ -155,7 +155,7 @@ export default function BEICalculator() {
   const applySampleData = (sampleKey) => {
     const sample = sampleData[sampleKey];
     if (!sample) return;
-    
+
     setProjectInfo({
       name: sample.name,
       buildingOwner: '（サンプル）株式会社○○',
@@ -164,7 +164,7 @@ export default function BEICalculator() {
       location: '（サンプル）東京都内',
       description: sample.description
     });
-    
+
     setFormData(sample.formData);
     setCurrentStep(1);
     setResult(null);
@@ -189,7 +189,7 @@ export default function BEICalculator() {
   // バリデーション関数
   const validateStep1 = () => {
     const errors = {};
-    
+
     if (formData.is_mixed_use) {
       // 複合用途の場合
       if (!formData.climate_zone) {
@@ -198,7 +198,7 @@ export default function BEICalculator() {
       if (!formData.floor_area || parseFloat(formData.floor_area) <= 0) {
         errors.floor_area = '延床面積を正しく入力してください（正の数値）';
       }
-      
+
       // 複合用途の検証
       formData.mixed_uses.forEach((use, index) => {
         if (!use.use_type) {
@@ -208,7 +208,7 @@ export default function BEICalculator() {
           errors[`mixed_use_${index}_area`] = `面積${index + 1}を正しく入力してください`;
         }
       });
-      
+
       // 面積の合計チェック
       const totalArea = formData.mixed_uses.reduce((sum, use) => sum + (parseFloat(use.area_m2) || 0), 0);
       const buildingArea = parseFloat(formData.floor_area) || 0;
@@ -227,24 +227,24 @@ export default function BEICalculator() {
         errors.floor_area = '延床面積を正しく入力してください（正の数値）';
       }
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const validateStep2 = () => {
     const errors = {};
-    
+
     // UA値の検証（住宅・非住宅共通）
     if (formData.envelope_performance.ua_value && parseFloat(formData.envelope_performance.ua_value) <= 0) {
       errors.ua_value = 'UA値は正の数値を入力してください';
     }
-    
+
     // ηAC値の検証（住宅のみ）
     if (formData.building_type === 'residential_collective' && formData.envelope_performance.eta_ac_value && parseFloat(formData.envelope_performance.eta_ac_value) <= 0) {
       errors.eta_ac_value = 'ηAC値は正の数値を入力してください';
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -252,13 +252,13 @@ export default function BEICalculator() {
   const validateStep3 = () => {
     const errors = {};
     const requiredFields = ['heating', 'cooling', 'ventilation', 'hot_water', 'lighting', 'elevator'];
-    
+
     requiredFields.forEach(field => {
       if (!formData.design_energy[field] || parseFloat(formData.design_energy[field]) < 0) {
         errors[field] = `${getEnergyFieldLabel(field)}の値を正しく入力してください`;
       }
     });
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -316,7 +316,7 @@ export default function BEICalculator() {
       }
 
       const response = await beiAPI.evaluate(apiData);
-      
+
       // APIレスポンスをそのまま使用（data フィールドから取得）
       const calculationResult = response.data || response;
       setResult(calculationResult);
@@ -416,13 +416,13 @@ export default function BEICalculator() {
 
   const copyResults = () => {
     if (!result) return;
-    
+
     const text = `BEI計算結果\n\n` +
           `BEI値: ${formatBEI(result.bei)}\n` +
       `適合判定: ${result.is_compliant ? '適合' : '不適合'}\n` +
       `設計一次エネルギー: ${result.design_primary_energy_mj?.toLocaleString()} MJ/年\n` +
       `基準一次エネルギー: ${result.standard_primary_energy_mj?.toLocaleString()} MJ/年`;
-    
+
     navigator.clipboard.writeText(text);
   };
 
@@ -475,7 +475,7 @@ export default function BEICalculator() {
   const getUAValueStandard = (climateZone) => {
     const standards = {
       1: '0.46',
-      2: '0.46', 
+      2: '0.46',
       3: '0.56',
       4: '0.75',
       5: '0.87',
@@ -490,7 +490,7 @@ export default function BEICalculator() {
   const getEtaACValueStandard = (climateZone) => {
     const standards = {
       1: '4.6',
-      2: '4.6', 
+      2: '4.6',
       3: '3.5',
       4: '3.2',
       5: '3.2',
@@ -503,7 +503,7 @@ export default function BEICalculator() {
 
   const downloadResults = () => {
     if (!result) return;
-    
+
     const data = {
       calculation_date: new Date().toISOString(),
       building_info: {
@@ -525,7 +525,7 @@ export default function BEICalculator() {
         'モデル建物法による標準入力法（平成28年国土交通省告示第265号）'
       ]
     };
-    
+
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -559,26 +559,26 @@ export default function BEICalculator() {
         />
 
         {/* 初心者向けガイダンス */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
+        <div className="bg-warm-50 border border-primary-200 rounded-xl p-6 mb-8">
           <div className="flex items-start space-x-3">
-            <div className="bg-blue-100 rounded-full p-2">
-              <FaLightbulb className="text-blue-600 text-lg" />
+            <div className="bg-primary-100 rounded-full p-2">
+              <FaLightbulb className="text-primary-700 text-lg" />
             </div>
             <div>
-              <h3 className="font-semibold text-blue-900 mb-2">🔰 初めての方へ - BEI計算とは？</h3>
-              <div className="text-sm text-blue-800 space-y-2">
+              <h3 className="font-semibold text-primary-800 mb-2">初めての方へ - BEI計算とは？</h3>
+              <div className="text-sm text-primary-700 space-y-2">
                 <p>
                   <strong>BEI（Building Energy Index）</strong>は、建築物省エネ法で定められた「建物の省エネ性能を表す指標」です。
                 </p>
                 <div className="bg-white bg-opacity-50 rounded-lg p-3 space-y-1">
-                  <p><strong>✅ BEI ≤ 1.0</strong> → 省エネ基準適合（OK）</p>
-                  <p><strong>❌ BEI &gt; 1.0</strong> → 省エネ基準不適合（要改善）</p>
+                  <p><strong>BEI &le; 1.0</strong> → 省エネ基準適合（OK）</p>
+                  <p><strong>BEI &gt; 1.0</strong> → 省エネ基準不適合（要改善）</p>
                 </div>
                 <p>
-                  <strong>🏢 こんな工事で必要：</strong>エレベーター設置・更新、照明更新、空調更新、給湯設備更新など
+                  <strong>こんな工事で必要：</strong>エレベーター設置・更新、照明更新、空調更新、給湯設備更新など
                 </p>
                 <p>
-                  <strong>📝 必要な情報：</strong>建物用途、地域、面積、年間エネルギー消費量（設計値）
+                  <strong>必要な情報：</strong>建物用途、地域、面積、年間エネルギー消費量（設計値）
                 </p>
               </div>
             </div>
@@ -586,38 +586,38 @@ export default function BEICalculator() {
         </div>
         {/* サンプルデータ選択 */}
         <div className="mb-8">
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+          <div className="bg-warm-50 border border-primary-200 rounded-lg p-6">
             <div className="flex items-center space-x-2 mb-4">
-              <FaLightbulb className="text-green-600 text-lg" />
-              <h3 className="font-semibold text-green-800">サンプルデータで試してみる</h3>
+              <FaLightbulb className="text-accent-500 text-lg" />
+              <h3 className="font-semibold text-primary-800">サンプルデータで試してみる</h3>
             </div>
-            <p className="text-sm text-green-700 mb-4">
+            <p className="text-sm text-primary-600 mb-4">
               実際の建築事例を参考にしたサンプルデータを使って、すぐに計算結果を確認できます。
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <button
                 onClick={() => applySampleData('office_small')}
-                className="text-left p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                className="text-left p-4 bg-white border border-primary-200 rounded-lg hover:border-accent-300 hover:shadow-md transition-all duration-200"
               >
-                <div className="font-medium text-gray-900 mb-1">小規模事務所ビル</div>
-                <div className="text-xs text-gray-600 mb-2">延床面積: 1,200m² / 地域区分: 6</div>
-                <div className="text-xs text-blue-600">ZEB Ready仕様</div>
+                <div className="font-medium text-primary-900 mb-1">小規模事務所ビル</div>
+                <div className="text-xs text-primary-500 mb-2">延床面積: 1,200m² / 地域区分: 6</div>
+                <div className="text-xs text-accent-500">ZEB Ready仕様</div>
               </button>
               <button
                 onClick={() => applySampleData('hotel_medium')}
-                className="text-left p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                className="text-left p-4 bg-white border border-primary-200 rounded-lg hover:border-accent-300 hover:shadow-md transition-all duration-200"
               >
-                <div className="font-medium text-gray-900 mb-1">中規模ホテル</div>
-                <div className="text-xs text-gray-600 mb-2">延床面積: 3,500m² / 地域区分: 5</div>
-                <div className="text-xs text-blue-600">高効率設備導入</div>
+                <div className="font-medium text-primary-900 mb-1">中規模ホテル</div>
+                <div className="text-xs text-primary-500 mb-2">延床面積: 3,500m² / 地域区分: 5</div>
+                <div className="text-xs text-accent-500">高効率設備導入</div>
               </button>
               <button
                 onClick={() => applySampleData('mixed_complex')}
-                className="text-left p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                className="text-left p-4 bg-white border border-primary-200 rounded-lg hover:border-accent-300 hover:shadow-md transition-all duration-200"
               >
-                <div className="font-medium text-gray-900 mb-1">複合用途ビル</div>
-                <div className="text-xs text-gray-600 mb-2">延床面積: 2,800m² / 地域区分: 4</div>
-                <div className="text-xs text-blue-600">商業+事務所</div>
+                <div className="font-medium text-primary-900 mb-1">複合用途ビル</div>
+                <div className="text-xs text-primary-500 mb-2">延床面積: 2,800m² / 地域区分: 4</div>
+                <div className="text-xs text-accent-500">商業+事務所</div>
               </button>
             </div>
           </div>
@@ -632,21 +632,21 @@ export default function BEICalculator() {
                 {[1, 2, 3, 4].map((step) => (
                   <div key={step} className="flex items-center">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                      currentStep >= step 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-200 text-gray-600'
+                      currentStep >= step
+                        ? 'bg-primary-700 text-white'
+                        : 'bg-primary-200 text-primary-500'
                     }`}>
                       {currentStep > step ? <FaCheckCircle /> : step}
                     </div>
                     {step < 4 && (
                       <div className={`w-16 h-0.5 ${
-                        currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
+                        currentStep > step ? 'bg-primary-700' : 'bg-primary-200'
                       }`} />
                     )}
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between max-w-lg mx-auto mt-2 text-xs text-gray-600">
+              <div className="flex justify-between max-w-lg mx-auto mt-2 text-xs text-primary-500">
                 <span>基本情報</span>
                 <span>設計値</span>
                 <span>再エネ</span>
@@ -660,21 +660,21 @@ export default function BEICalculator() {
                 {[1, 2, 3, 4, 5].map((step) => (
                   <div key={step} className="flex items-center">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                      currentStep >= step 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-200 text-gray-600'
+                      currentStep >= step
+                        ? 'bg-primary-700 text-white'
+                        : 'bg-primary-200 text-primary-500'
                     }`}>
                       {currentStep > step ? <FaCheckCircle /> : step}
                     </div>
                     {step < 5 && (
                       <div className={`w-12 h-0.5 ${
-                        currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
+                        currentStep > step ? 'bg-primary-700' : 'bg-primary-200'
                       }`} />
                     )}
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between max-w-md mx-auto mt-2 text-xs text-gray-600">
+              <div className="flex justify-between max-w-md mx-auto mt-2 text-xs text-primary-500">
                 <span>基本情報</span>
                 <span>外皮性能</span>
                 <span>設計値</span>
@@ -695,11 +695,11 @@ export default function BEICalculator() {
               >
                 {/* 計算方法選択 */}
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    🤔 どちらの計算方法を使いますか？
+                  <label className="block text-sm font-medium text-primary-700 mb-3">
+                    どちらの計算方法を使いますか？
                   </label>
                   <div className="space-y-3">
-                    <label className="flex items-start space-x-3 p-4 border-2 border-green-200 bg-green-50 rounded-lg cursor-pointer hover:bg-green-100">
+                    <label className="flex items-start space-x-3 p-4 border-2 border-accent-200 bg-accent-50 rounded-lg cursor-pointer hover:bg-accent-100">
                       <input
                         type="radio"
                         name="calculation_method"
@@ -712,21 +712,21 @@ export default function BEICalculator() {
                         className="mt-0.5"
                       />
                       <div>
-                        <div className="font-semibold text-green-900 flex items-center space-x-2">
-                          <span>✅ モデル建物法</span>
-                          <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">推奨・簡単</span>
+                        <div className="font-semibold text-primary-800 flex items-center space-x-2">
+                          <span>モデル建物法</span>
+                          <span className="bg-accent-500 text-white text-xs px-2 py-1 rounded-full">推奨・簡単</span>
                         </div>
-                        <div className="text-sm text-green-800 mt-1">
-                          <strong>👍 初心者にオススメ！</strong> 建物用途を選ぶだけの簡単計算
+                        <div className="text-sm text-primary-700 mt-1">
+                          <strong>初心者にオススメ！</strong> 建物用途を選ぶだけの簡単計算
                         </div>
-                        <div className="text-xs text-green-700 mt-2 space-y-1">
-                          <p>• <strong>入力簡単：</strong>建物用途、地域、面積、エネルギー消費量のみ</p>
-                          <p>• <strong>外皮不要：</strong>UA値・ηAC値などの複雑な外皮性能計算は不要</p>
-                          <p>• <strong>工事対応：</strong>エレベーター、照明、空調更新など幅広く対応</p>
+                        <div className="text-xs text-primary-600 mt-2 space-y-1">
+                          <p>・<strong>入力簡単：</strong>建物用途、地域、面積、エネルギー消費量のみ</p>
+                          <p>・<strong>外皮不要：</strong>UA値・ηAC値などの複雑な外皮性能計算は不要</p>
+                          <p>・<strong>工事対応：</strong>エレベーター、照明、空調更新など幅広く対応</p>
                         </div>
                       </div>
                     </label>
-                    <label className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg cursor-not-allowed opacity-50">
+                    <label className="flex items-start space-x-3 p-4 border border-primary-200 rounded-lg cursor-not-allowed opacity-50">
                       <input
                         type="radio"
                         name="calculation_method"
@@ -740,33 +740,33 @@ export default function BEICalculator() {
                         disabled
                       />
                       <div>
-                        <div className="font-medium text-gray-900 flex items-center space-x-2">
-                          <span>📊 標準入力法</span>
-                          <span className="bg-gray-400 text-white text-xs px-2 py-1 rounded-full">未実装</span>
+                        <div className="font-medium text-primary-900 flex items-center space-x-2">
+                          <span>標準入力法</span>
+                          <span className="bg-primary-400 text-white text-xs px-2 py-1 rounded-full">未実装</span>
                         </div>
-                        <div className="text-sm text-gray-600 mt-1">
+                        <div className="text-sm text-primary-500 mt-1">
                           外皮性能の詳細計算が必要な上級者向け計算（将来実装予定）
                         </div>
-                        <div className="text-xs text-gray-500 mt-2">
-                          • UA値・ηAC値・壁や窓の詳細仕様が必要
+                        <div className="text-xs text-primary-400 mt-2">
+                          ・UA値・ηAC値・壁や窓の詳細仕様が必要
                         </div>
                       </div>
                     </label>
                   </div>
-                  
-                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="text-sm text-blue-800">
-                      <strong>💡 迷ったら「モデル建物法」を選択！</strong>
+
+                  <div className="mt-4 p-3 bg-warm-50 border border-primary-200 rounded-lg">
+                    <div className="text-sm text-primary-700">
+                      <strong>迷ったら「モデル建物法」を選択！</strong>
                       ほとんどの工事でこちらで十分です。
                     </div>
                   </div>
                 </div>
 
                 {/* ガイダンス */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="bg-warm-50 border border-primary-200 rounded-lg p-4 mb-6">
                   <div className="flex items-start space-x-2">
-                    <FaLightbulb className="text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-blue-800">
+                    <FaLightbulb className="text-accent-500 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-primary-700">
                       <strong>モデル建物法について：</strong>
                       建物用途と地域区分、設計一次エネルギー消費量のみで計算します。
                       外皮性能（UA値・ηAC値）の入力は不要です。
@@ -777,7 +777,7 @@ export default function BEICalculator() {
 
                 {/* 建物用途タイプ選択 */}
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-primary-700 mb-3">
                     建物の用途構成
                   </label>
                   <div className="flex space-x-4">
@@ -831,7 +831,7 @@ export default function BEICalculator() {
                 {formData.is_mixed_use && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-primary-700">
                         用途別構成
                       </label>
                       <button
@@ -842,16 +842,16 @@ export default function BEICalculator() {
                             mixed_uses: [...formData.mixed_uses, {use_type: '', area_m2: '', area_share: ''}]
                           });
                         }}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        className="text-accent-500 hover:text-accent-600 text-sm font-medium"
                       >
                         + 用途を追加
                       </button>
                     </div>
-                    
+
                     {formData.mixed_uses.map((use, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                      <div key={index} className="border border-primary-200 rounded-lg p-4 space-y-3">
                         <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-gray-900">用途 {index + 1}</h4>
+                          <h4 className="font-medium text-primary-900">用途 {index + 1}</h4>
                           {formData.mixed_uses.length > 1 && (
                             <button
                               type="button"
@@ -865,9 +865,9 @@ export default function BEICalculator() {
                             </button>
                           )}
                         </div>
-                        
+
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary-700 mb-1">
                             建物用途
                           </label>
                           <BuildingTypeSelector
@@ -885,9 +885,9 @@ export default function BEICalculator() {
                             <p className="text-red-600 text-sm mt-1">{validationErrors[`mixed_use_${index}_type`]}</p>
                           )}
                         </div>
-                        
+
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary-700 mb-1">
                             面積 (m²)
                           </label>
                           <input
@@ -903,8 +903,8 @@ export default function BEICalculator() {
                               setFormData({...formData, mixed_uses: newUses});
                               setValidationErrors({...validationErrors, [`mixed_use_${index}_area`]: ''});
                             }}
-                            className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                              validationErrors[`mixed_use_${index}_area`] ? 'border-red-500' : 'border-gray-300'
+                            className={`w-full p-2 border rounded focus:ring-2 focus:ring-accent-400 focus:border-accent-400 ${
+                              validationErrors[`mixed_use_${index}_area`] ? 'border-red-500' : 'border-primary-300'
                             }`}
                             placeholder="例: 500"
                             min="0"
@@ -914,22 +914,22 @@ export default function BEICalculator() {
                             <p className="text-red-600 text-sm mt-1">{validationErrors[`mixed_use_${index}_area`]}</p>
                           )}
                           {use.area_share && (
-                            <p className="text-gray-600 text-xs mt-1">
+                            <p className="text-primary-500 text-xs mt-1">
                               全体に占める割合: {use.area_share}%
                             </p>
                           )}
                         </div>
                       </div>
                     ))}
-                    
+
                     {validationErrors.mixed_use_total && (
                       <p className="text-red-600 text-sm">{validationErrors.mixed_use_total}</p>
                     )}
-                    
+
                     {/* 合計面積表示 */}
                     {formData.mixed_uses.some(use => use.area_m2) && (
-                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                        <div className="text-sm text-gray-700">
+                      <div className="bg-warm-50 border border-primary-200 rounded-lg p-3">
+                        <div className="text-sm text-primary-700">
                           <strong>用途別面積の合計:</strong> {formData.mixed_uses.reduce((sum, use) => sum + (parseFloat(use.area_m2) || 0), 0).toLocaleString()} m²
                         </div>
                       </div>
@@ -949,11 +949,11 @@ export default function BEICalculator() {
                 {validationErrors.climate_zone && (
                   <p className="text-red-600 text-sm mt-1">{validationErrors.climate_zone}</p>
                 )}
-                
+
                 {/* 延床面積 */}
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-primary-700">
                       延床面積 (m²)
                     </label>
                     <HelpTooltip title="延床面積とは？">
@@ -968,8 +968,8 @@ export default function BEICalculator() {
                       setFormData({...formData, floor_area: e.target.value});
                       setValidationErrors({...validationErrors, floor_area: ''});
                     }}
-                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      validationErrors.floor_area ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-accent-400 focus:border-accent-400 ${
+                      validationErrors.floor_area ? 'border-red-500' : 'border-primary-300'
                     }`}
                     placeholder="例: 1000"
                     min="1"
@@ -979,12 +979,12 @@ export default function BEICalculator() {
                     <p className="text-red-600 text-sm mt-1">{validationErrors.floor_area}</p>
                   )}
                   {formData.floor_area && (
-                    <p className="text-gray-600 text-sm mt-1">
+                    <p className="text-primary-500 text-sm mt-1">
                       入力された延床面積: {Number(formData.floor_area).toLocaleString()} m²
                     </p>
                   )}
                 </div>
-                
+
                 {/* 次へボタン */}
                 {currentStep === 1 && (
                   <div className="flex justify-end pt-4">
@@ -995,7 +995,7 @@ export default function BEICalculator() {
                           setCurrentStep(2);
                         }
                       }}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
+                      className="bg-accent-500 hover:bg-accent-600 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
                     >
                       <span>次へ：{formData.calculation_method === 'model_building' ? '設計エネルギー値入力' : '外皮性能入力'}</span>
                       <FaArrowRight />
@@ -1027,7 +1027,7 @@ export default function BEICalculator() {
                   {/* UA値 */}
                   <div>
                     <div className="flex items-center space-x-2 mb-2">
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-primary-700">
                         UA値（外皮平均熱貫流率） [W/(m²·K)]
                       </label>
                       <HelpTooltip title="UA値とは？">
@@ -1057,8 +1057,8 @@ export default function BEICalculator() {
                         };
                         runInputValidation(updatedFormData);
                       }}
-                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        validationErrors.ua_value ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-accent-400 focus:border-accent-400 ${
+                        validationErrors.ua_value ? 'border-red-500' : 'border-primary-300'
                       }`}
                       placeholder="例: 0.60"
                       min="0"
@@ -1068,7 +1068,7 @@ export default function BEICalculator() {
                       <p className="text-red-600 text-sm mt-1">{validationErrors.ua_value}</p>
                     )}
                     {formData.climate_zone && (
-                      <p className="text-gray-600 text-sm mt-1">
+                      <p className="text-primary-500 text-sm mt-1">
                         {formData.climate_zone}地域の基準値: {getUAValueStandard(formData.climate_zone)} W/(m²·K)以下
                       </p>
                     )}
@@ -1081,7 +1081,7 @@ export default function BEICalculator() {
                   {formData.building_type === 'residential_collective' && (
                     <div>
                       <div className="flex items-center space-x-2 mb-2">
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-primary-700">
                           ηAC値（平均日射熱取得率） [-]
                         </label>
                         <HelpTooltip title="ηAC値とは？">
@@ -1111,8 +1111,8 @@ export default function BEICalculator() {
                           };
                           runInputValidation(updatedFormData);
                         }}
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          validationErrors.eta_ac_value ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-accent-400 focus:border-accent-400 ${
+                          validationErrors.eta_ac_value ? 'border-red-500' : 'border-primary-300'
                         }`}
                         placeholder="例: 2.8"
                         min="0"
@@ -1122,7 +1122,7 @@ export default function BEICalculator() {
                         <p className="text-red-600 text-sm mt-1">{validationErrors.eta_ac_value}</p>
                       )}
                       {formData.climate_zone && (
-                        <p className="text-gray-600 text-sm mt-1">
+                        <p className="text-primary-500 text-sm mt-1">
                           {formData.climate_zone}地域の基準値: {getEtaACValueStandard(formData.climate_zone)}以下
                         </p>
                       )}
@@ -1139,7 +1139,7 @@ export default function BEICalculator() {
                     <button
                       type="button"
                       onClick={() => setCurrentStep(1)}
-                      className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                      className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
                     >
                       戻る
                     </button>
@@ -1150,7 +1150,7 @@ export default function BEICalculator() {
                           setCurrentStep(3);
                         }
                       }}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
+                      className="bg-accent-500 hover:bg-accent-600 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
                     >
                       <span>次へ：設計エネルギー値入力</span>
                       <FaArrowRight />
@@ -1167,25 +1167,25 @@ export default function BEICalculator() {
                 icon={FaChartLine}
               >
                 {/* ガイダンス */}
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <div className="bg-warm-50 border border-primary-200 rounded-lg p-4 mb-6">
                   <div className="flex items-start space-x-2">
-                    <FaLightbulb className="text-green-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-green-800 space-y-2">
+                    <FaLightbulb className="text-accent-500 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-primary-700 space-y-2">
                       <p>
-                        <strong>📊 設計エネルギー消費量の入力</strong>
+                        <strong>設計エネルギー消費量の入力</strong>
                       </p>
                       <p>
                         設計・計画している建物の<strong>年間エネルギー消費量</strong>を用途別に入力してください。
                       </p>
                       <div className="bg-white bg-opacity-60 rounded p-3 text-xs space-y-1">
-                        <p><strong>💡 数値の探し方：</strong></p>
-                        <p>• <strong>省エネ計算書</strong>の「設計一次エネルギー消費量」欄</p>
-                        <p>• <strong>エネルギーシミュレーション</strong>の結果</p>
-                        <p>• <strong>設備設計図書</strong>の年間消費量計算</p>
-                        <p>• <strong>既存建物</strong>の場合：過去の実績値 + 改修効果</p>
+                        <p><strong>数値の探し方：</strong></p>
+                        <p>・<strong>省エネ計算書</strong>の「設計一次エネルギー消費量」欄</p>
+                        <p>・<strong>エネルギーシミュレーション</strong>の結果</p>
+                        <p>・<strong>設備設計図書</strong>の年間消費量計算</p>
+                        <p>・<strong>既存建物</strong>の場合：過去の実績値 + 改修効果</p>
                       </div>
-                      <p className="text-green-700">
-                        <strong>⚠️ 単位注意：</strong>すべて <strong>MJ/年</strong> で入力してください
+                      <p className="text-primary-600">
+                        <strong>単位注意：</strong>すべて <strong>MJ/年</strong> で入力してください
                       </p>
                     </div>
                   </div>
@@ -1195,7 +1195,7 @@ export default function BEICalculator() {
                   {Object.entries(formData.design_energy).map(([key, value]) => (
                     <div key={key}>
                       <div className="flex items-center space-x-2 mb-2">
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-primary-700">
                           {getEnergyFieldLabel(key)} (MJ/年)
                         </label>
                         <HelpTooltip title={`${getEnergyFieldLabel(key)}について`}>
@@ -1220,8 +1220,8 @@ export default function BEICalculator() {
                           });
                           setValidationErrors({...validationErrors, [key]: ''});
                         }}
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          validationErrors[key] ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-accent-400 focus:border-accent-400 ${
+                          validationErrors[key] ? 'border-red-500' : 'border-primary-300'
                         }`}
                         placeholder="0"
                         min="0"
@@ -1244,7 +1244,7 @@ export default function BEICalculator() {
                     <button
                       type="button"
                       onClick={() => setCurrentStep(1)}
-                      className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                      className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
                     >
                       戻る
                     </button>
@@ -1255,7 +1255,7 @@ export default function BEICalculator() {
                           setCurrentStep(formData.calculation_method === 'model_building' ? 3 : 4);
                         }
                       }}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
+                      className="bg-accent-500 hover:bg-accent-600 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
                     >
                       <span>次へ：再エネ控除</span>
                       <FaArrowRight />
@@ -1285,7 +1285,7 @@ export default function BEICalculator() {
 
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-primary-700">
                       再エネ控除量 (MJ/年)
                     </label>
                     <HelpTooltip title="再エネ控除の計算方法">
@@ -1297,12 +1297,12 @@ export default function BEICalculator() {
                     type="number"
                     value={formData?.renewable_energy || ''}
                     onChange={(e) => setFormData({...formData, renewable_energy: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400 focus:border-accent-400"
                     placeholder="0"
                     min="0"
                     step="0.1"
                   />
-                  <p className="text-gray-600 text-sm mt-1">
+                  <p className="text-primary-500 text-sm mt-1">
                     設備がない場合は0のままでも計算できます
                   </p>
                   {validationWarnings.renewable_energy && (
@@ -1321,26 +1321,26 @@ export default function BEICalculator() {
                     <button
                       type="button"
                       onClick={() => setCurrentStep(formData.calculation_method === 'model_building' ? 2 : 3)}
-                      className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                      className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
                     >
                       戻る
                     </button>
-                    
+
                     <div className="flex space-x-4">
                       <button
                         type="button"
                         onClick={handleSaveProject}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
+                        className="bg-primary-700 hover:bg-primary-800 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
                       >
                         <FaDownload />
                         <span>保存</span>
                       </button>
-                      
+
                       <button
                         type="button"
                         onClick={handleCalculate}
                         disabled={isLoading}
-                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
+                        className="bg-accent-500 hover:bg-accent-600 disabled:bg-primary-400 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
                       >
                         {isLoading ? (
                           <>
@@ -1382,18 +1382,18 @@ export default function BEICalculator() {
                 onCopy={copyResults}
                 onDownload={downloadResults}
               >
-                {/* BEI値と適合判定 */}
+                {/* BEI値と適合判定 - SEMANTIC green/red kept */}
                 <div className="text-center mb-6">
                   <div className="text-4xl font-bold mb-2">
                     <span className={result.is_compliant ? 'text-green-600' : 'text-red-600'}>
                       {typeof result.bei === 'number' ? formatBEI(result.bei) : result.bei}
                     </span>
                   </div>
-                  <div className="text-sm text-gray-600 mb-4">BEI値 (Building Energy Index)</div>
-                  
+                  <div className="text-sm text-primary-500 mb-4">BEI値 (Building Energy Index)</div>
+
                   <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
-                    result.is_compliant 
-                      ? 'bg-green-100 text-green-800' 
+                    result.is_compliant
+                      ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                   }`}>
                     {result.is_compliant ? (
@@ -1414,42 +1414,42 @@ export default function BEICalculator() {
                 <div className="space-y-6">
                   {/* エネルギー消費量比較 */}
                   <div className="grid grid-cols-1 gap-4">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <div className="text-sm font-medium text-blue-800 mb-1">設計一次エネルギー消費量</div>
-                      <div className="text-2xl font-bold text-blue-900 mb-2">
+                    <div className="bg-accent-50 p-4 rounded-lg">
+                      <div className="text-sm font-medium text-accent-700 mb-1">設計一次エネルギー消費量</div>
+                      <div className="text-2xl font-bold text-primary-800 mb-2">
                         {result.design_primary_energy_mj?.toLocaleString()} MJ/年
                       </div>
                       {formData.renewable_energy && parseFloat(formData.renewable_energy) > 0 && (
-                        <div className="text-xs text-blue-700">
+                        <div className="text-xs text-accent-600">
                           再エネ控除: -{parseFloat(formData.renewable_energy).toLocaleString()} MJ/年
                         </div>
                       )}
                     </div>
-                    
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="text-sm font-medium text-gray-800 mb-1">基準一次エネルギー消費量</div>
-                      <div className="text-2xl font-bold text-gray-900">
+
+                    <div className="bg-warm-50 p-4 rounded-lg">
+                      <div className="text-sm font-medium text-primary-700 mb-1">基準一次エネルギー消費量</div>
+                      <div className="text-2xl font-bold text-primary-900">
                         {result.standard_primary_energy_mj?.toLocaleString()} MJ/年
                       </div>
-                      <div className="text-xs text-gray-700 mt-1">
+                      <div className="text-xs text-primary-600 mt-1">
                         モデル建物法による算定値
                       </div>
                     </div>
                   </div>
 
-                  {/* 総合評価と改善提案 */}
+                  {/* 総合評価と改善提案 - SEMANTIC colors kept for performance levels */}
                   {result.suggestions && result.suggestions.length > 0 && (
                     <div className={`border rounded-lg p-4 ${
                       result.performance_level === 'excellent' ? 'bg-green-50 border-green-200' :
-                      result.performance_level === 'very_good' ? 'bg-blue-50 border-blue-200' :
-                      result.performance_level === 'good' ? 'bg-blue-50 border-blue-200' :
+                      result.performance_level === 'very_good' ? 'bg-accent-50 border-accent-200' :
+                      result.performance_level === 'good' ? 'bg-accent-50 border-accent-200' :
                       result.performance_level === 'needs_improvement' ? 'bg-yellow-50 border-yellow-200' :
                       'bg-red-50 border-red-200'
                     }`}>
                       <h4 className={`font-medium mb-3 flex items-center ${
                         result.performance_level === 'excellent' ? 'text-green-700' :
-                        result.performance_level === 'very_good' ? 'text-blue-700' :
-                        result.performance_level === 'good' ? 'text-blue-700' :
+                        result.performance_level === 'very_good' ? 'text-accent-600' :
+                        result.performance_level === 'good' ? 'text-accent-600' :
                         result.performance_level === 'needs_improvement' ? 'text-yellow-700' :
                         'text-red-700'
                       }`}>
@@ -1460,16 +1460,11 @@ export default function BEICalculator() {
                         {result.suggestions.map((suggestion, index) => (
                           <div key={index} className={`text-sm p-2 rounded ${
                             result.performance_level === 'excellent' ? 'bg-green-100 text-green-800' :
-                            result.performance_level === 'very_good' ? 'bg-blue-100 text-blue-800' :
-                            result.performance_level === 'good' ? 'bg-blue-100 text-blue-800' :
+                            result.performance_level === 'very_good' ? 'bg-accent-100 text-accent-800' :
+                            result.performance_level === 'good' ? 'bg-accent-100 text-accent-800' :
                             result.performance_level === 'needs_improvement' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-800'
                           }`}>
-                            <span className="mr-2">
-                              {result.performance_level === 'excellent' || result.performance_level === 'very_good' ? '🌟' : 
-                               result.performance_level === 'good' ? '✅' : 
-                               result.performance_level === 'needs_improvement' ? '💡' : '⚠️'}
-                            </span>
                             {suggestion}
                           </div>
                         ))}
@@ -1478,53 +1473,53 @@ export default function BEICalculator() {
                   )}
 
                   {/* 計算根拠詳細 */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-800 mb-3 flex items-center">
-                      <FaCalculator className="mr-2 text-blue-600" />
+                  <div className="bg-white border border-primary-200 rounded-lg p-4">
+                    <h4 className="font-medium text-primary-800 mb-3 flex items-center">
+                      <FaCalculator className="mr-2 text-primary-700" />
                       計算根拠詳細
                     </h4>
-                    
+
                     {/* 基準エネルギー消費量内訳 */}
                     <div className="mb-4">
-                      <div className="text-sm font-medium text-gray-700 mb-2">基準エネルギー消費量内訳 (MJ/m²年)</div>
+                      <div className="text-sm font-medium text-primary-700 mb-2">基準エネルギー消費量内訳 (MJ/m²年)</div>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
                         <div className="bg-orange-50 p-2 rounded">
                           <div className="text-orange-800 font-medium">暖房</div>
                           <div className="text-orange-900">{getStandardEnergyByType(formData.building_type)?.heating || '-'}</div>
                         </div>
-                        <div className="bg-blue-50 p-2 rounded">
-                          <div className="text-blue-800 font-medium">冷房</div>
-                          <div className="text-blue-900">{getStandardEnergyByType(formData.building_type)?.cooling || '-'}</div>
+                        <div className="bg-primary-50 p-2 rounded">
+                          <div className="text-primary-700 font-medium">冷房</div>
+                          <div className="text-primary-800">{getStandardEnergyByType(formData.building_type)?.cooling || '-'}</div>
                         </div>
-                        <div className="bg-green-50 p-2 rounded">
-                          <div className="text-green-800 font-medium">換気</div>
-                          <div className="text-green-900">{getStandardEnergyByType(formData.building_type)?.ventilation || '-'}</div>
+                        <div className="bg-warm-100 p-2 rounded">
+                          <div className="text-primary-700 font-medium">換気</div>
+                          <div className="text-primary-800">{getStandardEnergyByType(formData.building_type)?.ventilation || '-'}</div>
                         </div>
-                        <div className="bg-purple-50 p-2 rounded">
-                          <div className="text-purple-800 font-medium">給湯</div>
-                          <div className="text-purple-900">{getStandardEnergyByType(formData.building_type)?.hot_water || '-'}</div>
+                        <div className="bg-accent-50 p-2 rounded">
+                          <div className="text-accent-700 font-medium">給湯</div>
+                          <div className="text-accent-800">{getStandardEnergyByType(formData.building_type)?.hot_water || '-'}</div>
                         </div>
                         <div className="bg-yellow-50 p-2 rounded">
                           <div className="text-yellow-800 font-medium">照明</div>
                           <div className="text-yellow-900">{getStandardEnergyByType(formData.building_type)?.lighting || '-'}</div>
                         </div>
-                        <div className="bg-gray-50 p-2 rounded">
-                          <div className="text-gray-800 font-medium">昇降機</div>
-                          <div className="text-gray-900">{getStandardEnergyByType(formData.building_type)?.elevator || '-'}</div>
+                        <div className="bg-warm-50 p-2 rounded">
+                          <div className="text-primary-700 font-medium">昇降機</div>
+                          <div className="text-primary-800">{getStandardEnergyByType(formData.building_type)?.elevator || '-'}</div>
                         </div>
                       </div>
                     </div>
 
                     {/* 設計値と基準値の比較分析 */}
                     <div className="mb-4">
-                      <div className="text-sm font-medium text-gray-700 mb-3">設計値分析・参考コメント</div>
+                      <div className="text-sm font-medium text-primary-700 mb-3">設計値分析・参考コメント</div>
                       <div className="space-y-2 text-xs">
                         {Object.entries(formData.design_energy).map(([key, value]) => {
                           if (!value || value === '') return null;
-                          
+
                           const designValuePerM2 = parseFloat(value) / parseFloat(formData.floor_area || 1000);
                           const analysis = analyzeEnergyConsumption(designValuePerM2, formData.building_type, key);
-                          
+
                           return (
                             <div key={key} className={`${analysis.bgColor} border-l-4 border-current p-3 rounded-r`}>
                               <div className={`flex items-center ${analysis.color} mb-1`}>
@@ -1545,10 +1540,10 @@ export default function BEICalculator() {
                               {/* 改善提案 */}
                               {analysis.level === 'high' || analysis.level === 'very_high' ? (
                                 <div className="mt-2 pt-2 border-t border-current opacity-20">
-                                  <div className="text-xs font-medium mb-1">💡 改善案:</div>
+                                  <div className="text-xs font-medium mb-1">改善案:</div>
                                   <ul className="text-xs space-y-1">
                                     {getImprovementSuggestions(key, analysis.level).slice(0, 2).map((suggestion, idx) => (
-                                      <li key={idx}>• {suggestion}</li>
+                                      <li key={idx}>・{suggestion}</li>
                                     ))}
                                   </ul>
                                 </div>
@@ -1561,10 +1556,10 @@ export default function BEICalculator() {
 
                     {/* 補正係数情報 */}
                     <div className="mb-4">
-                      <div className="text-sm font-medium text-gray-700 mb-2">適用された補正係数</div>
+                      <div className="text-sm font-medium text-primary-700 mb-2">適用された補正係数</div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                        <div className="bg-blue-50 p-3 rounded">
-                          <div className="font-medium text-blue-800 mb-1">地域補正係数 ({formData.climate_zone}地域)</div>
+                        <div className="bg-primary-50 p-3 rounded">
+                          <div className="font-medium text-primary-700 mb-1">地域補正係数 ({formData.climate_zone}地域)</div>
                           <div className="space-y-1">
                             <div className="flex justify-between">
                               <span>暖房:</span>
@@ -1576,9 +1571,9 @@ export default function BEICalculator() {
                             </div>
                           </div>
                         </div>
-                        <div className="bg-green-50 p-3 rounded">
-                          <div className="font-medium text-green-800 mb-1">規模補正係数</div>
-                          <div className="text-green-900">
+                        <div className="bg-warm-50 p-3 rounded">
+                          <div className="font-medium text-primary-700 mb-1">規模補正係数</div>
+                          <div className="text-primary-800">
                             延床面積 {Number(formData.floor_area).toLocaleString()}m²<br />
                             係数: {getScaleFactor(formData.building_type, formData.floor_area)}
                           </div>
@@ -1600,12 +1595,12 @@ export default function BEICalculator() {
                     </div>
 
                     {/* 法的根拠 */}
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="text-xs text-gray-600">
+                    <div className="mt-4 pt-4 border-t border-primary-200">
+                      <div className="text-xs text-primary-500">
                         <strong>法的根拠:</strong><br />
-                        • 建築物のエネルギー消費性能の向上に関する法律（建築物省エネ法）<br />
-                        • 国土交通省告示第1396号（平成28年1月29日）<br />
-                        • モデル建物法による標準入力法（平成28年国土交通省告示第265号）
+                        ・建築物のエネルギー消費性能の向上に関する法律（建築物省エネ法）<br />
+                        ・国土交通省告示第1396号（平成28年1月29日）<br />
+                        ・モデル建物法による標準入力法（平成28年国土交通省告示第265号）
                       </div>
                     </div>
                   </div>
@@ -1623,7 +1618,7 @@ export default function BEICalculator() {
                   <button
                     type="button"
                     onClick={() => setShowReport(true)}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    className="flex-1 bg-accent-500 hover:bg-accent-600 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
                   >
                     <FaFileAlt />
                     <span>審査機関向け計算書</span>
@@ -1636,7 +1631,7 @@ export default function BEICalculator() {
                       setValidationErrors({});
                       setShowReport(false);
                     }}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                    className="flex-1 bg-primary-700 hover:bg-primary-800 text-white font-medium py-2 px-6 rounded-lg transition-colors"
                   >
                     新しい計算を開始
                   </button>
@@ -1648,7 +1643,7 @@ export default function BEICalculator() {
             {(formData.building_type || formData.climate_zone || formData.floor_area) && !result && (
               <div className="bg-white rounded-xl shadow-lg p-6">
                 <h3 className="text-xl font-bold mb-4 flex items-center">
-                  <FaBuilding className="mr-3 text-blue-600" />
+                  <FaBuilding className="mr-3 text-primary-700" />
                   入力内容
                 </h3>
                 <div className="space-y-2 text-sm">
@@ -1676,20 +1671,20 @@ export default function BEICalculator() {
                 <div className="flex space-x-2">
                   <button
                     onClick={() => window.print()}
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded flex items-center space-x-2"
+                    className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded flex items-center space-x-2"
                   >
                     <FaPrint />
                     <span>印刷</span>
                   </button>
                   <button
                     onClick={() => setShowReport(false)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                    className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded"
                   >
                     閉じる
                   </button>
                 </div>
               </div>
-              <ComplianceReport 
+              <ComplianceReport
                 result={result}
                 formData={formData}
                 projectInfo={projectInfo}

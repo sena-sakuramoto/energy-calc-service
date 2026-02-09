@@ -78,13 +78,13 @@ export default function RegisterPage() {
       <Layout>
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">新規登録</h1>
-            <p className="text-gray-600">楽々省エネ計算のアカウントを作成</p>
-            
+            <h1 className="text-3xl font-bold text-primary-900 mb-2">新規登録</h1>
+            <p className="text-primary-600">楽々省エネ計算のアカウントを作成</p>
+
             {/* 共同開発企画案内 */}
-            <div className="mt-4 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
+            <div className="mt-4 bg-warm-100 border border-primary-200 text-primary-700 px-4 py-3 rounded">
               <p className="text-sm">
-                🤝 協力者様と一緒に作るサービス - 無料体験
+                協力者様と一緒に作るサービス - 無料体験
               </p>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function RegisterPage() {
             <button
               onClick={handleGoogleRegister}
               disabled={loading}
-              className="w-full bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-blue-400 text-gray-700 font-medium py-4 px-4 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md"
+              className="w-full bg-white hover:bg-warm-50 border-2 border-primary-300 hover:border-primary-400 text-primary-700 font-medium py-4 px-4 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md"
             >
               <FaGoogle className="text-red-500 mr-3 text-xl" />
               {loading ? '登録中...' : 'Googleアカウントで登録'}
@@ -109,7 +109,7 @@ export default function RegisterPage() {
             {/* メール登録ボタン */}
             <button
               onClick={() => setRegisterType('email')}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-4 rounded-lg flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg"
+              className="w-full bg-primary-700 hover:bg-primary-800 text-white font-medium py-4 px-4 rounded-lg flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <FaEnvelope className="mr-3 text-lg" />
               メール・パスワードで登録
@@ -117,7 +117,7 @@ export default function RegisterPage() {
           </div>
 
           {/* 説明テキスト */}
-          <div className="mt-8 text-center text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
+          <div className="mt-8 text-center text-sm text-primary-600 bg-warm-50 p-4 rounded-lg">
             <p className="mb-2 font-medium">
               <strong>省エネ計算を、もっとシンプルに。</strong>
             </p>
@@ -128,16 +128,16 @@ export default function RegisterPage() {
 
           {/* ログインリンク */}
           <div className="mt-6 text-center text-sm">
-            <p className="text-gray-600">
+            <p className="text-primary-600">
               既にアカウントをお持ちの方は{' '}
-              <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+              <Link href="/login" className="text-accent-500 hover:text-accent-600 font-medium">
                 ログイン
               </Link>
             </p>
           </div>
 
           {/* フッター */}
-          <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
+          <div className="mt-8 pt-6 border-t border-primary-200 text-center text-sm text-primary-500">
             <p>© 2025 Archi-Prisma Design works 株式会社</p>
           </div>
         </div>
@@ -153,12 +153,12 @@ export default function RegisterPage() {
           <div className="text-center mb-8">
             <button
               onClick={() => setRegisterType('select')}
-              className="text-blue-600 hover:text-blue-800 mb-4 flex items-center mx-auto"
+              className="text-accent-500 hover:text-accent-600 mb-4 flex items-center mx-auto"
             >
               ← 登録方法選択に戻る
             </button>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">メールで登録</h1>
-            <p className="text-gray-600">アカウント情報を入力してください</p>
+            <h1 className="text-3xl font-bold text-primary-900 mb-2">メールで登録</h1>
+            <p className="text-primary-600">アカウント情報を入力してください</p>
           </div>
           
           {error && (
@@ -170,29 +170,29 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* 氏名 */}
             <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
-                氏名 <span className="text-gray-500">(任意)</span>
+              <label htmlFor="fullName" className="block text-sm font-medium text-primary-700 mb-2">
+                氏名 <span className="text-primary-500">(任意)</span>
               </label>
               <div className="relative">
-                <FaUser className="absolute left-3 top-4 text-gray-400" />
+                <FaUser className="absolute left-3 top-4 text-primary-400" />
                 <input
                   type="text"
                   id="fullName"
                   value={fullName || ''}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="例: 山田 太郎"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                 />
               </div>
             </div>
 
             {/* メールアドレス */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-primary-700 mb-2">
                 メールアドレス <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <FaEnvelope className="absolute left-3 top-4 text-gray-400" />
+                <FaEnvelope className="absolute left-3 top-4 text-primary-400" />
                 <input
                   type="email"
                   id="email"
@@ -200,18 +200,18 @@ export default function RegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="example@email.com"
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                 />
               </div>
             </div>
 
             {/* パスワード */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                パスワード <span className="text-red-500">*</span> <span className="text-gray-500">(8文字以上)</span>
+              <label htmlFor="password" className="block text-sm font-medium text-primary-700 mb-2">
+                パスワード <span className="text-red-500">*</span> <span className="text-primary-500">(8文字以上)</span>
               </label>
               <div className="relative">
-                <FaLock className="absolute left-3 top-4 text-gray-400" />
+                <FaLock className="absolute left-3 top-4 text-primary-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
@@ -219,12 +219,12 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="パスワードを入力"
                   required
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-12 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-4 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-4 text-primary-400 hover:text-primary-600"
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
@@ -235,23 +235,23 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg disabled:bg-gray-400"
+              className="w-full bg-primary-700 hover:bg-primary-800 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg disabled:bg-primary-400"
             >
               {loading ? '登録中...' : 'アカウントを作成'}
             </button>
           </form>
 
           {/* 利用規約 */}
-          <div className="mt-6 text-xs text-gray-500 text-center">
+          <div className="mt-6 text-xs text-primary-500 text-center">
             アカウント作成により、
-            <Link href="/terms" className="text-blue-600 hover:text-blue-800">利用規約</Link>
+            <Link href="/terms" className="text-accent-500 hover:text-accent-600">利用規約</Link>
             および
-            <Link href="/privacy" className="text-blue-600 hover:text-blue-800">プライバシーポリシー</Link>
+            <Link href="/privacy" className="text-accent-500 hover:text-accent-600">プライバシーポリシー</Link>
             に同意したものとみなされます。
           </div>
 
           {/* フッター */}
-          <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
+          <div className="mt-8 pt-6 border-t border-primary-200 text-center text-sm text-primary-500">
             <p>© 2025 Archi-Prisma Design works 株式会社</p>
           </div>
         </div>

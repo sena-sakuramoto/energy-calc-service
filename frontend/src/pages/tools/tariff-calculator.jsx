@@ -69,7 +69,7 @@ export default function TariffCalculator() {
       }
 
       const response = await apiRequest(() => tariffAPI.quote(requestData), 'Tariff Quote');
-      
+
       if (response.success) {
         setResult(response.data);
       } else {
@@ -148,20 +148,20 @@ export default function TariffCalculator() {
 
   return (
     <CalculatorLayout title="料金計算機" subtitle="電気料金・コスト分析" icon={FaDollarSign}>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-8">
+      <div className="min-h-screen bg-warm-50 py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto">
             {/* ヘッダー */}
             <div className="text-center mb-8">
               <div className="flex justify-center mb-4">
-                <div className="bg-green-100 p-4 rounded-full">
-                  <FaDollarSign className="text-3xl text-green-600" />
+                <div className="bg-accent-50 p-4 rounded-full">
+                  <FaDollarSign className="text-3xl text-accent-500" />
                 </div>
               </div>
-              <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold mb-4 text-primary-800">
                 電力料金見積もりツール
               </h1>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-lg text-primary-500 max-w-2xl mx-auto">
                 フラット・段階制・時間帯別料金に対応した詳細な電力料金計算
               </p>
             </div>
@@ -171,7 +171,7 @@ export default function TariffCalculator() {
               <div className="lg:col-span-2">
                 <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
                   <h2 className="text-2xl font-bold mb-6 flex items-center">
-                    <FaReceipt className="mr-3 text-blue-600" />
+                    <FaReceipt className="mr-3 text-primary-700" />
                     料金体系設定
                   </h2>
 
@@ -180,11 +180,11 @@ export default function TariffCalculator() {
                   <div className="space-y-6">
                     {/* 料金タイプ選択 */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary-700 mb-2">
                         料金タイプ
                       </label>
                       <select
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400"
                         value={tariffData.type}
                         onChange={(e) => handleTariffChange('type', e.target.value)}
                       >
@@ -197,13 +197,13 @@ export default function TariffCalculator() {
                     {/* フラット料金設定 */}
                     {tariffData.type === 'flat' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary-700 mb-2">
                           単価 (円/kWh)
                         </label>
                         <input
                           type="number"
                           step="0.01"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400"
                           value={tariffData.flat_rate_per_kwh}
                           onChange={(e) => handleTariffChange('flat_rate_per_kwh', parseFloat(e.target.value))}
                         />
@@ -213,16 +213,16 @@ export default function TariffCalculator() {
                     {/* 段階制料金設定 */}
                     {tariffData.type === 'tiered' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-4">
+                        <label className="block text-sm font-medium text-primary-700 mb-4">
                           段階料金設定
                         </label>
                         {tariffData.tiers.map((tier, index) => (
-                          <div key={index} className="flex gap-3 mb-3 p-3 bg-gray-50 rounded-lg">
+                          <div key={index} className="flex gap-3 mb-3 p-3 bg-warm-50 rounded-lg">
                             <div className="flex-1">
                               <input
                                 type="number"
                                 placeholder={index === tariffData.tiers.length - 1 ? "上限なし" : "上限 (kWh)"}
-                                className="w-full px-3 py-2 border border-gray-300 rounded"
+                                className="w-full px-3 py-2 border border-primary-300 rounded"
                                 value={tier.limit_kwh || ''}
                                 onChange={(e) => handleTierChange(index, 'limit_kwh', e.target.value)}
                                 disabled={index === tariffData.tiers.length - 1}
@@ -233,7 +233,7 @@ export default function TariffCalculator() {
                                 type="number"
                                 step="0.01"
                                 placeholder="単価 (円/kWh)"
-                                className="w-full px-3 py-2 border border-gray-300 rounded"
+                                className="w-full px-3 py-2 border border-primary-300 rounded"
                                 value={tier.rate_per_kwh}
                                 onChange={(e) => handleTierChange(index, 'rate_per_kwh', e.target.value)}
                               />
@@ -250,7 +250,7 @@ export default function TariffCalculator() {
                         ))}
                         <button
                           onClick={addTier}
-                          className="flex items-center text-blue-600 hover:text-blue-800"
+                          className="flex items-center text-accent-500 hover:text-accent-600"
                         >
                           <FaPlus className="mr-2" />
                           段階を追加
@@ -261,16 +261,16 @@ export default function TariffCalculator() {
                     {/* 時間帯別料金設定 */}
                     {tariffData.type === 'tou' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-4">
+                        <label className="block text-sm font-medium text-primary-700 mb-4">
                           時間帯別料金設定
                         </label>
                         {tariffData.tou_periods.map((period, index) => (
-                          <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg">
+                          <div key={index} className="mb-4 p-4 bg-warm-50 rounded-lg">
                             <div className="grid grid-cols-3 gap-3 mb-2">
                               <input
                                 type="text"
                                 placeholder="時間帯名"
-                                className="px-3 py-2 border border-gray-300 rounded"
+                                className="px-3 py-2 border border-primary-300 rounded"
                                 value={period.name}
                                 onChange={(e) => handleTouPeriodChange(index, 'name', e.target.value)}
                               />
@@ -278,7 +278,7 @@ export default function TariffCalculator() {
                                 type="number"
                                 step="0.01"
                                 placeholder="単価"
-                                className="px-3 py-2 border border-gray-300 rounded"
+                                className="px-3 py-2 border border-primary-300 rounded"
                                 value={period.rate_per_kwh}
                                 onChange={(e) => handleTouPeriodChange(index, 'rate_per_kwh', parseFloat(e.target.value))}
                               />
@@ -292,7 +292,7 @@ export default function TariffCalculator() {
                             <input
                               type="text"
                               placeholder="適用時間 (0,1,2,... または 13,14,15,16,17,18)"
-                              className="w-full px-3 py-2 border border-gray-300 rounded"
+                              className="w-full px-3 py-2 border border-primary-300 rounded"
                               value={period.hours.join(',')}
                               onChange={(e) => handleTouPeriodChange(index, 'hours', e.target.value)}
                             />
@@ -300,7 +300,7 @@ export default function TariffCalculator() {
                         ))}
                         <button
                           onClick={addTouPeriod}
-                          className="flex items-center text-blue-600 hover:text-blue-800"
+                          className="flex items-center text-accent-500 hover:text-accent-600"
                         >
                           <FaPlus className="mr-2" />
                           時間帯を追加
@@ -311,68 +311,68 @@ export default function TariffCalculator() {
                     {/* その他の料金設定 */}
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary-700 mb-2">
                           基本料金 (円/月)
                         </label>
                         <input
                           type="number"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400"
                           value={tariffData.basic_charge_per_month}
                           onChange={(e) => handleTariffChange('basic_charge_per_month', parseFloat(e.target.value) || 0)}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary-700 mb-2">
                           アンペア単価 (円/A)
                         </label>
                         <input
                           type="number"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400"
                           value={tariffData.basic_charge_per_ampere}
                           onChange={(e) => handleTariffChange('basic_charge_per_ampere', parseFloat(e.target.value) || 0)}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary-700 mb-2">
                           再エネ賦課金 (円/kWh)
                         </label>
                         <input
                           type="number"
                           step="0.01"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400"
                           value={tariffData.renewable_energy_levy}
                           onChange={(e) => handleTariffChange('renewable_energy_levy', parseFloat(e.target.value) || 0)}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary-700 mb-2">
                           燃料費調整 (円/kWh)
                         </label>
                         <input
                           type="number"
                           step="0.01"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400"
                           value={tariffData.fuel_cost_adjustment}
                           onChange={(e) => handleTariffChange('fuel_cost_adjustment', parseFloat(e.target.value) || 0)}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary-700 mb-2">
                           デマンド料金 (円/kW)
                         </label>
                         <input
                           type="number"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400"
                           value={tariffData.demand_charge_per_kw}
                           onChange={(e) => handleTariffChange('demand_charge_per_kw', parseFloat(e.target.value) || 0)}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary-700 mb-2">
                           税率
                         </label>
                         <select
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400"
                           value={tariffData.tax_rate}
                           onChange={(e) => handleTariffChange('tax_rate', parseFloat(e.target.value))}
                         >
@@ -388,42 +388,42 @@ export default function TariffCalculator() {
                 {/* 使用量設定 */}
                 <div className="bg-white rounded-xl shadow-lg p-6">
                   <h2 className="text-2xl font-bold mb-6 flex items-center">
-                    <FaChartPie className="mr-3 text-green-600" />
+                    <FaChartPie className="mr-3 text-accent-500" />
                     使用量・契約条件
                   </h2>
 
                   <div className="space-y-4">
                     <div className="grid md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary-700 mb-2">
                           月間使用量 (kWh)
                         </label>
                         <input
                           type="number"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400"
                           value={usageData.total_usage_kwh}
                           onChange={(e) => setUsageData(prev => ({ ...prev, total_usage_kwh: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary-700 mb-2">
                           契約アンペア (A)
                         </label>
                         <input
                           type="number"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400"
                           value={usageData.amperage}
                           onChange={(e) => setUsageData(prev => ({ ...prev, amperage: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary-700 mb-2">
                           最大デマンド (kW)
                         </label>
                         <input
                           type="number"
                           step="0.1"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400"
                           value={usageData.max_demand_kw}
                           onChange={(e) => setUsageData(prev => ({ ...prev, max_demand_kw: e.target.value }))}
                         />
@@ -440,7 +440,7 @@ export default function TariffCalculator() {
                             onChange={(e) => setUseProfile(e.target.checked)}
                             className="mr-2"
                           />
-                          <label htmlFor="useProfile" className="text-sm font-medium text-gray-700">
+                          <label htmlFor="useProfile" className="text-sm font-medium text-primary-700">
                             時間別使用量プロファイルを使用
                           </label>
                         </div>
@@ -448,12 +448,12 @@ export default function TariffCalculator() {
                         {useProfile && (
                           <div>
                             <div className="flex justify-between items-center mb-3">
-                              <label className="text-sm font-medium text-gray-700">
+                              <label className="text-sm font-medium text-primary-700">
                                 時間別使用量 (kWh)
                               </label>
                               <button
                                 onClick={distributeUsageEvenly}
-                                className="text-sm text-blue-600 hover:text-blue-800"
+                                className="text-sm text-accent-500 hover:text-accent-600"
                               >
                                 均等配分
                               </button>
@@ -461,11 +461,11 @@ export default function TariffCalculator() {
                             <div className="grid grid-cols-6 gap-2">
                               {usageData.hourly_usage.map((usage, hour) => (
                                 <div key={hour} className="text-center">
-                                  <div className="text-xs text-gray-500 mb-1">{hour}時</div>
+                                  <div className="text-xs text-primary-400 mb-1">{hour}時</div>
                                   <input
                                     type="number"
                                     step="0.1"
-                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                                    className="w-full px-2 py-1 text-sm border border-primary-300 rounded"
                                     value={usage}
                                     onChange={(e) => handleHourlyUsageChange(hour, e.target.value)}
                                   />
@@ -480,7 +480,7 @@ export default function TariffCalculator() {
                     <button
                       onClick={calculateTariff}
                       disabled={loading}
-                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105"
+                      className="w-full bg-accent-500 hover:bg-accent-600 disabled:bg-primary-400 text-white font-bold py-4 px-6 rounded-lg shadow-lg transition-colors"
                     >
                       {loading ? <LoadingSpinner /> : '見積もり計算'}
                     </button>
@@ -493,17 +493,17 @@ export default function TariffCalculator() {
                 {result && (
                   <div className="bg-white rounded-xl shadow-lg p-6">
                     <h3 className="text-xl font-bold mb-4 flex items-center">
-                      <FaReceipt className="mr-3 text-green-600" />
+                      <FaReceipt className="mr-3 text-accent-500" />
                       見積もり結果
                     </h3>
 
                     <div className="space-y-4">
                       {/* 総額 */}
-                      <div className="text-center p-4 bg-green-50 rounded-lg">
-                        <div className="text-3xl font-bold mb-2 text-green-600">
+                      <div className="text-center p-4 bg-accent-50 rounded-lg">
+                        <div className="text-3xl font-bold mb-2 text-accent-500">
                           {Math.round(result.total_amount).toLocaleString()} 円
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-primary-500">
                           月額電力料金（税込）
                         </div>
                       </div>
@@ -522,11 +522,11 @@ export default function TariffCalculator() {
 
                       {/* 詳細内訳 */}
                       <div>
-                        <div className="font-medium text-gray-700 mb-3">詳細内訳</div>
+                        <div className="font-medium text-primary-700 mb-3">詳細内訳</div>
                         <div className="space-y-2 max-h-60 overflow-y-auto">
                           {result.line_items.map((item, index) => (
-                            <div key={index} className="flex justify-between text-sm py-1 border-b border-gray-100">
-                              <span className="text-gray-600">{item.description}</span>
+                            <div key={index} className="flex justify-between text-sm py-1 border-b border-primary-100">
+                              <span className="text-primary-500">{item.description}</span>
                               <span className="font-medium">{Math.round(item.amount).toLocaleString()} 円</span>
                             </div>
                           ))}
@@ -534,12 +534,12 @@ export default function TariffCalculator() {
                       </div>
 
                       {/* 料金体系サマリー */}
-                      <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                        <div className="flex items-center text-blue-800 font-medium mb-2">
+                      <div className="mt-4 p-3 bg-warm-50 rounded-lg">
+                        <div className="flex items-center text-primary-700 font-medium mb-2">
                           <FaInfoCircle className="mr-2" />
                           料金体系
                         </div>
-                        <div className="text-sm text-blue-700">
+                        <div className="text-sm text-primary-600">
                           <div>タイプ: {
                             result.tariff_summary.type === 'flat' ? 'フラット料金' :
                             result.tariff_summary.type === 'tiered' ? '段階制料金' :

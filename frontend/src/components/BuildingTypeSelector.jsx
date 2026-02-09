@@ -176,7 +176,7 @@ const BUILDING_TYPES = [
 
 export default function BuildingTypeSelector({ value, onChange, className = "", compact = false }) {
   const [showDetails, setShowDetails] = useState(false);
-  
+
   const selectedType = BUILDING_TYPES.find(type => type.id === value);
 
   // コンパクトモードの場合は簡易表示
@@ -186,7 +186,7 @@ export default function BuildingTypeSelector({ value, onChange, className = "", 
         <select
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white text-sm"
+          className="w-full p-2 border border-primary-300 rounded focus:ring-2 focus:ring-accent-500 focus:border-accent-500 appearance-none bg-white text-sm"
         >
           <option value="">選択してください</option>
           {BUILDING_TYPES.map((type) => (
@@ -202,7 +202,7 @@ export default function BuildingTypeSelector({ value, onChange, className = "", 
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center space-x-2">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-primary-700">
           建物用途
         </label>
         <HelpTooltip title="モデル建物法とは？">
@@ -216,7 +216,7 @@ export default function BuildingTypeSelector({ value, onChange, className = "", 
         <select
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+          className="w-full p-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 appearance-none bg-white"
           required
         >
           <option value="">建物用途を選択してください</option>
@@ -229,25 +229,25 @@ export default function BuildingTypeSelector({ value, onChange, className = "", 
       </div>
 
       {selectedType && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <div className="bg-warm-50 border border-primary-200 rounded-lg p-4">
           <div className="flex items-start space-x-3">
-            <selectedType.icon className="text-green-600 text-xl mt-1 flex-shrink-0" />
+            <selectedType.icon className="text-accent-600 text-xl mt-1 flex-shrink-0" />
             <div className="flex-1">
-              <h4 className="font-medium text-green-800 mb-2">{selectedType.name}</h4>
-              <p className="text-sm text-green-700 mb-2">{selectedType.characteristics}</p>
-              <div className="text-xs text-green-600 mb-3">
+              <h4 className="font-medium text-primary-800 mb-2">{selectedType.name}</h4>
+              <p className="text-sm text-primary-700 mb-2">{selectedType.characteristics}</p>
+              <div className="text-xs text-primary-600 mb-3">
                 <strong>該当例:</strong> {selectedType.examples.join(', ')}
               </div>
-              
+
               {/* エネルギー消費量プロファイル */}
-              <div className="bg-white rounded p-3 border border-green-100">
-                <div className="text-xs font-medium text-green-800 mb-2">
+              <div className="bg-white rounded p-3 border border-primary-100">
+                <div className="text-xs font-medium text-primary-800 mb-2">
                   基準エネルギー消費量原単位 (MJ/m²年)
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                   {Object.entries(selectedType.energyProfile).map(([key, value]) => (
                     <div key={key} className="text-center">
-                      <div className="text-gray-600">
+                      <div className="text-primary-600">
                         {key === 'heating' && '暖房'}
                         {key === 'cooling' && '冷房'}
                         {key === 'lighting' && '照明'}
@@ -255,7 +255,7 @@ export default function BuildingTypeSelector({ value, onChange, className = "", 
                         {key === 'ventilation' && '換気'}
                         {key === 'total' && '合計'}
                       </div>
-                      <div className="font-medium text-green-700">{value}</div>
+                      <div className="font-medium text-accent-700">{value}</div>
                     </div>
                   ))}
                 </div>
@@ -269,31 +269,31 @@ export default function BuildingTypeSelector({ value, onChange, className = "", 
         <button
           type="button"
           onClick={() => setShowDetails(!showDetails)}
-          className="text-sm text-blue-600 hover:text-blue-800 underline"
+          className="text-sm text-accent-600 hover:text-accent-800 underline"
         >
           {showDetails ? '用途一覧を閉じる' : '全用途を比較表示'}
         </button>
       </div>
 
       {showDetails && (
-        <div className="bg-gray-50 border rounded-lg p-4">
+        <div className="bg-warm-50 border rounded-lg p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
             {BUILDING_TYPES.map(type => (
-              <div 
+              <div
                 key={type.id}
                 className={`p-3 rounded border cursor-pointer transition-colors ${
-                  selectedType?.id === type.id 
-                    ? 'bg-green-100 border-green-300' 
-                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                  selectedType?.id === type.id
+                    ? 'bg-accent-50 border-accent-300'
+                    : 'bg-white border-primary-200 hover:bg-warm-50'
                 }`}
                 onClick={() => onChange(type.id)}
               >
                 <div className="flex items-center space-x-2 mb-1">
-                  <type.icon className="text-blue-600 flex-shrink-0" />
-                  <div className="font-medium text-gray-800">{type.name}</div>
+                  <type.icon className="text-accent-600 flex-shrink-0" />
+                  <div className="font-medium text-primary-800">{type.name}</div>
                 </div>
-                <div className="text-gray-600 text-xs">{type.description}</div>
-                <div className="text-gray-500 text-xs mt-1">
+                <div className="text-primary-600 text-xs">{type.description}</div>
+                <div className="text-primary-500 text-xs mt-1">
                   合計: {type.energyProfile.total} MJ/m²年
                 </div>
               </div>

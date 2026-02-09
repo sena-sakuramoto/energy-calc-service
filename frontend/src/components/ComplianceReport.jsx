@@ -478,11 +478,11 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
 
   return (
     <div className="bg-white">
-      <div id="compliance-report" className="border-2 border-gray-300 p-8 max-w-4xl mx-auto font-mono text-sm">
+      <div id="compliance-report" className="border-2 border-primary-300 p-8 max-w-4xl mx-auto font-mono text-sm">
         {/* ヘッダー - 実務レベル文書管理対応 */}
         <div className="border-b-2 border-black pb-4 mb-6">
           {/* 文書識別情報バー */}
-          <div className="bg-gray-50 -mx-8 -mt-8 px-8 pt-3 pb-2 mb-4 text-xs text-gray-600 border-b border-gray-300">
+          <div className="bg-warm-50 -mx-8 -mt-8 px-8 pt-3 pb-2 mb-4 text-xs text-primary-600 border-b border-primary-300">
             <div className="flex justify-between items-center">
               <div>
                 <span className="font-medium">文書ID:</span> BEI-{new Date().getFullYear()}-{String(new Date().getMonth() + 1).padStart(2, '0')}-{String(new Date().getDate()).padStart(2, '0')}-{Math.floor(Math.random() * 1000).toString().padStart(3, '0')} | 
@@ -497,12 +497,12 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
           
           <div className="flex justify-between items-start">
             <div className="text-left flex-1">
-              <h1 className="text-xl font-bold mb-2 text-blue-800">建築物省エネルギー法　適合性判定申請書</h1>
-              <h2 className="text-lg font-bold text-green-700 mb-3">モデル建物法による一次エネルギー消費量計算書</h2>
+              <h1 className="text-xl font-bold mb-2 text-primary-800">建築物省エネルギー法　適合性判定申請書</h1>
+              <h2 className="text-lg font-bold text-primary-700 mb-3">モデル建物法による一次エネルギー消費量計算書</h2>
               
               {/* プロジェクト情報の要約表示 */}
               {projectInfo && (
-                <div className="bg-blue-50 p-3 rounded border text-sm mt-3">
+                <div className="bg-warm-50 p-3 rounded border text-sm mt-3">
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                     {projectInfo.name && <div><span className="font-medium">物件名:</span> {projectInfo.name}</div>}
                     {projectInfo.location && <div><span className="font-medium">所在地:</span> {projectInfo.location}</div>}
@@ -535,14 +535,14 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
                     </button>
                     <button
                         onClick={onDownload}
-                        className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[80px] touch-manipulation"
+                        className="bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[80px] touch-manipulation"
                         style={{ minHeight: '44px' }} /* iOS推奨タップ領域 */
                     >
                         <FaDownload />
                         <span>JSON</span>
                     </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">実用的Excel・PDF対応（スマホ可）</p>
+                <p className="text-xs text-primary-500 mt-1">実用的Excel・PDF対応（スマホ可）</p>
             </div>
           </div>
           <div className="mt-4 text-right">
@@ -590,7 +590,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
           {/* 複数用途建物の詳細内訳（該当する場合のみ表示） */}
           {formData.building_usages && formData.building_usages.length > 1 && (
             <div className="mt-4">
-              <h4 className="text-md font-bold mb-2 text-gray-700">■ 複数用途建物の内訳詳細</h4>
+              <h4 className="text-md font-bold mb-2 text-primary-700">■ 複数用途建物の内訳詳細</h4>
               <table className="w-full border-collapse border border-black text-sm">
                 <thead>
                   <tr className="bg-gray-100">
@@ -629,7 +629,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
                   </tr>
                 </tbody>
               </table>
-              <div className="mt-2 text-xs text-gray-600">
+              <div className="mt-2 text-xs text-primary-600">
                 <p>※ 各用途の基準一次エネルギー消費量は、用途別面積×基準原単位により算出</p>
                 <p>※ 基準原単位は地域区分{formData.climate_zone}地域の補正係数適用済み</p>
               </div>
@@ -639,7 +639,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
           {/* 単一用途の場合の詳細表示 */}
           {(!formData.building_usages || formData.building_usages.length <= 1) && (
             <div className="mt-4">
-              <h4 className="text-md font-bold mb-2 text-gray-700">■ 基準エネルギー消費量原単位の内訳</h4>
+              <h4 className="text-md font-bold mb-2 text-primary-700">■ 基準エネルギー消費量原単位の内訳</h4>
               <table className="w-full border-collapse border border-black text-sm">
                 <thead>
                   <tr className="bg-gray-100">
@@ -666,7 +666,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
                   </tr>
                 </tbody>
               </table>
-              <div className="mt-2 text-xs text-gray-600">
+              <div className="mt-2 text-xs text-primary-600">
                 <p>※ 地域区分{formData.climate_zone}地域に基づく補正係数を適用</p>
                 <p>※ 国土交通省告示第265号に基づくモデル建物法標準値</p>
               </div>
@@ -703,7 +703,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
             </tbody>
           </table>
           
-          <div className="bg-gray-50 p-3 rounded border">
+          <div className="bg-warm-50 p-3 rounded border">
             <p className="font-bold">計算式:</p>
             <p>BEI = 設計一次エネルギー消費量 ÷ 基準一次エネルギー消費量</p>
             <p>= {result.design_primary_energy_mj?.toLocaleString()} ÷ {result.standard_primary_energy_mj?.toLocaleString()}</p>
@@ -788,7 +788,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
                 const others = rows2.filter(x=>x.band!=='high-major').sort((a,b)=>b.priority-a.priority);
                 const ordered = [...highMajor, ...others];
                 const label = (b)=> b==='low'?'良好': b==='typical'?'標準': b==='high-major'?'要改善（重点）':'要改善';
-                const color = (b)=> b==='low'?'text-green-700': b==='typical'?'text-gray-700': b==='high-major'?'text-red-700':'text-orange-700';
+                const color = (b)=> b==='low'?'text-green-700': b==='typical'?'text-primary-700': b==='high-major'?'text-red-700':'text-accent-700';
                 return (
                   <table className="w-full border-collapse border border-black">
                     <thead>
@@ -816,7 +816,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
                   </table>
                 );
               } catch (e) {
-                return <p className="text-sm text-gray-500">カテゴリ別BEIの集計に失敗しました</p>;
+                return <p className="text-sm text-primary-500">カテゴリ別BEIの集計に失敗しました</p>;
               }
             })()}
           </section>
@@ -858,7 +858,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
             </tbody>
           </table>
           
-          <div className="mt-4 bg-gray-50 p-3 rounded border text-sm">
+          <div className="mt-4 bg-warm-50 p-3 rounded border text-sm">
             <p><strong>基準一次エネルギー消費量 = </strong></p>
             <p>基準エネルギー消費量原単位合計 × 延床面積</p>
             <p>= {result.standard_energy_per_m2?.toFixed(2)} × {Number(formData.floor_area || result.building_area_m2).toLocaleString()}</p>
@@ -881,7 +881,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
           <h3 className="text-lg font-bold border-b border-black mb-3">6. 注記・特記事項</h3>
           <div className="text-sm space-y-2">
             <div>
-              <h4 className="font-bold text-gray-700 mb-1">■ 計算方法・適用基準</h4>
+              <h4 className="font-bold text-primary-700 mb-1">■ 計算方法・適用基準</h4>
               <p>• 本計算書は建築物省エネ法に基づくモデル建物法により算定</p>
               <p>• 地域区分: {formData.climate_zone}地域の補正係数を適用</p>
               <p>• 規模補正係数: 0.95（モデル建物法標準値）</p>
@@ -890,7 +890,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
             </div>
             
             <div>
-              <h4 className="font-bold text-gray-700 mb-1">■ モデル建物設備仕様（前提条件）</h4>
+              <h4 className="font-bold text-primary-700 mb-1">■ モデル建物設備仕様（前提条件）</h4>
               <p>• 暖冷房設備: パッケージエアコン（COP=3.0相当）</p>
               <p>• 機械換気設備: 全熱交換器付き（交換効率65%）</p>
               <p>• 給湯設備: 電気温水器（COP=3.0相当）</p>
@@ -899,7 +899,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
             </div>
 
             <div>
-              <h4 className="font-bold text-gray-700 mb-1">■ 再生可能エネルギー・その他</h4>
+              <h4 className="font-bold text-primary-700 mb-1">■ 再生可能エネルギー・その他</h4>
               {formData.renewable_energy && Number(formData.renewable_energy) > 0 ? (
                 <>
                   <p>• 再生可能エネルギー控除: {Number(formData.renewable_energy).toLocaleString()} MJ/年</p>
@@ -912,20 +912,20 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
             </div>
 
             <div>
-              <h4 className="font-bold text-gray-700 mb-1">■ 計算上の補足・警告事項</h4>
+              <h4 className="font-bold text-primary-700 mb-1">■ 計算上の補足・警告事項</h4>
               <p>• モデル建物法による標準値は国交省公開カタログ値に準拠</p>
               <p>• 複合用途の場合、各用途部分の面積按分により基準値を算出</p>
               <p>• 入力データに未定義項目がある場合、標準換算係数を適用</p>
               {result.bei > 0.95 && result.bei <= 1.0 && (
-                <p className="text-orange-600 font-medium">• ⚠️ BEI値が基準値に近接しています。設計変更時は再計算を推奨</p>
+                <p className="text-accent-600 font-medium">• BEI値が基準値に近接しています。設計変更時は再計算を推奨</p>
               )}
               {result.bei > 1.0 && (
-                <p className="text-red-600 font-medium">• ⚠️ 省エネ基準不適合。設計見直しが必要です</p>
+                <p className="text-red-600 font-medium">• 省エネ基準不適合。設計見直しが必要です</p>
               )}
             </div>
 
             <div>
-              <h4 className="font-bold text-gray-700 mb-1">■ 文書管理情報</h4>
+              <h4 className="font-bold text-primary-700 mb-1">■ 文書管理情報</h4>
               <p>• 計算書ID: BEI-{new Date().getFullYear()}-{String(new Date().getMonth() + 1).padStart(2, '0')}-{String(new Date().getDate()).padStart(2, '0')}-{Math.floor(Math.random() * 1000).toString().padStart(3, '0')}</p>
               <p>• 版数: Rev.01</p>
               <p>• 作成システム: 建築物省エネ計算システム v2.0</p>
@@ -933,7 +933,7 @@ ${printContent.innerHTML.replace(/class="no-print[^"]*"/g, 'style="display:none"
             </div>
 
             {result.notes?.map((note, index) => (
-              <p key={index} className="text-blue-600">• {note}</p>
+              <p key={index} className="text-primary-600">• {note}</p>
             ))}
           </div>
         </section>

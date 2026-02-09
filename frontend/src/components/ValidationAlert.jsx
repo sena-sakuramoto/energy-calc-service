@@ -13,11 +13,11 @@ export default function ValidationAlert({ warnings, onDismiss, className = "" })
       case WARNING_LEVELS.ERROR:
         return <FaExclamationTriangle className="text-red-500" />;
       case WARNING_LEVELS.WARNING:
-        return <FaExclamationTriangle className="text-yellow-500" />;
+        return <FaExclamationTriangle className="text-accent-500" />;
       case WARNING_LEVELS.INFO:
-        return <FaInfoCircle className="text-blue-500" />;
+        return <FaInfoCircle className="text-primary-500" />;
       default:
-        return <FaInfoCircle className="text-gray-500" />;
+        return <FaInfoCircle className="text-primary-400" />;
     }
   };
 
@@ -26,11 +26,11 @@ export default function ValidationAlert({ warnings, onDismiss, className = "" })
       case WARNING_LEVELS.ERROR:
         return 'bg-red-50 border-red-200';
       case WARNING_LEVELS.WARNING:
-        return 'bg-yellow-50 border-yellow-200';
+        return 'bg-accent-50 border-accent-200';
       case WARNING_LEVELS.INFO:
-        return 'bg-blue-50 border-blue-200';
+        return 'bg-warm-50 border-primary-200';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-warm-50 border-primary-200';
     }
   };
 
@@ -48,7 +48,7 @@ export default function ValidationAlert({ warnings, onDismiss, className = "" })
         <div className="flex-shrink-0 mt-0.5">
           {getIcon(maxLevel)}
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="space-y-2">
             {warnings.map((warning, index) => (
@@ -63,18 +63,18 @@ export default function ValidationAlert({ warnings, onDismiss, className = "" })
                 )}
                 {warning.recommendation && (
                   <div className="text-xs opacity-75 mt-1 font-medium">
-                    💡 {warning.recommendation}
+                    {warning.recommendation}
                   </div>
                 )}
               </div>
             ))}
           </div>
         </div>
-        
+
         {onDismiss && (
           <button
             onClick={onDismiss}
-            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            className="flex-shrink-0 text-primary-400 hover:text-primary-600 transition-colors"
           >
             <FaTimes size={12} />
           </button>
@@ -112,16 +112,16 @@ export function ValidationSummary({ validationResults, className = "" }) {
   return (
     <div className={`border rounded-lg p-4 mb-4 ${className}`}>
       <div className="flex items-center justify-between mb-3">
-        <h4 className="font-medium text-gray-900">入力値チェック結果</h4>
+        <h4 className="font-medium text-primary-900">入力値チェック結果</h4>
         <div className="flex space-x-3 text-sm">
           {errorCount > 0 && (
-            <span className="text-red-600">❌ エラー {errorCount}件</span>
+            <span className="text-red-600">エラー {errorCount}件</span>
           )}
           {warningCount > 0 && (
-            <span className="text-yellow-600">⚠️ 注意 {warningCount}件</span>
+            <span className="text-accent-600">注意 {warningCount}件</span>
           )}
           {infoCount > 0 && (
-            <span className="text-blue-600">ℹ️ 情報 {infoCount}件</span>
+            <span className="text-primary-600">情報 {infoCount}件</span>
           )}
         </div>
       </div>
@@ -129,7 +129,7 @@ export function ValidationSummary({ validationResults, className = "" }) {
       <div className="space-y-3">
         {Object.entries(validationResults).map(([field, warnings]) => (
           <div key={field}>
-            <div className="text-sm font-medium text-gray-700 mb-1">
+            <div className="text-sm font-medium text-primary-700 mb-1">
               {getFieldDisplayName(field)}
             </div>
             <ValidationAlert warnings={warnings} />

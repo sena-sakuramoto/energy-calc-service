@@ -4,14 +4,14 @@ import Layout from '../components/Layout';
 export default function Privacy() {
   return (
     <Layout title="プライバシーポリシー - 楽々省エネ計算">
-      <div className="max-w-3xl mx-auto py-10 space-y-8 text-gray-800">
-        <h1 className="text-3xl font-bold text-gray-900">プライバシーポリシー</h1>
+      <div className="max-w-3xl mx-auto py-10 space-y-8 text-primary-800">
+        <h1 className="text-3xl font-bold text-primary-900">プライバシーポリシー</h1>
         <p>Archi-Prisma Design works 株式会社（以下「当社」）は、当社が提供する「楽々省エネ計算」（以下「本サービス」）におけるユーザーの個人情報の取り扱いについて、以下のとおり方針を定め、適切に保護・管理いたします。</p>
 
         <section className="space-y-1">
           <h2 className="text-xl font-semibold">1. 取得する情報</h2>
           <p>当社は、以下の情報を取得する場合があります。</p>
-          <ul className="list-disc list-inside text-gray-700">
+          <ul className="list-disc list-inside text-primary-700">
             <li>氏名、メールアドレス、会社名、部署名、役職、電話番号 等</li>
             <li>サービス利用履歴、アクセスログ、IPアドレス、ブラウザ情報、Cookie 等</li>
             <li>お問い合わせ内容やアンケート回答 等</li>
@@ -20,7 +20,7 @@ export default function Privacy() {
 
         <section className="space-y-1">
           <h2 className="text-xl font-semibold">2. 利用目的</h2>
-          <ul className="list-disc list-inside text-gray-700">
+          <ul className="list-disc list-inside text-primary-700">
             <li>本サービスの提供、保守、改善、品質向上のため</li>
             <li>お問い合わせへの対応、本人確認、重要なお知らせの通知のため</li>
             <li>不正利用の防止、セキュリティ確保のため</li>
@@ -56,10 +56,10 @@ export default function Privacy() {
         <section className="space-y-1">
           <h2 className="text-xl font-semibold">8. お問い合わせ窓口</h2>
           <p>本ポリシーに関するお問い合わせは、以下の窓口までお願いいたします。</p>
-          <div className="text-gray-700">
+          <div className="text-primary-700">
             <p>Archi-Prisma Design works 株式会社</p>
             <p>所在地：東京都品川区上大崎2-6-7 SMA白金長者丸301</p>
-            <p>メール：<a href="mailto:rse-support@archi-prisma.co.jp" className="text-blue-600">rse-support@archi-prisma.co.jp</a></p>
+            <p>メール：<a href="mailto:rse-support@archi-prisma.co.jp" className="text-accent-600">rse-support@archi-prisma.co.jp</a></p>
           </div>
         </section>
       </div>

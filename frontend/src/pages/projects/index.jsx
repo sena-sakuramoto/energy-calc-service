@@ -104,8 +104,8 @@ export default function Projects() {
           {error}
         </div>
       ) : projects.length === 0 ? (
-        <div className="bg-gray-50 p-8 rounded-md text-center">
-          <p className="text-gray-600 mb-4">
+        <div className="bg-warm-50 p-8 rounded-md text-center">
+          <p className="text-primary-600 mb-4">
             プロジェクトがまだありません。新規プロジェクトを作成してください。
           </p>
           <Link
@@ -118,7 +118,7 @@ export default function Projects() {
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
-            <thead className="bg-gray-100">
+            <thead className="bg-warm-100">
               <tr>
                 <th className="py-3 px-4 text-left">プロジェクト名</th>
                 <th className="py-3 px-4 text-left">作成日</th>
@@ -127,9 +127,9 @@ export default function Projects() {
                 <th className="py-3 px-4 text-center">操作</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-primary-200">
               {projects.map(project => (
-                <tr key={project.id} className="hover:bg-gray-50">
+                <tr key={project.id} className="hover:bg-warm-50">
                   <td className="py-3 px-4">
                     <Link href={`/projects/${project.id}`} className="text-primary hover:underline">
                       {project.projectInfo?.name || project.name}
@@ -161,7 +161,7 @@ export default function Projects() {
                       </Link>
                       <Link
                         href={`/projects/${project.id}/edit`}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-accent-500 hover:text-accent-600"
                         title="編集"
                       >
                         <FaPencilAlt />

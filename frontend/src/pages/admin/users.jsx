@@ -44,15 +44,15 @@ export default function UserManagement() {
   };
 
   // 管理者チェック（仮の実装 - 実際は適切な権限管理を実装）
-  const isAdmin = user?.email === 's.sakuramoto@archi-prisma.co.jp' || 
+  const isAdmin = user?.email === 's.sakuramoto@archi-prisma.co.jp' ||
                   user?.email === 'admin@archi-prisma.co.jp';
 
   if (!isAuthenticated) {
     return (
       <Layout>
         <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">認証が必要です</h1>
-          <p className="text-gray-600">この機能を利用するにはログインが必要です。</p>
+          <h1 className="text-2xl font-bold text-primary-900 mb-4">認証が必要です</h1>
+          <p className="text-primary-600">この機能を利用するにはログインが必要です。</p>
         </div>
       </Layout>
     );
@@ -62,8 +62,8 @@ export default function UserManagement() {
     return (
       <Layout>
         <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">アクセス権限がありません</h1>
-          <p className="text-gray-600">この機能は管理者のみ利用できます。</p>
+          <h1 className="text-2xl font-bold text-primary-900 mb-4">アクセス権限がありません</h1>
+          <p className="text-primary-600">この機能は管理者のみ利用できます。</p>
         </div>
       </Layout>
     );
@@ -83,21 +83,21 @@ export default function UserManagement() {
     <Layout>
       <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-8">
         <div className="flex items-center mb-8">
-          <FaUsers className="text-blue-600 mr-3 text-2xl" />
-          <h1 className="text-3xl font-bold text-gray-900">ユーザー管理</h1>
+          <FaUsers className="text-accent-600 mr-3 text-2xl" />
+          <h1 className="text-3xl font-bold text-primary-900">ユーザー管理</h1>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-blue-50 p-6 rounded-lg">
+          <div className="bg-warm-50 p-6 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-600 font-medium">総ユーザー数</p>
-                <p className="text-3xl font-bold text-blue-700">{users.length}</p>
+                <p className="text-primary-600 font-medium">総ユーザー数</p>
+                <p className="text-3xl font-bold text-primary-700">{users.length}</p>
               </div>
-              <FaUsers className="text-4xl text-blue-400" />
+              <FaUsers className="text-4xl text-primary-400" />
             </div>
           </div>
-          
+
           <div className="bg-green-50 p-6 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
@@ -109,7 +109,7 @@ export default function UserManagement() {
               <FaUserCheck className="text-4xl text-green-400" />
             </div>
           </div>
-          
+
           <div className="bg-red-50 p-6 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
@@ -125,58 +125,58 @@ export default function UserManagement() {
 
         <div className="overflow-x-auto">
           <table className="min-w-full table-auto">
-            <thead className="bg-gray-50">
+            <thead className="bg-warm-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">
                   ユーザー情報
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">
                   認証方式
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">
                   登録日
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">
                   ステータス
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">
                   操作
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-primary-200">
               {users.map((userData) => (
-                <tr key={userData.id} className="hover:bg-gray-50">
+                <tr key={userData.id} className="hover:bg-warm-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-primary-900">
                         {userData.full_name || '名前未設定'}
                       </div>
-                      <div className="text-sm text-gray-500">{userData.email}</div>
+                      <div className="text-sm text-primary-500">{userData.email}</div>
                       {userData.company && (
-                        <div className="text-xs text-gray-400">{userData.company}</div>
+                        <div className="text-xs text-primary-400">{userData.company}</div>
                       )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      userData.authType === 'google' 
-                        ? 'bg-red-100 text-red-800' 
-                        : 'bg-blue-100 text-blue-800'
+                      userData.authType === 'google'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-primary-100 text-primary-800'
                     }`}>
                       {userData.authType === 'google' ? 'Google' : 'Email'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {userData.registrationDate 
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-primary-500">
+                    {userData.registrationDate
                       ? new Date(userData.registrationDate).toLocaleDateString('ja-JP')
                       : '不明'
                     }
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      userData.is_active 
-                        ? 'bg-green-100 text-green-800' 
+                      userData.is_active
+                        ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
                       {userData.is_active ? 'アクティブ' : '無効'}
@@ -188,7 +188,7 @@ export default function UserManagement() {
                         onClick={() => handleToggleStatus(userData.id)}
                         className={`flex items-center px-3 py-1 rounded text-xs ${
                           userData.is_active
-                            ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                            ? 'bg-accent-100 text-accent-700 hover:bg-accent-200'
                             : 'bg-green-100 text-green-700 hover:bg-green-200'
                         }`}
                       >
@@ -212,7 +212,7 @@ export default function UserManagement() {
 
         {users.length === 0 && (
           <div className="text-center py-8">
-            <p className="text-gray-500">登録されたユーザーがありません</p>
+            <p className="text-primary-500">登録されたユーザーがありません</p>
           </div>
         )}
       </div>

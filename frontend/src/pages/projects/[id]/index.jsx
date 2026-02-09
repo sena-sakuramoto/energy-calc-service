@@ -14,7 +14,7 @@ const ProjectDetail = () => {
   const { id } = router.query;
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { showError, showSuccess } = useNotification();
-  
+
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
@@ -32,7 +32,7 @@ const ProjectDetail = () => {
   const fetchProject = async () => {
     try {
       setLoading(true);
-      
+
       // LocalStorage環境での取得
       if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
         const localProject = getProject(id);
@@ -86,7 +86,7 @@ const ProjectDetail = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-warm-50">
         <div className="text-center">
           <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
           <p>認証確認中...</p>
@@ -101,7 +101,7 @@ const ProjectDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-warm-50 py-8">
         <div className="max-w-4xl mx-auto px-4">
           <LoadingSpinner size="large" message="プロジェクトを読み込み中..." />
         </div>
@@ -111,12 +111,12 @@ const ProjectDetail = () => {
 
   if (!project) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-warm-50">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <h2 className="text-xl font-semibold text-primary-900 mb-4">
             プロジェクトが見つかりません
           </h2>
-          <Link href="/projects" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+          <Link href="/projects" className="bg-accent-500 text-white px-4 py-2 rounded-lg hover:bg-accent-600">
             プロジェクト一覧に戻る
           </Link>
         </div>
@@ -125,39 +125,39 @@ const ProjectDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-warm-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ヘッダー */}
         <div className="mb-8">
-          <Link 
-            href="/projects" 
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
+          <Link
+            href="/projects"
+            className="inline-flex items-center text-accent-500 hover:text-accent-600 mb-4"
           >
             <FaArrowLeft className="mr-2" />
             プロジェクト一覧に戻る
           </Link>
-          
+
           <div className="bg-white rounded-lg shadow-lg p-8">
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <h1 className="text-3xl font-bold text-primary-900 mb-2">
                   {project.projectInfo?.name || project.name}
                 </h1>
                 {(project.projectInfo?.description || project.description) && (
-                  <p className="text-gray-600 text-lg mb-4">
+                  <p className="text-primary-600 text-lg mb-4">
                     {project.projectInfo?.description || project.description}
                   </p>
                 )}
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-primary-500">
                   作成日: {new Date(project.createdAt || project.created_at).toLocaleDateString('ja-JP')}
                 </div>
               </div>
-              
+
               <div className="flex space-x-2">
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:bg-gray-400 flex items-center"
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:bg-primary-400 flex items-center"
                 >
                   {deleting ? (
                     <>
@@ -179,66 +179,66 @@ const ProjectDetail = () => {
         {/* アクションカード */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* 計算実行 */}
-          <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-blue-600">
+          <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-accent-500">
             <div className="flex items-center mb-4">
-              <div className="bg-blue-100 p-3 rounded-full mr-4">
-                <FaCalculator className="text-blue-600 text-xl" />
+              <div className="bg-accent-50 p-3 rounded-full mr-4">
+                <FaCalculator className="text-accent-500 text-xl" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">省エネ計算実行</h3>
-                <p className="text-gray-600">建物の省エネ性能を計算</p>
+                <h3 className="text-xl font-semibold text-primary-900">省エネ計算実行</h3>
+                <p className="text-primary-600">建物の省エネ性能を計算</p>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-primary-500 mb-4">
               BEI値、外皮性能、一次エネルギー消費量を正確に算出し、省エネ基準適合性を判定します。
             </p>
-            <Link 
+            <Link
               href={`/projects/${id}/calculate`}
-              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 font-medium text-center block shadow-lg"
+              className="w-full bg-accent-500 text-white py-3 px-6 rounded-lg hover:bg-accent-600 transition-colors font-medium text-center block"
             >
               計算を開始
             </Link>
           </div>
 
           {/* 結果確認 */}
-          <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-green-600">
+          <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-primary-600">
             <div className="flex items-center mb-4">
-              <div className="bg-green-100 p-3 rounded-full mr-4">
-                <FaEye className="text-green-600 text-xl" />
+              <div className="bg-primary-100 p-3 rounded-full mr-4">
+                <FaEye className="text-primary-600 text-xl" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">計算結果確認</h3>
-                <p className="text-gray-600">詳細レポートを表示</p>
+                <h3 className="text-xl font-semibold text-primary-900">計算結果確認</h3>
+                <p className="text-primary-600">詳細レポートを表示</p>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-primary-500 mb-4">
               グラフィカルな結果表示とPDF・Excel形式での出力が可能です。申請資料作成に最適。
             </p>
-            <Link 
+            <Link
               href={`/projects/${id}/result`}
-              className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 font-medium text-center block shadow-lg"
+              className="w-full bg-primary-700 text-white py-3 px-6 rounded-lg hover:bg-primary-800 transition-colors font-medium text-center block"
             >
               結果を確認
             </Link>
           </div>
 
           {/* クイック計算 */}
-          <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-purple-600">
+          <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-primary-500">
             <div className="flex items-center mb-4">
-              <div className="bg-purple-100 p-3 rounded-full mr-4">
-                <FaEdit className="text-purple-600 text-xl" />
+              <div className="bg-primary-100 p-3 rounded-full mr-4">
+                <FaEdit className="text-primary-500 text-xl" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">簡易計算ツール</h3>
-                <p className="text-gray-600">BEI計算機を使用</p>
+                <h3 className="text-xl font-semibold text-primary-900">簡易計算ツール</h3>
+                <p className="text-primary-600">BEI計算機を使用</p>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-primary-500 mb-4">
               基本的な建物情報から概算BEI値を素早く算出。設計初期段階での検討に便利です。
             </p>
-            <Link 
+            <Link
               href="/tools/bei-calculator"
-              className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 font-medium text-center block shadow-lg"
+              className="w-full bg-primary-600 text-white py-3 px-6 rounded-lg hover:bg-primary-700 transition-colors font-medium text-center block"
             >
               簡易計算開始
             </Link>
@@ -247,71 +247,71 @@ const ProjectDetail = () => {
 
         {/* プロジェクト情報 */}
         <div className="mt-8 bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">プロジェクト詳細情報</h2>
-          
+          <h2 className="text-2xl font-bold text-primary-900 mb-6">プロジェクト詳細情報</h2>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+            <div className="bg-warm-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-primary-900 mb-2 flex items-center">
+                <div className="w-2 h-2 bg-accent-500 rounded-full mr-2"></div>
                 プロジェクトID
               </h3>
-              <p className="text-gray-600 font-mono text-sm">{project.id}</p>
+              <p className="text-primary-600 font-mono text-sm">{project.id}</p>
             </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+
+            <div className="bg-warm-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-primary-900 mb-2 flex items-center">
+                <div className="w-2 h-2 bg-accent-400 rounded-full mr-2"></div>
                 設計者
               </h3>
-              <p className="text-gray-600">{project.projectInfo?.designer || user?.full_name || user?.name || '設計者'}</p>
+              <p className="text-primary-600">{project.projectInfo?.designer || user?.full_name || user?.name || '設計者'}</p>
             </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+
+            <div className="bg-warm-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-primary-900 mb-2 flex items-center">
+                <div className="w-2 h-2 bg-primary-500 rounded-full mr-2"></div>
                 設計事務所
               </h3>
-              <p className="text-gray-600">{project.projectInfo?.designFirm || 'Archi-Prisma Design works 株式会社'}</p>
+              <p className="text-primary-600">{project.projectInfo?.designFirm || 'Archi-Prisma Design works 株式会社'}</p>
             </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+
+            <div className="bg-warm-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-primary-900 mb-2 flex items-center">
+                <div className="w-2 h-2 bg-accent-500 rounded-full mr-2"></div>
                 作成日時
               </h3>
-              <p className="text-gray-600">
+              <p className="text-primary-600">
                 {new Date(project.createdAt || project.created_at).toLocaleString('ja-JP')}
               </p>
             </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+
+            <div className="bg-warm-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-primary-900 mb-2 flex items-center">
+                <div className="w-2 h-2 bg-accent-400 rounded-full mr-2"></div>
                 最終更新
               </h3>
-              <p className="text-gray-600">
-                {project.updatedAt || project.updated_at ? 
-                  new Date(project.updatedAt || project.updated_at).toLocaleString('ja-JP') : 
+              <p className="text-primary-600">
+                {project.updatedAt || project.updated_at ?
+                  new Date(project.updatedAt || project.updated_at).toLocaleString('ja-JP') :
                   new Date(project.createdAt || project.created_at).toLocaleString('ja-JP')
                 }
               </p>
             </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+
+            <div className="bg-warm-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-primary-900 mb-2 flex items-center">
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                 ステータス
               </h3>
               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                 アクティブ
               </span>
             </div>
           </div>
 
           {/* 計算履歴セクション */}
-          <div className="mt-8 pt-8 border-t border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">計算履歴</h3>
+          <div className="mt-8 pt-8 border-t border-primary-200">
+            <h3 className="text-lg font-semibold text-primary-900 mb-4">計算履歴</h3>
             {project.result || project.result_data ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex items-center">

@@ -4,14 +4,14 @@ import Layout from '../components/Layout';
 export default function Legal() {
   return (
     <Layout title="特定商取引法に基づく表記 - 楽々省エネ計算">
-      <div className="max-w-3xl mx-auto py-10 space-y-8 text-gray-800">
-        <h1 className="text-3xl font-bold text-gray-900">特定商取引法に基づく表記</h1>
+      <div className="max-w-3xl mx-auto py-10 space-y-8 text-primary-800">
+        <h1 className="text-3xl font-bold text-primary-900">特定商取引法に基づく表記</h1>
 
         <section className="space-y-1">
           <p><strong>販売事業者</strong>：Archi-Prisma Design works 株式会社</p>
           <p><strong>運営責任者</strong>：櫻本</p>
           <p><strong>所在地</strong>：東京都品川区上大崎2-6-7 SMA白金長者丸301</p>
-          <p><strong>連絡先</strong>：<a href="mailto:rse-support@archi-prisma.co.jp" className="text-blue-600">rse-support@archi-prisma.co.jp</a></p>
+          <p><strong>連絡先</strong>：<a href="mailto:rse-support@archi-prisma.co.jp" className="text-accent-600">rse-support@archi-prisma.co.jp</a></p>
         </section>
 
         <section className="space-y-1">

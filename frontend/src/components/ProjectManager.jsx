@@ -1,18 +1,18 @@
 // frontend/src/components/ProjectManager.jsx
 import React, { useState, useEffect } from 'react';
 import { formatBEI } from '../utils/number';
-import { 
-  FaPlus, FaSearch, FaTrash, FaCopy, FaDownload, FaUpload, 
+import {
+  FaPlus, FaSearch, FaTrash, FaCopy, FaDownload, FaUpload,
   FaEdit, FaSave, FaFolder, FaCalendar, FaUser, FaBuilding
 } from 'react-icons/fa';
-import { 
-  getProjects, saveProject, deleteProject, duplicateProject, 
-  exportProject, importProject, searchProjects, getStorageUsage 
+import {
+  getProjects, saveProject, deleteProject, duplicateProject,
+  exportProject, importProject, searchProjects, getStorageUsage
 } from '../utils/projectStorage';
 
-export default function ProjectManager({ 
-  currentProject, 
-  onProjectSelect, 
+export default function ProjectManager({
+  currentProject,
+  onProjectSelect,
   onNewProject,
   onProjectLoad
 }) {
@@ -80,7 +80,7 @@ export default function ProjectManager({
       .catch((error) => {
         alert(error.message);
       });
-    
+
     // ファイル入力をクリア
     e.target.value = '';
   };
@@ -114,14 +114,14 @@ export default function ProjectManager({
       <div className="flex items-center space-x-2 mb-4">
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+          className="bg-accent-500 hover:bg-accent-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
         >
           <FaFolder />
           <span>プロジェクト管理</span>
         </button>
-        
+
         {currentProject && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-primary-600">
             現在: <strong>{currentProject.projectInfo.name}</strong>
           </div>
         )}
@@ -132,15 +132,15 @@ export default function ProjectManager({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-6xl max-h-[80vh] w-full overflow-hidden">
             {/* ヘッダー */}
-            <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
+            <div className="bg-warm-50 px-6 py-4 border-b flex justify-between items-center">
               <h2 className="text-xl font-bold">プロジェクト管理</h2>
               <div className="flex items-center space-x-4">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-primary-600">
                   {storageInfo.projectCount}件 ({storageInfo.sizeInKB}KB)
                 </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-primary-500 hover:text-primary-700"
                 >
                   ✕
                 </button>
@@ -148,17 +148,17 @@ export default function ProjectManager({
             </div>
 
             {/* ツールバー */}
-            <div className="px-6 py-4 border-b bg-gray-50">
+            <div className="px-6 py-4 border-b bg-warm-50">
               <div className="flex flex-wrap gap-4 items-center">
                 <button
                   onClick={handleNewProject}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center space-x-2"
+                  className="bg-accent-500 hover:bg-accent-600 text-white px-4 py-2 rounded flex items-center space-x-2"
                 >
                   <FaPlus />
                   <span>新規作成</span>
                 </button>
 
-                <label className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center space-x-2 cursor-pointer">
+                <label className="bg-primary-700 hover:bg-primary-800 text-white px-4 py-2 rounded flex items-center space-x-2 cursor-pointer">
                   <FaUpload />
                   <span>インポート</span>
                   <input
@@ -171,13 +171,13 @@ export default function ProjectManager({
 
                 <div className="flex-1 max-w-md">
                   <div className="relative">
-                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-400" />
                     <input
                       type="text"
                       placeholder="プロジェクト検索..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full pl-10 pr-4 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400 focus:border-accent-400"
                     />
                   </div>
                 </div>
@@ -187,7 +187,7 @@ export default function ProjectManager({
             {/* プロジェクト一覧 */}
             <div className="overflow-auto max-h-96">
               {projects.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-primary-500">
                   <FaFolder className="mx-auto text-4xl mb-4" />
                   <p>プロジェクトがありません</p>
                   <p className="text-sm">「新規作成」でプロジェクトを作成してください</p>
@@ -197,7 +197,7 @@ export default function ProjectManager({
                   {projects.map((project) => (
                     <div
                       key={project.id}
-                      className="px-6 py-4 hover:bg-gray-50 cursor-pointer"
+                      className="px-6 py-4 hover:bg-warm-50 cursor-pointer"
                       onClick={() => handleLoadProject(project)}
                     >
                       <div className="flex items-start justify-between">
@@ -207,25 +207,25 @@ export default function ProjectManager({
                               {project.projectInfo.name || '無題のプロジェクト'}
                             </h3>
                             <span className={`px-2 py-1 rounded-full text-xs ${
-                              project.status === 'calculated' 
-                                ? 'bg-green-100 text-green-800' 
+                              project.status === 'calculated'
+                                ? 'bg-green-100 text-green-800'
                                 : 'bg-yellow-100 text-yellow-800'
                             }`}>
                               {project.status === 'calculated' ? '計算済み' : '下書き'}
                             </span>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-primary-600">
                             <div className="flex items-center space-x-2">
-                              <FaUser className="text-gray-400" />
+                              <FaUser className="text-primary-400" />
                               <span>{project.projectInfo.buildingOwner || '建築主未入力'}</span>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <FaBuilding className="text-gray-400" />
+                              <FaBuilding className="text-primary-400" />
                               <span>{project.projectInfo.location || '所在地未入力'}</span>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <FaCalendar className="text-gray-400" />
+                              <FaCalendar className="text-primary-400" />
                               <span>{formatDate(project.updatedAt)}</span>
                             </div>
                             <div>
@@ -235,7 +235,7 @@ export default function ProjectManager({
                           </div>
 
                           {project.projectInfo.description && (
-                            <div className="mt-2 text-sm text-gray-600">
+                            <div className="mt-2 text-sm text-primary-600">
                               {project.projectInfo.description}
                             </div>
                           )}
@@ -244,21 +244,21 @@ export default function ProjectManager({
                         <div className="flex items-center space-x-2 ml-4">
                           <button
                             onClick={(e) => handleDuplicateProject(project.id, e)}
-                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
+                            className="p-2 text-primary-500 hover:text-accent-500 hover:bg-accent-50 rounded"
                             title="複製"
                           >
                             <FaCopy />
                           </button>
                           <button
                             onClick={(e) => handleExportProject(project.id, e)}
-                            className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded"
+                            className="p-2 text-primary-500 hover:text-accent-500 hover:bg-accent-50 rounded"
                             title="エクスポート"
                           >
                             <FaDownload />
                           </button>
                           <button
                             onClick={(e) => handleDeleteProject(project.id, e)}
-                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
+                            className="p-2 text-primary-500 hover:text-red-600 hover:bg-red-50 rounded"
                             title="削除"
                           >
                             <FaTrash />

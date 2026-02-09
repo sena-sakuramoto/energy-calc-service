@@ -64,13 +64,13 @@ const CLIMATE_ZONES = [
 
 export default function ClimateZoneSelector({ value, onChange, className = "" }) {
   const [showMap, setShowMap] = useState(false);
-  
+
   const selectedZone = CLIMATE_ZONES.find(zone => zone.zone === value);
 
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center space-x-2">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-primary-700">
           地域区分
         </label>
         <HelpTooltip title="地域区分とは？">
@@ -84,7 +84,7 @@ export default function ClimateZoneSelector({ value, onChange, className = "" })
         <select
           value={value || ""}
           onChange={(e) => onChange(parseInt(e.target.value))}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+          className="w-full p-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 appearance-none bg-white"
           required
         >
           <option value="">地域区分を選択してください</option>
@@ -97,13 +97,13 @@ export default function ClimateZoneSelector({ value, onChange, className = "" })
       </div>
 
       {selectedZone && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-warm-50 border border-primary-200 rounded-lg p-4">
           <div className="flex items-start space-x-3">
-            <FaMapMarkerAlt className="text-blue-600 mt-1 flex-shrink-0" />
+            <FaMapMarkerAlt className="text-accent-600 mt-1 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-blue-800 mb-2">{selectedZone.name}</h4>
-              <p className="text-sm text-blue-700 mb-2">{selectedZone.characteristics}</p>
-              <div className="text-xs text-blue-600">
+              <h4 className="font-medium text-primary-800 mb-2">{selectedZone.name}</h4>
+              <p className="text-sm text-primary-700 mb-2">{selectedZone.characteristics}</p>
+              <div className="text-xs text-primary-600">
                 <strong>主要都市例:</strong> {selectedZone.cities.join(', ')}
               </div>
             </div>
@@ -115,7 +115,7 @@ export default function ClimateZoneSelector({ value, onChange, className = "" })
         <button
           type="button"
           onClick={() => setShowMap(!showMap)}
-          className="text-sm text-blue-600 hover:text-blue-800 underline flex items-center space-x-1"
+          className="text-sm text-accent-600 hover:text-accent-800 underline flex items-center space-x-1"
         >
           <FaMapMarkerAlt />
           <span>{showMap ? '地域マップを閉じる' : '地域マップで確認'}</span>
@@ -123,20 +123,20 @@ export default function ClimateZoneSelector({ value, onChange, className = "" })
       </div>
 
       {showMap && (
-        <div className="bg-gray-50 border rounded-lg p-4">
+        <div className="bg-warm-50 border rounded-lg p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             {CLIMATE_ZONES.map(zone => (
-              <div 
+              <div
                 key={zone.zone}
                 className={`p-3 rounded border cursor-pointer transition-colors ${
-                  selectedZone?.zone === zone.zone 
-                    ? 'bg-blue-100 border-blue-300' 
-                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                  selectedZone?.zone === zone.zone
+                    ? 'bg-accent-50 border-accent-300'
+                    : 'bg-white border-primary-200 hover:bg-warm-50'
                 }`}
                 onClick={() => onChange(zone.zone)}
               >
-                <div className="font-medium text-gray-800">{zone.name}</div>
-                <div className="text-gray-600 text-xs mt-1">{zone.description}</div>
+                <div className="font-medium text-primary-800">{zone.name}</div>
+                <div className="text-primary-600 text-xs mt-1">{zone.description}</div>
               </div>
             ))}
           </div>
