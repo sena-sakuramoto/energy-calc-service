@@ -172,6 +172,7 @@ export default function FirebaseUserManagement() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       {userData.photoURL && (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           className="h-8 w-8 rounded-full mr-3"
                           src={userData.photoURL}
