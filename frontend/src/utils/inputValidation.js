@@ -1,90 +1,7 @@
 // frontend/src/utils/inputValidation.js
 // 入力値検証とアラートシステム
 
-// 建物用途別の一般的な値の範囲（MJ/m²年） - energyComparison.js と値を統一
-export const TYPICAL_ENERGY_RANGES = {
-  // 事務所等
-  offices: {
-    heating: { min: 80, max: 150, typical: 115 },
-    cooling: { min: 60, max: 120, typical: 90 },
-    ventilation: { min: 40, max: 80, typical: 60 },
-    hot_water: { min: 5, max: 20, typical: 12 },
-    lighting: { min: 80, max: 140, typical: 110 },
-    elevator: { min: 15, max: 30, typical: 22 }
-  },
-  // 病院等
-  hospitals: {
-    heating: { min: 200, max: 350, typical: 275 },
-    cooling: { min: 150, max: 250, typical: 200 },
-    ventilation: { min: 100, max: 180, typical: 140 },
-    hot_water: { min: 80, max: 150, typical: 115 },
-    lighting: { min: 100, max: 160, typical: 130 },
-    elevator: { min: 10, max: 25, typical: 17 }
-  },
-  // ホテル等
-  hotels: {
-    heating: { min: 150, max: 250, typical: 200 },
-    cooling: { min: 120, max: 200, typical: 160 },
-    ventilation: { min: 80, max: 140, typical: 110 },
-    hot_water: { min: 100, max: 180, typical: 140 },
-    lighting: { min: 80, max: 130, typical: 105 },
-    elevator: { min: 15, max: 30, typical: 22 }
-  },
-  // 百貨店等
-  department_stores: {
-    heating: { min: 100, max: 180, typical: 140 },
-    cooling: { min: 80, max: 140, typical: 110 },
-    ventilation: { min: 60, max: 100, typical: 80 },
-    hot_water: { min: 5, max: 15, typical: 10 },
-    lighting: { min: 120, max: 200, typical: 160 },
-    elevator: { min: 20, max: 40, typical: 30 }
-  },
-  // 学校等
-  schools: {
-    heating: { min: 120, max: 200, typical: 160 },
-    cooling: { min: 60, max: 120, typical: 90 },
-    ventilation: { min: 40, max: 80, typical: 60 },
-    hot_water: { min: 10, max: 30, typical: 20 },
-    lighting: { min: 80, max: 130, typical: 105 },
-    elevator: { min: 5, max: 15, typical: 10 }
-  },
-  // 飲食店等
-  restaurants: {
-    heating: { min: 150, max: 250, typical: 200 },
-    cooling: { min: 120, max: 200, typical: 160 },
-    ventilation: { min: 200, max: 350, typical: 275 },
-    hot_water: { min: 100, max: 200, typical: 150 },
-    lighting: { min: 100, max: 160, typical: 130 },
-    elevator: { min: 10, max: 25, typical: 17 }
-  },
-  // 集会所等
-  assembly_halls: {
-    heating: { min: 100, max: 180, typical: 140 },
-    cooling: { min: 80, max: 140, typical: 110 },
-    ventilation: { min: 60, max: 100, typical: 80 },
-    hot_water: { min: 5, max: 20, typical: 12 },
-    lighting: { min: 80, max: 140, typical: 110 },
-    elevator: { min: 10, max: 25, typical: 17 }
-  },
-  // 新しい建物用途を追加する場合はここに追加
-  // 例: residential_collective: { heating: { min: ..., max: ..., typical: ... }, ... }
-};
-
-// 建物用途マッピング (energyComparison.js と同じ)
-const BUILDING_TYPE_MAPPING = {
-  'office': 'offices',
-  'hotel': 'hotels',
-  'hospital': 'hospitals',
-  'shop_department': 'department_stores',
-  'shop_supermarket': 'department_stores', // スーパーマーケットは百貨店にマッピング
-  'school_small': 'schools',
-  'school_high': 'schools',
-  'school_university': 'schools',
-  'restaurant': 'restaurants',
-  'assembly': 'assembly_halls',
-  'factory': 'offices', // 工場は事務所にマッピング
-  'residential_collective': 'offices', // 共同住宅は事務所にマッピング (暫定)
-};
+import { TYPICAL_ENERGY_VALUES, resolveTypeName } from './energyReferences';
 
 // 警告レベルの定義
 export const WARNING_LEVELS = {
@@ -115,8 +32,8 @@ export const validateEnergyInput = (buildingType, category, value, floorArea) =>
   }
 
   // 建物用途別の範囲チェック
-  const mappedBuildingType = BUILDING_TYPE_MAPPING[buildingType] || buildingType; // マッピングを適用
-  const ranges = TYPICAL_ENERGY_RANGES[mappedBuildingType];
+  const mappedBuildingType = resolveTypeName(buildingType);
+  const ranges = TYPICAL_ENERGY_VALUES[mappedBuildingType];
 
   if (ranges && ranges[category] && floorArea) {
     const range = ranges[category];

@@ -7,6 +7,7 @@ import ResultCard from '../../components/ResultCard';
 import ClimateZoneSelector from '../../components/ClimateZoneSelector';
 import BuildingTypeSelector from '../../components/BuildingTypeSelector';
 import HelpTooltip from '../../components/HelpTooltip';
+import InputGuidance from '../../components/InputGuidance';
 import ComplianceReport from '../../components/ComplianceReport';
 import ProjectManager from '../../components/ProjectManager';
 import ProjectInfoForm from '../../components/ProjectInfoForm';
@@ -1194,7 +1195,7 @@ export default function BEICalculator() {
                 <div className="grid md:grid-cols-2 gap-4">
                   {Object.entries(formData.design_energy).map(([key, value]) => (
                     <div key={key}>
-                      <div className="flex items-center space-x-2 mb-2">
+                      <div className="flex items-center flex-wrap space-x-2 mb-2">
                         <label className="block text-sm font-medium text-primary-700">
                           {getEnergyFieldLabel(key)} (MJ/年)
                         </label>
@@ -1206,6 +1207,11 @@ export default function BEICalculator() {
                           {key === 'lighting' && '照明設備による年間一次エネルギー消費量'}
                           {key === 'elevator' && '昇降機による年間一次エネルギー消費量'}
                         </HelpTooltip>
+                        <InputGuidance
+                          category={key}
+                          buildingType={formData.is_mixed_use ? '' : formData.building_type}
+                          floorArea={formData.floor_area}
+                        />
                       </div>
                       <input
                         type="number"
@@ -1523,7 +1529,7 @@ export default function BEICalculator() {
                           return (
                             <div key={key} className={`${analysis.bgColor} border-l-4 border-current p-3 rounded-r`}>
                               <div className={`flex items-center ${analysis.color} mb-1`}>
-                                <span className="mr-2">{analysis.icon}</span>
+                                {analysis.icon && <span className="mr-2">{analysis.icon}</span>}
                                 <span className="font-medium">{getEnergyTypeName(key)}</span>
                                 <span className="ml-auto">
                                   {designValuePerM2.toFixed(1)} MJ/m²年
