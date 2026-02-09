@@ -1,7 +1,7 @@
 // frontend/src/utils/pdfExport.js
 // Professional PDF generation for BEI calculation reports using jsPDF + jspdf-autotable
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { formatBEI } from './number';
 
 // ─── Color Theme ───────────────────────────────────────────────────────────────
@@ -249,7 +249,7 @@ export function generateBEIReport(result, formData, projectInfo) {
   // ═══════════════════════════════════════════════════════════════════════════
   y = drawSectionHeader(doc, '1.  Project / Building Overview', margin, y, contentWidth);
 
-  doc.autoTable({
+  autoTable(doc,{
     startY: y,
     margin: { left: margin, right: margin },
     theme: 'plain',
@@ -335,7 +335,7 @@ export function generateBEIReport(result, formData, projectInfo) {
   y += beiBoxH + 4;
   setText(doc, COLORS.black);
 
-  doc.autoTable({
+  autoTable(doc,{
     startY: y,
     margin: { left: margin, right: margin },
     theme: 'plain',
@@ -408,7 +408,7 @@ export function generateBEIReport(result, formData, projectInfo) {
     ]);
   }
 
-  doc.autoTable({
+  autoTable(doc,{
     startY: y,
     margin: { left: margin, right: margin },
     head: [['Category', 'Design Value', 'Standard Value', 'Ratio (BEI_i)']],
@@ -515,7 +515,7 @@ export function generateBEIReport(result, formData, projectInfo) {
     fmtNum(result.standard_energy_per_m2 || intensityTotal, 2),
   ]);
 
-  doc.autoTable({
+  autoTable(doc,{
     startY: y,
     margin: { left: margin, right: margin },
     head: [['Category', 'Base Value', 'Regional Factor', 'Scale Factor', 'Corrected']],
@@ -581,7 +581,7 @@ export function generateBEIReport(result, formData, projectInfo) {
     ['MLIT Notification No. 1396', 'Jan 29, 2016 - Primary energy consumption standards'],
   ];
 
-  doc.autoTable({
+  autoTable(doc,{
     startY: y,
     margin: { left: margin, right: margin },
     theme: 'plain',
