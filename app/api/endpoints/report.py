@@ -11,7 +11,7 @@ from app.db.session import get_db
 from app.core import security
 from app.models.user import User as UserModel
 from app.models.project import Project as ProjectModel
-from app.services.report import get_official_report_from_api
+from app.services.report import get_official_report_from_api, build_minimal_official_building
 
 router = APIRouter()
 
@@ -23,39 +23,23 @@ def _get_project_data_for_report(db: Session, project_id: int, current_user: Use
     if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found or not authorized for the current user.")
 
-    # The frontend stores all input data in a single JSON field `input_data`
+    # The frontend stores all input data in a single JSON field `input_data`.
+    # This endpoint supports legacy project records and only builds minimum 様式A.
     input_data = project.input_data or {}
-    
-    # The service expects a specific nested structure.
-    # We extract the data from the flat `input_data` and build the nested structure.
-    # This acts as an anti-corruption layer.
-    report_input_data = {
-        "building": {
-            "name": project.name,
-            "climate_zone": input_data.get("climate_zone"),
-            "building_type": input_data.get("building_type"),
-            "total_floor_area": input_data.get("floor_area"),
-            # Add other building fields from input_data as needed
-        },
-        "systems": {
-            "cooling": input_data.get("design_energy", {}).get("cooling"),
-            "heating": input_data.get("design_energy", {}).get("heating"),
-            "ventilation": input_data.get("design_energy", {}).get("ventilation"),
-            "hot_water": input_data.get("design_energy", {}).get("hot_water"),
-            "lighting": input_data.get("design_energy", {}).get("lighting"),
-            "elevator": input_data.get("design_energy", {}).get("elevator"),
-        }
-    }
-
-    # It's better to extract the detailed system properties from input_data
-    # For example:
-    # report_input_data["systems"]["cooling"] = {
-    #     "ac_cop_cooling": input_data.get("cooling_cop"),
-    #     # ... etc
-    # }
-    # For now, we pass the raw energy values.
-
-    return report_input_data
+    nested_building = input_data.get("building", {}) if isinstance(input_data.get("building"), dict) else {}
+    try:
+        building = build_minimal_official_building(
+            building_area_m2=input_data.get("floor_area") or nested_building.get("total_floor_area"),
+            use=input_data.get("building_type") or nested_building.get("building_type"),
+            zone=input_data.get("climate_zone") or nested_building.get("climate_zone"),
+            building_name=project.name,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"公式帳票生成に必要な入力が不足/不正です: {str(e)}",
+        )
+    return {"building": building}
 
 @router.get(
     "/{project_id}/report/excel",
@@ -76,7 +60,10 @@ async def download_official_report_endpoint(
     try:
         pdf_content = get_official_report_from_api(project_data)
         
-        file_name = f"{project_data.get('building',{}).get('name', 'project')}_official_report.pdf".replace(" ", "_")
+        file_name = (
+            f"{project_data.get('building', {}).get('building_name', 'project')}_official_report.pdf"
+            .replace(" ", "_")
+        )
         
         return StreamingResponse(
             io.BytesIO(pdf_content),

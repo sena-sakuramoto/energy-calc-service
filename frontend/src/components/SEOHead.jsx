@@ -7,8 +7,12 @@ export default function SEOHead({
   description = '建築設計者向けの省エネ法計算サービス。BEI計算、モデル建物法対応で設計業務を効率化。Archi-Prisma Design works株式会社が提供する無料ツール。',
   keywords = '省エネ計算,BEI計算,建築物エネルギー消費性能,モデル建物法,建築設計,省エネ法,設計支援,建築,エネルギー計算',
   url = 'https://rakuraku-energy.archi-prisma.co.jp',
-  image = 'https://rakuraku-energy.archi-prisma.co.jp/images/og-image.png'
+  image = ''
 }) {
+  const normalizedUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+  const effectiveImage = image || `${normalizedUrl}/logo.png`;
+  const logoUrl = `${normalizedUrl}/logo.png`;
+
   return (
     <>
       <Head>
@@ -24,7 +28,7 @@ export default function SEOHead({
         <meta property="og:url" content={url} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
-        <meta property="og:image" content={image} />
+        <meta property="og:image" content={effectiveImage} />
         <meta property="og:site_name" content="楽々省エネ計算" />
         <meta property="og:locale" content="ja_JP" />
 
@@ -33,7 +37,7 @@ export default function SEOHead({
         <meta property="twitter:url" content={url} />
         <meta property="twitter:title" content={title} />
         <meta property="twitter:description" content={description} />
-        <meta property="twitter:image" content={image} />
+        <meta property="twitter:image" content={effectiveImage} />
 
         {/* 検索エンジン向け */}
         <meta name="robots" content="index, follow" />
@@ -54,6 +58,8 @@ export default function SEOHead({
               "name": "楽々省エネ計算",
               "description": description,
               "url": url,
+              "image": effectiveImage,
+              "logo": logoUrl,
               "applicationCategory": "UtilitiesApplication",
               "operatingSystem": "Web Browser",
               "author": {

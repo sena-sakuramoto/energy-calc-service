@@ -2,12 +2,16 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/FirebaseAuthContext';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FaUser, FaSignOutAlt, FaCalculator, FaChevronDown, FaBars, FaTimes, FaBook, FaChartLine, FaGift } from 'react-icons/fa';
 
 export default function Header() {
   const { isAuthenticated, logout } = useAuth();
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isGitHubPages = typeof window !== 'undefined' && window.location.hostname.includes('github.io');
+  const assetBase = isGitHubPages ? '/energy-calc-service' : '';
+  const logoSrc = `${assetBase}/logo.png`;
 
   const toggleTools = () => {
     setIsToolsOpen(!isToolsOpen);
@@ -22,8 +26,16 @@ export default function Header() {
     <header className="bg-primary-800 text-white shadow-lg">
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
-          <Link href="/" className="text-xl font-bold hover:text-warm-300 transition-colors">
-            楽々省エネ計算
+          <Link href="/" className="flex items-center gap-3 text-xl font-bold hover:text-warm-300 transition-colors">
+            <Image
+              src={logoSrc}
+              alt="楽々省エネ計算 ロゴ"
+              width={36}
+              height={36}
+              className="w-9 h-9 object-contain"
+              priority
+            />
+            <span>楽々省エネ計算</span>
           </Link>
 
           {/* デスクトップナビゲーション */}
@@ -87,6 +99,14 @@ export default function Header() {
                       onClick={closeMenus}
                     >
                       電力料金見積もり
+                    </Link>
+                    <hr className="my-1 border-warm-200" />
+                    <Link
+                      href="/tools/official-bei"
+                      className="block px-4 py-2 text-primary-700 hover:bg-warm-100 hover:text-accent-500 transition-colors font-medium"
+                      onClick={closeMenus}
+                    >
+                      公式BEI計算
                     </Link>
                   </div>
                 )}
@@ -191,6 +211,13 @@ export default function Header() {
                       onClick={closeMenus}
                     >
                       電力料金見積もり
+                    </Link>
+                    <Link
+                      href="/tools/official-bei"
+                      className="text-sm hover:text-warm-300 transition-colors font-medium"
+                      onClick={closeMenus}
+                    >
+                      公式BEI計算
                     </Link>
                   </div>
                 </div>

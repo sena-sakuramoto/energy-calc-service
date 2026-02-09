@@ -5,8 +5,7 @@ import { exportToExcel, exportToExcelXML } from '../utils/excelExport';
 import { exportToProfessionalExcel, exportToSimpleExcel } from '../utils/excelExportProfessional';
 import { formatBEI } from '../utils/number';
 import { generateBEIReport } from '../utils/pdfExport';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+import { officialAPI } from '../utils/api';
 
 // Shared BEI formatter wrapper for this component
 const formatBEIValue2 = (value) => {
@@ -86,6 +85,30 @@ const getStandardIntensities = (buildingType, climateZone) => {
   };
 };
 
+const toPdfBlob = (data) => {
+  if (data instanceof Blob) return data;
+  return new Blob([data], { type: 'application/pdf' });
+};
+
+const parseApiErrorDetail = async (error) => {
+  const data = error?.response?.data;
+  if (data instanceof Blob) {
+    try {
+      const text = await data.text();
+      if (!text) return error?.message || '不明なエラー';
+      try {
+        const parsed = JSON.parse(text);
+        return parsed?.detail || text;
+      } catch {
+        return text;
+      }
+    } catch {
+      return error?.message || '不明なエラー';
+    }
+  }
+  return data?.detail || error?.message || '不明なエラー';
+};
+
 export default function ComplianceReport({ result, formData, projectInfo, onDownload, onDownloadPDF }) {
   const [officialLoading, setOfficialLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -106,27 +129,19 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
   const handleOfficialPDF = async () => {
     setOfficialLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/official/report`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          building_area_m2: parseFloat(formData.floor_area) || 0,
-          use: formData.building_type || 'office',
-          zone: formData.climate_zone || '6',
-          design_energy: result.design_energy_breakdown
-            ? result.design_energy_breakdown.map(item => ({
-                category: item.category,
-                value: item.design_mj || item.value || 0,
-              }))
-            : [],
-          renewable_energy_deduction_mj: parseFloat(formData.renewable_energy) || 0,
-        }),
+      const response = await officialAPI.getReport({
+        building_area_m2: parseFloat(formData.floor_area) || 0,
+        use: formData.building_type || 'office',
+        zone: formData.climate_zone || '6',
+        design_energy: result.design_energy_breakdown
+          ? result.design_energy_breakdown.map(item => ({
+              category: item.category,
+              value: item.design_mj || item.value || 0,
+            }))
+          : [],
+        renewable_energy_deduction_mj: parseFloat(formData.renewable_energy) || 0,
       });
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.detail || `HTTP ${response.status}`);
-      }
-      const blob = await response.blob();
+      const blob = toPdfBlob(response.data);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -134,8 +149,9 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
+      const detail = await parseApiErrorDetail(error);
       console.error('公式PDF取得エラー:', error);
-      alert(`公式PDF取得に失敗しました。\n${error.message}\n\n公式入力シート(xlsx)のアップロードもお試しください。`);
+      alert(`公式PDF取得に失敗しました。\n${detail}\n\n公式入力シート(xlsx)のアップロードもお試しください。`);
     } finally {
       setOfficialLoading(false);
     }
@@ -151,17 +167,8 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
     }
     setUploadLoading(true);
     try {
-      const formPayload = new FormData();
-      formPayload.append('file', file);
-      const response = await fetch(`${API_BASE}/official/upload-report`, {
-        method: 'POST',
-        body: formPayload,
-      });
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.detail || `HTTP ${response.status}`);
-      }
-      const blob = await response.blob();
+      const response = await officialAPI.uploadExcelForReport(file);
+      const blob = toPdfBlob(response.data);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -169,8 +176,9 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
+      const detail = await parseApiErrorDetail(error);
       console.error('アップロードエラー:', error);
-      alert(`公式PDF取得に失敗しました。\n${error.message}`);
+      alert(`公式PDF取得に失敗しました。\n${detail}`);
     } finally {
       setUploadLoading(false);
       event.target.value = '';

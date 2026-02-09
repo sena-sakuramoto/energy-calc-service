@@ -27,11 +27,153 @@ SMALLMODEL_UPLOAD_UNSUPPORTED_MESSAGE = (
     "小規模版（SMALLMODEL）原本Excelの直接アップロードは未対応です。"
     "公式BEI画面から入力して送信するか、MODEL形式の入力シートをご利用ください。"
 )
+LEGACY_OFFICIAL_UNSUPPORTED_USE_MESSAGE = (
+    "共同住宅はこの公式PDF経路では未対応です。"
+    "公式BEI画面で用途を明示して入力してください。"
+)
+
+# Legacy BEI (office/hotel...) -> official template building type mapping.
+OFFICIAL_BUILDING_TYPE_BY_USE: Dict[str, str] = {
+    "office": "事務所モデル",
+    "hotel": "ビジネスホテルモデル",
+    "hospital": "総合病院モデル",
+    "shop_department": "大規模物販モデル",
+    "shop_supermarket": "小規模物販モデル",
+    "school_small": "学校モデル",
+    "school_high": "学校モデル",
+    "school_university": "大学モデル",
+    "restaurant": "飲食店モデル",
+    "assembly": "集会所モデル",
+    "factory": "工場モデル",
+}
+
+# UI labels used by the simple BEI calculator.
+OFFICIAL_BUILDING_TYPE_BY_LABEL: Dict[str, str] = {
+    "事務所等": "事務所モデル",
+    "ホテル等": "ビジネスホテルモデル",
+    "病院等": "総合病院モデル",
+    "百貨店等": "大規模物販モデル",
+    "スーパーマーケット": "小規模物販モデル",
+    "学校等（小中学校）": "学校モデル",
+    "学校等（高等学校）": "学校モデル",
+    "学校等（大学）": "大学モデル",
+    "飲食店等": "飲食店モデル",
+    "集会所等": "集会所モデル",
+    "工場等": "工場モデル",
+}
+
+OFFICIAL_BUILDING_TYPES = {
+    "事務所モデル",
+    "ビジネスホテルモデル",
+    "シティホテルモデル",
+    "総合病院モデル",
+    "福祉施設モデル",
+    "クリニックモデル",
+    "学校モデル",
+    "幼稚園モデル",
+    "大学モデル",
+    "講堂モデル",
+    "大規模物販モデル",
+    "小規模物販モデル",
+    "飲食店モデル",
+    "集会所モデル",
+    "工場モデル",
+}
 
 # Directory that stores the official Excel templates bundled with this repo.
 TEMPLATE_DIR = Path(__file__).resolve().parents[2] / "Excel　書式"
 SMALL_TEMPLATE = TEMPLATE_DIR / "SMALLMODEL_inputSheet_for_Ver3.8_beta.xlsx"
 STANDARD_TEMPLATE = TEMPLATE_DIR / "MODEL_inputSheet_for_Ver3.8_beta.xlsx"
+
+
+def normalize_official_region(zone: Any) -> str:
+    """Normalize legacy zone inputs to the official RegionList values."""
+    if zone is None:
+        raise ValueError("地域区分(zone)が未指定です。")
+
+    if isinstance(zone, int):
+        if 1 <= zone <= 8:
+            return f"{zone}地域"
+        raise ValueError("地域区分(zone)は1〜8で指定してください。")
+
+    zone_str = str(zone).strip()
+    if not zone_str:
+        raise ValueError("地域区分(zone)が未指定です。")
+
+    if zone_str.isdigit():
+        zone_num = int(zone_str)
+        if 1 <= zone_num <= 8:
+            return f"{zone_num}地域"
+        raise ValueError("地域区分(zone)は1〜8で指定してください。")
+
+    if zone_str.endswith("地域"):
+        zone_num_text = zone_str[:-2].strip()
+        if zone_num_text.isdigit() and 1 <= int(zone_num_text) <= 8:
+            return f"{int(zone_num_text)}地域"
+
+    raise ValueError("地域区分(zone)は '1'〜'8' もしくは '1地域'〜'8地域' で指定してください。")
+
+
+def normalize_official_building_type(use: Any) -> str:
+    """Normalize legacy building-use keys to official template values."""
+    if use is None:
+        raise ValueError("建物用途(use)が未指定です。")
+
+    use_str = str(use).strip()
+    if not use_str:
+        raise ValueError("建物用途(use)が未指定です。")
+
+    lowered = use_str.lower()
+    if lowered == "residential_collective" or use_str == "共同住宅":
+        raise ValueError(LEGACY_OFFICIAL_UNSUPPORTED_USE_MESSAGE)
+
+    if use_str in OFFICIAL_BUILDING_TYPES:
+        return use_str
+
+    mapped = OFFICIAL_BUILDING_TYPE_BY_USE.get(lowered)
+    if mapped:
+        return mapped
+
+    mapped = OFFICIAL_BUILDING_TYPE_BY_LABEL.get(use_str)
+    if mapped:
+        return mapped
+
+    if use_str.endswith("モデル"):
+        return use_str
+
+    supported = ", ".join(sorted(OFFICIAL_BUILDING_TYPE_BY_USE.keys()))
+    raise ValueError(
+        f"建物用途(use)が公式様式に変換できません: {use_str}。"
+        f"対応値: {supported} または公式用途名(○○モデル)"
+    )
+
+
+def build_minimal_official_building(
+    *,
+    building_area_m2: Any,
+    use: Any,
+    zone: Any,
+    building_name: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Build minimal 様式A data from legacy BEI inputs."""
+    try:
+        area = float(building_area_m2)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("床面積(building_area_m2)は数値で指定してください。") from exc
+
+    if area <= 0:
+        raise ValueError("床面積(building_area_m2)は0より大きい値で指定してください。")
+
+    name = (building_name or "").strip() or "BEI計算案件"
+
+    return {
+        "building_name": name,
+        "region": normalize_official_region(zone),
+        "building_type": normalize_official_building_type(use),
+        "calc_floor_area": area,
+        # Legacy簡易入力では空調対象面積が無いので同値で補完
+        "ac_floor_area": area,
+    }
 
 
 # ── 様式A: 基本情報 — 固定セルマッピング ────────────────────────────────────

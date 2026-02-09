@@ -22,6 +22,7 @@ from app.services.report import (
     get_official_compute_from_api,
     get_official_report_from_excel,
     get_official_compute_from_excel,
+    build_minimal_official_building,
     SMALLMODEL_UPLOAD_UNSUPPORTED_MESSAGE,
 )
 from app.services.readiness import evaluate_production_readiness
@@ -145,6 +146,8 @@ async def get_official_report(request: BEIRequest):
             media_type="application/pdf",
             headers={"Content-Disposition": "attachment; filename=official_report.pdf"},
         )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"公式入力データに問題があります: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"公式レポート生成に失敗しました: {str(e)}")
 
@@ -161,6 +164,8 @@ async def get_official_compute(request: BEIRequest):
         input_data = _bei_request_to_report_input(request)
         result = get_official_compute_from_api(input_data)
         return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"公式入力データに問題があります: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"公式計算に失敗しました: {str(e)}")
 
@@ -241,9 +246,9 @@ def _bei_request_to_report_input(request: BEIRequest) -> dict:
 
     # 旧形式 (簡易BEI計算用) からの最低限変換
     return {
-        "building": {
-            "calc_floor_area": request.building_area_m2,
-            "building_type": request.use,
-            "region": request.zone,
-        },
+        "building": build_minimal_official_building(
+            building_area_m2=request.building_area_m2,
+            use=request.use,
+            zone=request.zone,
+        )
     }

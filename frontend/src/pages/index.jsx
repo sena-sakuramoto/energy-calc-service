@@ -2,6 +2,7 @@
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/FirebaseAuthContext';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FaCalculator, FaChartBar, FaFileDownload, FaCheckCircle, FaBuilding, FaDraftingCompass } from 'react-icons/fa';
 import SocialProof from '../components/SocialProof';
 
@@ -11,6 +12,8 @@ export default function Home() {
   // GitHub Pages環境の検出
   const isGitHubPages = typeof window !== 'undefined' &&
     window.location.hostname.includes('github.io');
+  const assetBase = isGitHubPages ? '/energy-calc-service' : '';
+  const logoSrc = `${assetBase}/logo.png`;
 
   return (
     <Layout>
@@ -19,8 +22,15 @@ export default function Home() {
       <div className="bg-gradient-to-b from-warm-50 to-warm-100 py-20">
         <div className="container mx-auto text-center px-4">
           <div className="flex justify-center mb-6">
-            <div className="bg-primary-100 p-4 rounded-full">
-              <FaDraftingCompass className="text-4xl text-primary-700" />
+            <div className="bg-white/60 backdrop-blur-sm p-3 rounded-3xl shadow-lg border border-warm-200">
+              <Image
+                src={logoSrc}
+                alt="楽々省エネ計算 ロゴ"
+                width={128}
+                height={128}
+                className="w-24 h-24 md:w-32 md:h-32 object-contain"
+                priority
+              />
             </div>
           </div>
           <h1 className="text-6xl md:text-7xl font-bold mb-4 text-primary-800">
