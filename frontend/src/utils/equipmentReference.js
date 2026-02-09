@@ -1,6 +1,8 @@
 // frontend/src/utils/equipmentReference.js
 // 設備機器リファレンスデータ - BEI計算入力ガイダンス用
 
+import { TYPICAL_ENERGY_VALUES, resolveTypeName } from './energyReferences.js';
+
 /**
  * 各エネルギーカテゴリの設備機器情報・参考値
  * 建築設計実務で設計一次エネルギー消費量を入力する際の参考データ
@@ -293,118 +295,42 @@ export const equipmentReference = {
 
 /**
  * 建物用途別の代表的なエネルギー消費量目安 (MJ/m²年)
- * 入力ガイダンスで「この建物用途なら大体このくらい」を表示するために使用
+ * 入力ガイダンスで「この建物用途なら大体このくらい」を表示するために使用。
+ * 判定ロジック側（energyComparison）と同じ基準値を参照し、不整合を防ぐ。
  */
-export const typicalEnergyByBuildingType = {
-  office: {
-    label: '事務所',
-    heating: { typical: 50, range: '30 - 80' },
-    cooling: { typical: 45, range: '25 - 70' },
-    ventilation: { typical: 35, range: '20 - 50' },
-    hot_water: { typical: 8, range: '3 - 15' },
-    lighting: { typical: 70, range: '50 - 90' },
-    elevator: { typical: 14, range: '8 - 20' }
-  },
-  hotel: {
-    label: 'ホテル',
-    heating: { typical: 80, range: '50 - 120' },
-    cooling: { typical: 65, range: '40 - 100' },
-    ventilation: { typical: 50, range: '30 - 80' },
-    hot_water: { typical: 120, range: '80 - 180' },
-    lighting: { typical: 55, range: '35 - 80' },
-    elevator: { typical: 14, range: '8 - 20' }
-  },
-  hospital: {
-    label: '病院',
-    heating: { typical: 100, range: '60 - 150' },
-    cooling: { typical: 85, range: '50 - 130' },
-    ventilation: { typical: 70, range: '40 - 100' },
-    hot_water: { typical: 100, range: '60 - 150' },
-    lighting: { typical: 80, range: '50 - 120' },
-    elevator: { typical: 14, range: '8 - 20' }
-  },
-  shop_department: {
-    label: '百貨店',
-    heating: { typical: 60, range: '30 - 90' },
-    cooling: { typical: 55, range: '30 - 80' },
-    ventilation: { typical: 45, range: '25 - 70' },
-    hot_water: { typical: 5, range: '2 - 10' },
-    lighting: { typical: 100, range: '70 - 140' },
-    elevator: { typical: 18, range: '10 - 30' }
-  },
-  shop_supermarket: {
-    label: 'スーパーマーケット',
-    heating: { typical: 50, range: '25 - 80' },
-    cooling: { typical: 60, range: '35 - 90' },
-    ventilation: { typical: 40, range: '20 - 60' },
-    hot_water: { typical: 5, range: '2 - 10' },
-    lighting: { typical: 110, range: '80 - 150' },
-    elevator: { typical: 10, range: '5 - 20' }
-  },
-  school_small: {
-    label: '小学校',
-    heating: { typical: 65, range: '35 - 100' },
-    cooling: { typical: 30, range: '15 - 50' },
-    ventilation: { typical: 20, range: '10 - 35' },
-    hot_water: { typical: 12, range: '5 - 25' },
-    lighting: { typical: 45, range: '30 - 65' },
-    elevator: { typical: 3, range: '0 - 8' }
-  },
-  school_high: {
-    label: '中高校',
-    heating: { typical: 65, range: '35 - 100' },
-    cooling: { typical: 35, range: '20 - 55' },
-    ventilation: { typical: 20, range: '10 - 35' },
-    hot_water: { typical: 12, range: '5 - 25' },
-    lighting: { typical: 45, range: '30 - 65' },
-    elevator: { typical: 3, range: '0 - 8' }
-  },
-  school_university: {
-    label: '大学',
-    heating: { typical: 55, range: '30 - 85' },
-    cooling: { typical: 40, range: '20 - 60' },
-    ventilation: { typical: 25, range: '10 - 40' },
-    hot_water: { typical: 12, range: '5 - 25' },
-    lighting: { typical: 50, range: '30 - 70' },
-    elevator: { typical: 12, range: '5 - 20' }
-  },
-  restaurant: {
-    label: '飲食店',
-    heating: { typical: 80, range: '50 - 120' },
-    cooling: { typical: 70, range: '40 - 100' },
-    ventilation: { typical: 90, range: '50 - 140' },
-    hot_water: { typical: 80, range: '40 - 130' },
-    lighting: { typical: 75, range: '50 - 110' },
-    elevator: { typical: 10, range: '5 - 20' }
-  },
-  assembly: {
-    label: '集会所',
-    heating: { typical: 55, range: '30 - 85' },
-    cooling: { typical: 45, range: '25 - 70' },
-    ventilation: { typical: 35, range: '20 - 55' },
-    hot_water: { typical: 10, range: '3 - 20' },
-    lighting: { typical: 60, range: '40 - 90' },
-    elevator: { typical: 12, range: '5 - 20' }
-  },
-  factory: {
-    label: '工場',
-    heating: { typical: 70, range: '40 - 110' },
-    cooling: { typical: 30, range: '15 - 50' },
-    ventilation: { typical: 40, range: '20 - 65' },
-    hot_water: { typical: 10, range: '3 - 20' },
-    lighting: { typical: 60, range: '40 - 90' },
-    elevator: { typical: 12, range: '5 - 20' }
-  },
-  residential_collective: {
-    label: '共同住宅',
-    heating: { typical: 50, range: '25 - 80' },
-    cooling: { typical: 30, range: '15 - 50' },
-    ventilation: { typical: 15, range: '8 - 25' },
-    hot_water: { typical: 70, range: '40 - 110' },
-    lighting: { typical: 35, range: '20 - 55' },
-    elevator: { typical: 12, range: '5 - 20' }
-  }
+const GUIDANCE_LABELS = {
+  office: '事務所',
+  hotel: 'ホテル',
+  hospital: '病院',
+  shop_department: '百貨店',
+  shop_supermarket: 'スーパーマーケット',
+  school_small: '小学校',
+  school_high: '中高校',
+  school_university: '大学',
+  restaurant: '飲食店',
+  assembly: '集会所',
+  factory: '工場',
+  residential_collective: '共同住宅'
 };
+
+const GUIDANCE_TYPES = Object.keys(GUIDANCE_LABELS);
+const toRangeText = (range) => `${range.min} - ${range.max}`;
+
+export const typicalEnergyByBuildingType = GUIDANCE_TYPES.reduce((acc, buildingType) => {
+  const normalizedType = resolveTypeName(buildingType);
+  const source = TYPICAL_ENERGY_VALUES[normalizedType] || TYPICAL_ENERGY_VALUES.offices;
+
+  acc[buildingType] = {
+    label: GUIDANCE_LABELS[buildingType],
+    heating: { typical: source.heating.typical, range: toRangeText(source.heating) },
+    cooling: { typical: source.cooling.typical, range: toRangeText(source.cooling) },
+    ventilation: { typical: source.ventilation.typical, range: toRangeText(source.ventilation) },
+    hot_water: { typical: source.hot_water.typical, range: toRangeText(source.hot_water) },
+    lighting: { typical: source.lighting.typical, range: toRangeText(source.lighting) },
+    elevator: { typical: source.elevator.typical, range: toRangeText(source.elevator) }
+  };
+  return acc;
+}, {});
 
 /**
  * カテゴリに対応する設備リファレンスデータを取得

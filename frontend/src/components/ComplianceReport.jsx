@@ -1,10 +1,12 @@
 // frontend/src/components/ComplianceReport.jsx
-import React from 'react';
-import { FaFileAlt, FaStamp, FaBuilding, FaChartBar, FaDownload, FaFilePdf, FaFileExcel } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaFileAlt, FaStamp, FaBuilding, FaChartBar, FaDownload, FaFilePdf, FaFileExcel, FaUpload } from 'react-icons/fa';
 import { exportToExcel, exportToExcelXML } from '../utils/excelExport';
 import { exportToProfessionalExcel, exportToSimpleExcel } from '../utils/excelExportProfessional';
 import { formatBEI } from '../utils/number';
 import { generateBEIReport } from '../utils/pdfExport';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
 
 // Shared BEI formatter wrapper for this component
 const formatBEIValue2 = (value) => {
@@ -85,6 +87,9 @@ const getStandardIntensities = (buildingType, climateZone) => {
 };
 
 export default function ComplianceReport({ result, formData, projectInfo, onDownload, onDownloadPDF }) {
+  const [officialLoading, setOfficialLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
+
   if (!result || !formData) return null;
 
   const formatDate = () => {
@@ -97,46 +102,106 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
 
   const standardIntensities = getStandardIntensities(formData.building_type, formData.climate_zone);
 
-  // Excel出力関数（プロフェッショナル版）
+  // ── 公式API (v380) 経由でPDFを取得 ────────────────────────────────
+  const handleOfficialPDF = async () => {
+    setOfficialLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/official/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          building_area_m2: parseFloat(formData.floor_area) || 0,
+          use: formData.building_type || 'office',
+          zone: formData.climate_zone || '6',
+          design_energy: result.design_energy_breakdown
+            ? result.design_energy_breakdown.map(item => ({
+                category: item.category,
+                value: item.design_mj || item.value || 0,
+              }))
+            : [],
+          renewable_energy_deduction_mj: parseFloat(formData.renewable_energy) || 0,
+        }),
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${response.status}`);
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${projectInfo?.name || 'project'}_公式計算書.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('公式PDF取得エラー:', error);
+      alert(`公式PDF取得に失敗しました。\n${error.message}\n\n公式入力シート(xlsx)のアップロードもお試しください。`);
+    } finally {
+      setOfficialLoading(false);
+    }
+  };
+
+  // ── Excelアップロード → 公式PDF取得 ────────────────────────────────
+  const handleExcelUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xlsm')) {
+      alert('公式入力シート (.xlsx または .xlsm) をアップロードしてください。');
+      return;
+    }
+    setUploadLoading(true);
+    try {
+      const formPayload = new FormData();
+      formPayload.append('file', file);
+      const response = await fetch(`${API_BASE}/official/upload-report`, {
+        method: 'POST',
+        body: formPayload,
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${response.status}`);
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name.replace(/\.(xlsx|xlsm)$/, '_公式計算書.pdf');
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('アップロードエラー:', error);
+      alert(`公式PDF取得に失敗しました。\n${error.message}`);
+    } finally {
+      setUploadLoading(false);
+      event.target.value = '';
+    }
+  };
+
+  // ── 参考用: 独自Excel出力（確認申請には使用不可） ────────────────────
   const handleExcelExport = () => {
     try {
       exportToProfessionalExcel(result, formData, projectInfo);
-      alert('Excelファイル(.xlsx)をダウンロードしました。\n4シート構成（計算概要・エネルギー内訳・基準値詳細・法的根拠）');
     } catch (error) {
       console.error('Excel出力エラー:', error);
-      // フォールバック: シンプル版を試行
       try {
         exportToSimpleExcel(result, formData, projectInfo);
-        alert('簡易版Excelファイル(.xlsx)をダウンロードしました。');
       } catch (fallbackError) {
-        console.error('簡易Excel出力エラー:', fallbackError);
-        // 最終フォールバック: 従来のCSV形式
         try {
           exportToExcel(result, formData, projectInfo);
-          alert('CSV形式でダウンロードしました（Excelで開けます）。');
         } catch (csvError) {
-          alert(`すべての出力方法が失敗しました: ${csvError.message}`);
+          alert(`出力に失敗しました: ${csvError.message}`);
         }
       }
     }
   };
 
-  const handleExcelXMLExport = () => {
+  // ── 参考用: 独自PDF出力（確認申請には使用不可） ────────────────────
+  const handlePDFExport = async () => {
     try {
-      exportToExcelXML(result, formData, projectInfo);
-    } catch (error) {
-      alert(`Excel XML出力エラー: ${error.message}`);
-    }
-  };
-
-  // PDF生成関数 - jsPDF + jspdf-autotable による高品質PDF出力
-  const handlePDFExport = () => {
-    try {
-      const { documentId, fileName } = generateBEIReport(result, formData, projectInfo);
-      console.log('PDF生成完了:', { documentId, fileName });
+      await generateBEIReport(result, formData, projectInfo);
     } catch (error) {
       console.error('PDF生成エラー:', error);
-      alert(`PDF生成エラー: ${error.message}\n詳細はコンソールをご確認ください。`);
+      alert(`PDF生成エラー: ${error.message}`);
     }
   };
 
@@ -161,9 +226,12 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
           
           <div className="flex justify-between items-start">
             <div className="text-left flex-1">
-              <h1 className="text-xl font-bold mb-2 text-primary-800">建築物省エネルギー法　適合性判定申請書</h1>
-              <h2 className="text-lg font-bold text-primary-700 mb-3">モデル建物法による一次エネルギー消費量計算書</h2>
-              
+              <h1 className="text-xl font-bold mb-2 text-primary-800">BEI計算結果レポート</h1>
+              <h2 className="text-lg font-bold text-primary-700 mb-1">モデル建物法による一次エネルギー消費量計算</h2>
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 inline-block">
+                ※ この画面表示は参考用です。確認申請には下の「公式PDF」をご利用ください。
+              </p>
+
               {/* プロジェクト情報の要約表示 */}
               {projectInfo && (
                 <div className="bg-warm-50 p-3 rounded border text-sm mt-3">
@@ -176,36 +244,69 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
                 </div>
               )}
             </div>
-            {/* ダウンロードボタン - スマホ対応 */}
-            <div className="no-print flex flex-col items-end gap-2">
-                <div className="flex flex-wrap justify-end gap-2">
+            {/* ダウンロードボタン */}
+            <div className="no-print flex flex-col items-end gap-3">
+                {/* ── 公式出力（確認申請用） ── */}
+                <div>
+                  <p className="text-xs font-bold text-primary-700 mb-1 text-right">確認申請用（公式様式）</p>
+                  <div className="flex flex-wrap justify-end gap-2">
                     <button
-                        onClick={handleExcelExport}
-                        title="プロ仕様Excelファイル(.xlsx)をダウンロード - 5シート構成・実務レベル"
-                        className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[90px] touch-manipulation"
-                        style={{ minHeight: '44px' }} /* iOS推奨タップ領域 */
-                    >
-                        <FaFileExcel />
-                        <span>Excel</span>
-                    </button>
-                    <button
-                        onClick={handlePDFExport}
-                        className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[80px] touch-manipulation"
+                        onClick={handleOfficialPDF}
+                        disabled={officialLoading}
+                        title="国交省公式API (v380) で公式様式PDFを生成"
+                        className="bg-blue-700 hover:bg-blue-800 active:bg-blue-900 disabled:bg-blue-400 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[120px] touch-manipulation"
                         style={{ minHeight: '44px' }}
                     >
                         <FaFilePdf />
-                        <span>PDF</span>
+                        <span>{officialLoading ? '生成中...' : '公式PDF'}</span>
+                    </button>
+                    <label
+                        title="記入済みの公式入力シート(.xlsx/.xlsm)をアップロードして公式PDFを取得"
+                        className={`${uploadLoading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 cursor-pointer'} text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[140px] touch-manipulation`}
+                        style={{ minHeight: '44px' }}
+                    >
+                        <FaUpload />
+                        <span>{uploadLoading ? 'アップロード中...' : 'Excel→公式PDF'}</span>
+                        <input
+                            type="file"
+                            accept=".xlsx,.xlsm"
+                            onChange={handleExcelUpload}
+                            disabled={uploadLoading}
+                            className="hidden"
+                        />
+                    </label>
+                  </div>
+                </div>
+                {/* ── 参考出力（社内検討用） ── */}
+                <div>
+                  <p className="text-xs text-primary-400 mb-1 text-right">社内検討用（参考）</p>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <button
+                        onClick={handleExcelExport}
+                        title="参考用Excelファイル（確認申請には使用不可）"
+                        className="bg-gray-400 hover:bg-gray-500 text-white font-medium py-2 px-3 rounded-lg flex items-center space-x-1 text-xs touch-manipulation"
+                    >
+                        <FaFileExcel />
+                        <span>参考Excel</span>
+                    </button>
+                    <button
+                        onClick={handlePDFExport}
+                        title="参考用PDF（確認申請には使用不可）"
+                        className="bg-gray-400 hover:bg-gray-500 text-white font-medium py-2 px-3 rounded-lg flex items-center space-x-1 text-xs touch-manipulation"
+                    >
+                        <FaFilePdf />
+                        <span>参考PDF</span>
                     </button>
                     <button
                         onClick={onDownload}
-                        className="bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white font-medium py-3 px-4 rounded-lg flex items-center space-x-2 text-sm min-w-[80px] touch-manipulation"
-                        style={{ minHeight: '44px' }} /* iOS推奨タップ領域 */
+                        title="計算データJSON"
+                        className="bg-gray-400 hover:bg-gray-500 text-white font-medium py-2 px-3 rounded-lg flex items-center space-x-1 text-xs touch-manipulation"
                     >
                         <FaDownload />
                         <span>JSON</span>
                     </button>
+                  </div>
                 </div>
-                <p className="text-xs text-primary-500 mt-1">実用的Excel・PDF対応（スマホ可）</p>
             </div>
           </div>
           <div className="mt-4 text-right">

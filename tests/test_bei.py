@@ -33,15 +33,15 @@ class TestBEIBasicCalculation:
         result = evaluate_bei(request)
         
         # Design energy: (50+100+30+40+10+90) * 9.76 = 320 * 9.76 = 3123.2 MJ
-        # Standard energy: 420 MJ/m²/year * 1000 m² = 420000 MJ (from catalog)
-        # BEI: 3123.2 / 420000 ≈ 0.007
+        # Standard energy: 296 MJ/m²/year * 1000 m² = 296000 MJ (from catalog)
+        # BEI: 3123.2 / 296000 ≈ 0.011
         
         assert result.building_area_m2 == 1000.0
         assert result.design_primary_energy_mj == 3123.2
-        assert result.standard_primary_energy_mj == 420000.0
-        assert result.bei == 0.007
+        assert result.standard_primary_energy_mj == 296000.0
+        assert result.bei == 0.011
         assert result.is_compliant is True  # BEI < 1.0
-        assert "office (zone 6)" in str(result.use_info)
+        assert "6地域" in str(result.use_info)
     
     def test_bei_with_renewable_deduction(self):
         """Test BEI calculation with renewable energy deduction."""
@@ -62,12 +62,12 @@ class TestBEIBasicCalculation:
         
         # Design energy: 100 * 9.76 = 976 MJ
         # After renewable deduction: 976 - 500 = 476 MJ
-        # Standard energy: 420 * 100 = 42000 MJ
-        # BEI: 476 / 42000 ≈ 0.0113
+        # Standard energy: 296 * 100 = 29600 MJ
+        # BEI: 476 / 29600 ≈ 0.0161
         
         assert result.design_primary_energy_mj == 476.0
         assert result.renewable_deduction_mj == 500.0
-        assert result.bei == 0.0113
+        assert result.bei == 0.0161
     
     def test_non_compliant_building(self):
         """Test BEI calculation for non-compliant building."""
@@ -86,8 +86,8 @@ class TestBEIBasicCalculation:
         result = evaluate_bei(request)
         
         # Design energy: 1000 * 9.76 = 9760 MJ
-        # Standard energy: 420 * 100 = 42000 MJ  
-        # BEI: 9760 / 42000 ≈ 0.232
+        # Standard energy: 296 * 100 = 29600 MJ
+        # BEI: 9760 / 29600 ≈ 0.330
         # Still compliant since BEI < 1.0, but let's test with higher consumption
         
         # Update with much higher consumption
@@ -96,7 +96,7 @@ class TestBEIBasicCalculation:
         result = evaluate_bei(request)
         
         # Design energy: 5000 * 9.76 = 48800 MJ
-        # BEI: 48800 / 42000 ≈ 1.162
+        # BEI: 48800 / 29600 ≈ 1.649
         assert result.bei > 1.0
         assert result.is_compliant is False
 
@@ -124,14 +124,14 @@ class TestBEIMixedUseBuilding:
         
         result = evaluate_bei(request)
         
-        # Office: 420 MJ/m²/year * 1400 m² = 588000 MJ
-        # Hotel: 732 MJ/m²/year * 600 m² = 439200 MJ  
-        # Total standard: 588000 + 439200 = 1027200 MJ
+        # Office: 296 MJ/m²/year * 1400 m² = 414400 MJ
+        # Hotel: 500 MJ/m²/year * 600 m² = 300000 MJ
+        # Total standard: 714400 MJ
         # Design: (200 + 300) * 9.76 = 4880 MJ
-        # BEI: 4880 / 1027200 ≈ 0.005
+        # BEI: 4880 / 714400 ≈ 0.007
         
         assert result.building_area_m2 == 2000.0
-        assert result.standard_primary_energy_mj == 1027200.0
+        assert result.standard_primary_energy_mj == 714400.0
         assert result.design_primary_energy_mj == 4880.0
         assert isinstance(result.use_info, list)
         assert len(result.use_info) == 2
@@ -155,13 +155,13 @@ class TestBEIMixedUseBuilding:
         
         result = evaluate_bei(request)
         
-        # Office: 420 * 800 = 336000 MJ
-        # Hotel: 732 * 1200 = 878400 MJ
-        # Total: 1214400 MJ
+        # Office: 296 * 800 = 236800 MJ
+        # Hotel: 500 * 1200 = 600000 MJ
+        # Total: 836800 MJ
         # Design: 150 * 9.76 = 1464 MJ
-        # BEI: 1464 / 1214400 ≈ 0.001
+        # BEI: 1464 / 836800 ≈ 0.002
         
-        assert result.standard_primary_energy_mj == 1214400.0
+        assert result.standard_primary_energy_mj == 836800.0
         assert result.design_primary_energy_mj == 1464.0
 
 
@@ -189,9 +189,9 @@ class TestBEICatalogOperations:
         
         assert result.use == "office"
         assert result.zone == "6"
-        assert result.intensities.lighting == 58
-        assert result.intensities.cooling == 119
-        assert result.intensities.total_MJ_per_m2_year == 420
+        assert result.intensities.lighting == 70
+        assert result.intensities.cooling == 44
+        assert result.intensities.total_MJ_per_m2_year == 296
     
     def test_get_nonexistent_catalog_data(self):
         """Test getting data for non-existent use/zone."""
@@ -221,11 +221,11 @@ class TestBEICustomUnitsAndFactors:
         # Gas heating: 1000 * 45.0 (gas factor) = 45000 MJ
         # Electric lighting: 50 * 9.76 (electricity factor) = 488 MJ
         # Total design: 45488 MJ
-        # Standard: 420 * 500 = 210000 MJ
-        # BEI: 45488 / 210000 ≈ 0.217
+        # Standard: 296 * 500 = 148000 MJ
+        # BEI: 45488 / 148000 ≈ 0.307
         
         assert result.design_primary_energy_mj == 45488.0
-        assert result.bei == pytest.approx(0.217, rel=1e-3)
+        assert result.bei == pytest.approx(0.307, rel=1e-3)
     
     def test_custom_primary_factors(self):
         """Test BEI calculation with custom primary energy factors."""
@@ -243,8 +243,27 @@ class TestBEICustomUnitsAndFactors:
         result = evaluate_bei(request)
         
         # Design: 100 * 12.0 (custom factor) = 1200 MJ
-        # Standard: 420 * 200 = 84000 MJ
-        # BEI: 1200 / 84000 ≈ 0.014
+        # Standard: 296 * 200 = 59200 MJ
+        # BEI: 1200 / 59200 ≈ 0.020
         
         assert result.design_primary_energy_mj == 1200.0
         assert result.design_energy_breakdown[0]["primary_factor"] == 12.0
+
+
+class TestBEILocalization:
+    """UI向け文言の日本語化に関するテスト。"""
+
+    def test_single_use_response_messages_are_japanese(self):
+        request = BEIRequest(
+            building_area_m2=1000.0,
+            use="office",
+            zone="6",
+            design_energy=[DesignEnergyCategory(category="lighting", value=50.0, unit="kWh")],
+        )
+
+        result = evaluate_bei(request)
+
+        assert "地域" in str(result.use_info)
+        assert "zone" not in str(result.use_info).lower()
+        assert all("Using declared total" not in note for note in result.notes)
+        assert all("Calculated total from categories" not in note for note in result.notes)

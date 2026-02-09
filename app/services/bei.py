@@ -9,6 +9,25 @@ from app.schemas.bei import (
 from app.core.data import load_yaml
 from app.core.factors import get_primary_factor, estimate_unit_from_category
 
+USE_LABELS_JA = {
+    "office": "事務所等",
+    "hotel": "ホテル等",
+    "hospital": "病院等",
+    "shop_department": "百貨店等",
+    "shop_supermarket": "スーパーマーケット",
+    "school_small": "学校等（小中学校）",
+    "school_high": "学校等（高等学校）",
+    "school_university": "学校等（大学）",
+    "restaurant": "飲食店等",
+    "assembly": "集会所等",
+    "factory": "工場等",
+    "residential_collective": "共同住宅",
+}
+
+
+def _use_label(use: str) -> str:
+    return USE_LABELS_JA.get(use, use)
+
 
 def evaluate_bei(request: BEIRequest) -> BEIResponse:
     """Evaluate Building Energy Index (BEI)."""
@@ -24,7 +43,9 @@ def evaluate_bei(request: BEIRequest) -> BEIResponse:
         primary_factor = category.primary_factor or get_primary_factor(unit)
         
         if not primary_factor:
-            notes.append(f"Unknown unit '{unit}' for category '{category.category}', using default factor 9.76")
+            notes.append(
+                f"用途「{category.category}」の単位「{unit}」を判別できないため、既定換算係数 9.76 を使用しました"
+            )
             primary_factor = 9.76  # Default to electricity
         
         # Calculate primary energy
@@ -51,17 +72,17 @@ def evaluate_bei(request: BEIRequest) -> BEIResponse:
     else:
         # Single use building
         if not request.use or not request.zone:
-            raise ValueError("For single use building, both 'use' and 'zone' must be specified")
+            raise ValueError("単一用途建物では 'use' と 'zone' の両方が必要です")
         
         standard_intensity = _get_standard_intensity(request.use, request.zone, notes)
         standard_energy_per_m2 = _calculate_total_intensity(standard_intensity, notes)
         standard_primary_energy_mj = standard_energy_per_m2 * request.building_area_m2
-        use_info = f"{request.use} (zone {request.zone})"
-        intensity_source = f"Catalog data for {request.use}, zone {request.zone}"
+        use_info = f"{_use_label(request.use)}（{request.zone}地域）"
+        intensity_source = f"カタログ値（{_use_label(request.use)}・{request.zone}地域）"
     
     # Calculate BEI
     if standard_primary_energy_mj <= 0:
-        raise ValueError("Standard primary energy must be greater than 0")
+        raise ValueError("基準一次エネルギー消費量は 0 より大きい必要があります")
     
     bei_raw = design_primary_energy_mj / standard_primary_energy_mj
     bei = round(bei_raw, request.bei_round_digits)
@@ -274,7 +295,7 @@ def _get_standard_intensity(use: str, zone: str, notes: List[str]) -> StandardIn
         use_data = catalog.get("uses", {}).get(use, {})
         
         if not use_data:
-            notes.append(f"Use '{use}' not found in catalog, using default values")
+            notes.append(f"用途「{_use_label(use)}」のカタログが見つからないため、既定値を使用しました")
             return StandardIntensity()
         
         # Handle both zone structures
@@ -284,7 +305,7 @@ def _get_standard_intensity(use: str, zone: str, notes: List[str]) -> StandardIn
             zone_data = use_data.get(zone, {})
         
         if not zone_data:
-            notes.append(f"Zone '{zone}' not found for use '{use}', using default values")
+            notes.append(f"用途「{_use_label(use)}」の{zone}地域データがないため、既定値を使用しました")
             return StandardIntensity()
         
         # Parse intensity data, handling aliases
@@ -298,7 +319,7 @@ def _get_standard_intensity(use: str, zone: str, notes: List[str]) -> StandardIn
         return StandardIntensity(**intensity_data)
         
     except Exception as e:
-        notes.append(f"Error loading standard intensity data: {e}")
+        notes.append(f"基準原単位データの読み込みエラー: {e}")
         return StandardIntensity()
 
 
@@ -317,7 +338,11 @@ def _calculate_total_intensity(intensity: StandardIntensity, notes: List[str]) -
         ]))
         
         if abs(intensity.total_MJ_per_m2_year - calculated_sum) > 0.1:
-            notes.append(f"Using declared total {intensity.total_MJ_per_m2_year} MJ/m²/year instead of calculated sum {calculated_sum}")
+            notes.append(
+                "カテゴリ合計 "
+                f"{calculated_sum:.1f} MJ/m²年 ではなく、公表合計 "
+                f"{intensity.total_MJ_per_m2_year:.1f} MJ/m²年 を使用しました"
+            )
         
         return intensity.total_MJ_per_m2_year
     
@@ -332,7 +357,7 @@ def _calculate_total_intensity(intensity: StandardIntensity, notes: List[str]) -
         intensity.elevator
     ]))
     
-    notes.append(f"Calculated total from categories: {total} MJ/m²/year")
+    notes.append(f"カテゴリ合計から基準原単位を算出: {total:.1f} MJ/m²年")
     return total
 
 
@@ -370,12 +395,15 @@ def _calculate_mixed_standard_energy(usage_mix: List, building_area_m2: float, n
         })
     
     if abs(total_area - building_area_m2) > 0.1:
-        notes.append(f"Warning: Mixed use areas ({total_area} m²) don't match building area ({building_area_m2} m²)")
+        notes.append(
+            "複合用途の面積合計"
+            f"（{total_area:.1f} m²）が延床面積（{building_area_m2:.1f} m²）と一致していません"
+        )
     
     # Calculate area-weighted average intensity
     average_intensity = total_weighted_intensity / building_area_m2 if building_area_m2 > 0 else 0
     standard_primary_energy_mj = average_intensity * building_area_m2
     
-    intensity_source = f"Area-weighted average from {len(usage_mix)} use types"
+    intensity_source = f"{len(usage_mix)}用途の面積加重平均"
     
     return standard_primary_energy_mj, use_details, intensity_source

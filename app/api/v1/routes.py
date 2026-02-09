@@ -107,7 +107,7 @@ async def evaluate_building_bei(request: BEIRequest) -> BEIResponse:
     try:
         return evaluate_bei(request)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"BEI evaluation error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"BEI計算エラー: {str(e)}")
 
 
 # Include BEI catalog routes
