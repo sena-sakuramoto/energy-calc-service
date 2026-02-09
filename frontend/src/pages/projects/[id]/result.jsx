@@ -85,6 +85,7 @@ export default function Result() {
   const [error, setError] = useState('');
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [downloadingExcel, setDownloadingExcel] = useState(false);
+  const [downloadingOfficialReport, setDownloadingOfficialReport] = useState(false);
   const [emailCaptured, setEmailCaptured] = useState(() => {
     if (typeof window !== 'undefined') {
       return !!localStorage.getItem(LEAD_CAPTURE_KEY);
@@ -182,6 +183,29 @@ export default function Result() {
       alert('公式帳票のダウンロード中にエラーが発生しました。');
     } finally {
       setDownloadingOfficialReport(false);
+    }
+  };
+
+  const handleDownloadExcel = async () => {
+    try {
+      setDownloadingExcel(true);
+      const response = await reportAPI.getExcel(id);
+
+      // Blobとしてダウンロード
+      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${project.projectInfo?.name || project.name}_report.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Excelダウンロードエラー:', error);
+      alert('Excelのダウンロード中にエラーが発生しました。');
+    } finally {
+      setDownloadingExcel(false);
     }
   };
 

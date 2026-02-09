@@ -120,10 +120,10 @@ export default function Home() {
           ) : isAuthenticated ? (
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/projects"
+                href="/dashboard"
                 className="bg-primary-700 hover:bg-primary-800 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-colors duration-200"
               >
-                プロジェクト一覧
+                ダッシュボード
               </Link>
               <Link
                 href="/tools/bei-calculator"
@@ -323,10 +323,10 @@ export default function Home() {
                 BEI計算を開始
               </Link>
               <Link
-                href="/projects"
+                href="/dashboard"
                 className="border-2 border-white text-white hover:bg-white hover:text-primary-800 font-bold py-4 px-8 rounded-lg transition-colors duration-200"
               >
-                プロジェクト一覧
+                ダッシュボード
               </Link>
             </div>
           ) : (

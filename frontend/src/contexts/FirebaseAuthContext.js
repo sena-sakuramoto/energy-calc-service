@@ -170,7 +170,7 @@ export const FirebaseAuthProvider = ({ children }) => {
       console.log('Login successful:', fbUser.email);
 
       // ログイン後のリダイレクト先を確認
-      const redirectUrl = router.query.redirect || '/';
+      const redirectUrl = router.query.redirect || '/dashboard';
       router.push(redirectUrl);
       return true;
     } catch (error) {
@@ -244,7 +244,7 @@ export const FirebaseAuthProvider = ({ children }) => {
     setUser(loginUser);
     console.log('[E2E] User logged in:', loginUser.email);
 
-    const redirectUrl = router.query.redirect || '/';
+    const redirectUrl = router.query.redirect || '/dashboard';
     router.push(redirectUrl);
     return true;
   };

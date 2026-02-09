@@ -1,0 +1,659 @@
+// frontend/src/utils/pdfExport.js
+// Professional PDF generation for BEI calculation reports using jsPDF + jspdf-autotable
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import { formatBEI } from './number';
+
+// ─── Color Theme ───────────────────────────────────────────────────────────────
+const COLORS = {
+  slate:       [51, 65, 85],    // #334155 - primary dark headers
+  slateMid:    [100, 116, 139], // #64748B - secondary text
+  slateLight:  [226, 232, 240], // #E2E8F0 - light backgrounds
+  terracotta:  [194, 112, 62],  // #c2703e - accent
+  white:       [255, 255, 255],
+  black:       [0, 0, 0],
+  rowEven:     [248, 250, 252], // #F8FAFC - alternating rows
+  greenBg:     [220, 252, 231], // #DCFCE7 - compliant
+  greenText:   [21, 128, 61],   // #15803D
+  redBg:       [254, 226, 226], // #FEE2E2 - non-compliant
+  redText:     [185, 28, 28],   // #B91C1C
+  yellowBg:    [254, 249, 195], // #FEF9C3 - highlight
+  blueBg:      [219, 234, 254], // #DBEAFE - info
+};
+
+// Helper to apply a color array to jsPDF methods
+const setFill = (doc, color) => doc.setFillColor(color[0], color[1], color[2]);
+const setDraw = (doc, color) => doc.setDrawColor(color[0], color[1], color[2]);
+const setText = (doc, color) => doc.setTextColor(color[0], color[1], color[2]);
+
+// ─── Helper Lookups ────────────────────────────────────────────────────────────
+const BUILDING_TYPE_NAMES = {
+  office: '事務所等',
+  hotel: 'ホテル等',
+  hospital: '病院等',
+  shop_department: '百貨店等',
+  shop_supermarket: 'スーパーマーケット',
+  school_small: '学校等（小中学校）',
+  school_high: '学校等（高等学校）',
+  school_university: '学校等（大学）',
+  restaurant: '飲食店等',
+  assembly: '集会所等',
+  factory: '工場等',
+  residential_collective: '共同住宅',
+};
+
+const CATEGORY_NAMES = {
+  heating: '暖房 (Heating)',
+  cooling: '冷房 (Cooling)',
+  ventilation: '換気 (Ventilation)',
+  hot_water: '給湯 (Hot Water)',
+  lighting: '照明 (Lighting)',
+  elevator: '昇降機 (Elevator)',
+};
+
+const CATEGORY_ORDER = ['heating', 'cooling', 'ventilation', 'hot_water', 'lighting', 'elevator'];
+
+// ─── Standard Intensities (simplified) ─────────────────────────────────────────
+const getStandardIntensities = (buildingType, climateZone) => {
+  const baseValues = {
+    office:   { heating: 38, cooling: 38, ventilation: 28, hot_water: 3,   lighting: 70, elevator: 14 },
+    hotel:    { heating: 54, cooling: 54, ventilation: 28, hot_water: 176, lighting: 70, elevator: 14 },
+    hospital: { heating: 72, cooling: 72, ventilation: 89, hot_water: 176, lighting: 98, elevator: 14 },
+  };
+  const regionalFactors = {
+    1: { heating: 2.38, cooling: 0.66 },
+    2: { heating: 2.01, cooling: 0.69 },
+    3: { heating: 1.54, cooling: 0.86 },
+    4: { heating: 1.16, cooling: 0.99 },
+    5: { heating: 1.07, cooling: 1.07 },
+    6: { heating: 0.84, cooling: 1.15 },
+    7: { heating: 0.70, cooling: 1.27 },
+    8: { heating: 0.36, cooling: 1.35 },
+  };
+  const base = baseValues[buildingType] || baseValues.office;
+  const factors = regionalFactors[parseInt(climateZone)] || regionalFactors[4];
+  const out = {};
+  for (const key of CATEGORY_ORDER) {
+    const f = (key === 'heating' || key === 'cooling') ? factors[key] : 1.0;
+    out[key] = {
+      base: base[key],
+      factor: f,
+      corrected: base[key] * f * 0.95,
+    };
+  }
+  return out;
+};
+
+// ─── Formatting Helpers ────────────────────────────────────────────────────────
+const fmtBEI = (v) => {
+  const r = formatBEI(v);
+  return r == null ? '-' : r;
+};
+
+const fmtNum = (v, decimals = 0) => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return '-';
+  return decimals > 0 ? n.toFixed(decimals) : Math.round(n).toLocaleString('en-US');
+};
+
+const fmtNumJP = (v) => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return '-';
+  return Math.round(n).toLocaleString('en-US');
+};
+
+// ─── Document ID Generator ─────────────────────────────────────────────────────
+const generateDocumentId = () => {
+  const now = new Date();
+  const yr = now.getFullYear();
+  const mo = String(now.getMonth() + 1).padStart(2, '0');
+  const dy = String(now.getDate()).padStart(2, '0');
+  const seq = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+  return `BEI-${yr}-${mo}-${dy}-${seq}`;
+};
+
+// ─── Page Footer Renderer ──────────────────────────────────────────────────────
+const addFooter = (doc, documentId, pageWidth, pageHeight, margin) => {
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    const footerY = pageHeight - margin + 5;
+
+    // Divider line
+    setDraw(doc, COLORS.slateLight);
+    doc.setLineWidth(0.3);
+    doc.line(margin, footerY, pageWidth - margin, footerY);
+
+    // Left: Document ID
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(7);
+    setText(doc, COLORS.slateMid);
+    doc.text(documentId, margin, footerY + 4);
+
+    // Center: Generated note
+    const centerText = 'Auto-generated by Raku-Raku ShoEne Keisan';
+    const centerW = doc.getTextWidth(centerText);
+    doc.text(centerText, (pageWidth - centerW) / 2, footerY + 4);
+
+    // Right: Page number
+    const pageText = `${i} / ${totalPages}`;
+    const pageW = doc.getTextWidth(pageText);
+    doc.text(pageText, pageWidth - margin - pageW, footerY + 4);
+
+    // Disclaimer line
+    doc.setFontSize(6);
+    const disclaimer = 'Disclaimer: Verify all values against official MLIT calculation tools before submission.';
+    const disclaimerW = doc.getTextWidth(disclaimer);
+    doc.text(disclaimer, (pageWidth - disclaimerW) / 2, footerY + 8);
+  }
+};
+
+// ─── Section Header Renderer ───────────────────────────────────────────────────
+const drawSectionHeader = (doc, text, x, y, width) => {
+  setFill(doc, COLORS.slate);
+  doc.roundedRect(x, y, width, 8, 1, 1, 'F');
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(10);
+  setText(doc, COLORS.white);
+  doc.text(text, x + 4, y + 5.5);
+  setText(doc, COLORS.black);
+  return y + 12;
+};
+
+// ─── Check for Page Break ──────────────────────────────────────────────────────
+const ensureSpace = (doc, cursorY, neededHeight, pageHeight, margin) => {
+  if (cursorY + neededHeight > pageHeight - margin - 15) {
+    doc.addPage();
+    return margin + 5;
+  }
+  return cursorY;
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Main Export Function
+// ═══════════════════════════════════════════════════════════════════════════════
+export function generateBEIReport(result, formData, projectInfo) {
+  if (!result || !formData) {
+    throw new Error('result and formData are required to generate a PDF report.');
+  }
+
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();   // 210
+  const pageHeight = doc.internal.pageSize.getHeight();  // 297
+  const margin = 15;
+  const contentWidth = pageWidth - margin * 2;
+  const documentId = generateDocumentId();
+  const currentDate = new Date().toLocaleDateString('ja-JP', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  });
+  const projectName = projectInfo?.name || '';
+  const buildingTypeName = BUILDING_TYPE_NAMES[formData.building_type] || formData.building_type || '';
+  const floorArea = Number(formData.floor_area || result.building_area_m2 || 0);
+  const renewableEnergy = Number(formData.renewable_energy || result.renewable_deduction_mj || 0);
+  const standardIntensities = getStandardIntensities(formData.building_type, formData.climate_zone);
+  const isCompliant = !!result.is_compliant;
+  const beiStr = fmtBEI(result.bei);
+
+  // Pick compliant/non-compliant colors once
+  const statusColor = isCompliant ? COLORS.greenText : COLORS.redText;
+  const statusBg = isCompliant ? COLORS.greenBg : COLORS.redBg;
+  const boxBg = isCompliant ? [240, 253, 244] : [254, 242, 242]; // subtle green/red tint
+
+  let y = margin;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 1. DOCUMENT HEADER
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Top accent bar
+  setFill(doc, COLORS.terracotta);
+  doc.rect(0, 0, pageWidth, 3, 'F');
+
+  // Document ID & metadata line (right-aligned)
+  y = 8;
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(7);
+  setText(doc, COLORS.slateMid);
+  const metaLine = `${documentId}  |  ${currentDate}  |  System v2.0`;
+  const metaW = doc.getTextWidth(metaLine);
+  doc.text(metaLine, pageWidth - margin - metaW, y);
+
+  // Main title
+  y = 16;
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(18);
+  setText(doc, COLORS.slate);
+  doc.text('BEI Keisansho (Model Tatemono-hou)', pageWidth / 2, y, { align: 'center' });
+
+  // Subtitle
+  y += 8;
+  doc.setFontSize(11);
+  setText(doc, COLORS.slateMid);
+  doc.text('BEI Calculation Report  -  Model Building Method', pageWidth / 2, y, { align: 'center' });
+
+  // Company name
+  y += 6;
+  doc.setFontSize(8);
+  setText(doc, COLORS.terracotta);
+  doc.text('Raku-Raku ShoEne Keisan  -  Archi-Prisma Design Works', pageWidth / 2, y, { align: 'center' });
+
+  // Divider
+  y += 4;
+  setDraw(doc, COLORS.terracotta);
+  doc.setLineWidth(0.6);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 6;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 2. PROJECT INFORMATION TABLE
+  // ═══════════════════════════════════════════════════════════════════════════
+  y = drawSectionHeader(doc, '1.  Project / Building Overview', margin, y, contentWidth);
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: margin, right: margin },
+    theme: 'plain',
+    styles: {
+      fontSize: 9,
+      cellPadding: { top: 2.5, bottom: 2.5, left: 3, right: 3 },
+      lineColor: COLORS.slateLight,
+      lineWidth: 0.3,
+      textColor: COLORS.black,
+    },
+    columnStyles: {
+      0: { cellWidth: 35, fontStyle: 'bold', fillColor: COLORS.slateLight, textColor: COLORS.slate },
+      1: { cellWidth: 55 },
+      2: { cellWidth: 35, fontStyle: 'bold', fillColor: COLORS.slateLight, textColor: COLORS.slate },
+      3: { cellWidth: 55 },
+    },
+    body: [
+      ['Building Name',   projectName || '(Not set)', 'Building Use', buildingTypeName || '(Not set)'],
+      ['Location',        projectInfo?.location || '(Not set)', 'Climate Zone', `Zone ${formData.climate_zone || '-'}`],
+      ['Building Owner',  projectInfo?.buildingOwner || '(Not set)', 'Designer', projectInfo?.designer || '(Not set)'],
+      ['Total Floor Area', `${fmtNumJP(floorArea)} m2`, 'Renewable Ded.', `${fmtNumJP(renewableEnergy)} MJ/yr`],
+    ],
+  });
+  y = doc.lastAutoTable.finalY + 8;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 3. BEI CALCULATION RESULT (Prominent Display)
+  // ═══════════════════════════════════════════════════════════════════════════
+  y = ensureSpace(doc, y, 55, pageHeight, margin);
+  y = drawSectionHeader(doc, '2.  BEI Calculation Result', margin, y, contentWidth);
+
+  // Large BEI value box
+  const beiBoxH = 40;
+
+  // Box background
+  setFill(doc, boxBg);
+  doc.roundedRect(margin, y, contentWidth, beiBoxH, 2, 2, 'F');
+
+  // Box border
+  setDraw(doc, statusColor);
+  doc.setLineWidth(0.8);
+  doc.roundedRect(margin, y, contentWidth, beiBoxH, 2, 2, 'S');
+
+  // BEI value (large, left-center area)
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(36);
+  setText(doc, statusColor);
+  doc.text('BEI = ' + beiStr, margin + contentWidth * 0.35, y + 18, { align: 'center' });
+
+  // Judgment badge (right area)
+  const judgmentText = isCompliant ? 'PASS' : 'FAIL';
+  const badgeX = margin + contentWidth * 0.68;
+  const badgeY = y + 8;
+  const badgeW = 42;
+  const badgeH = 12;
+  setFill(doc, statusBg);
+  doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 3, 3, 'F');
+  setDraw(doc, statusColor);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 3, 3, 'S');
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(12);
+  setText(doc, statusColor);
+  doc.text(judgmentText, badgeX + badgeW / 2, badgeY + 8.5, { align: 'center' });
+
+  // Sub-label below badge
+  doc.setFontSize(7);
+  const subLabel = isCompliant ? 'Compliant' : 'Non-compliant';
+  doc.text(subLabel, badgeX + badgeW / 2, badgeY + badgeH + 4, { align: 'center' });
+
+  // Criterion note at bottom of box
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(7.5);
+  setText(doc, COLORS.slateMid);
+  doc.text(
+    'Criterion: BEI <= 1.0 = Compliant with Building Energy Conservation Act',
+    margin + contentWidth / 2,
+    y + beiBoxH - 3,
+    { align: 'center' }
+  );
+
+  // Summary table below box
+  y += beiBoxH + 4;
+  setText(doc, COLORS.black);
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: margin, right: margin },
+    theme: 'plain',
+    styles: {
+      fontSize: 9,
+      cellPadding: { top: 2, bottom: 2, left: 3, right: 3 },
+      lineColor: COLORS.slateLight,
+      lineWidth: 0.3,
+    },
+    columnStyles: {
+      0: { cellWidth: contentWidth * 0.55, fontStyle: 'bold', fillColor: COLORS.slateLight, textColor: COLORS.slate },
+      1: { cellWidth: contentWidth * 0.45, halign: 'right' },
+    },
+    body: [
+      ['Design Primary Energy Consumption', fmtNumJP(result.design_primary_energy_mj) + ' MJ/yr'],
+      ['Standard Primary Energy Consumption', fmtNumJP(result.standard_primary_energy_mj) + ' MJ/yr'],
+      ['BEI Value', beiStr],
+      ['Judgment', isCompliant ? 'Compliant (Pass)' : 'Non-compliant (Fail)'],
+    ],
+  });
+  y = doc.lastAutoTable.finalY + 8;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 4. ENERGY BREAKDOWN TABLE
+  // ═══════════════════════════════════════════════════════════════════════════
+  y = ensureSpace(doc, y, 60, pageHeight, margin);
+  y = drawSectionHeader(doc, '3.  Energy Consumption Breakdown', margin, y, contentWidth);
+
+  const breakdownRows = [];
+  let totalDesign = 0;
+  let totalStandard = 0;
+
+  const designMap = {};
+  if (result.design_energy_breakdown && Array.isArray(result.design_energy_breakdown)) {
+    result.design_energy_breakdown.forEach(item => {
+      designMap[item.category] = Number(item.primary_energy_mj || item.value || 0);
+    });
+  }
+
+  for (const cat of CATEGORY_ORDER) {
+    const designVal = designMap[cat] || 0;
+    const stdIntensity = standardIntensities[cat]?.corrected || 0;
+    const stdVal = stdIntensity * floorArea;
+    const ratio = stdVal > 0 ? (designVal / stdVal) : 0;
+    totalDesign += designVal;
+    totalStandard += stdVal;
+    breakdownRows.push([
+      CATEGORY_NAMES[cat] || cat,
+      fmtNumJP(designVal) + ' MJ',
+      fmtNumJP(stdVal) + ' MJ',
+      fmtBEI(ratio),
+    ]);
+  }
+
+  // Total row
+  breakdownRows.push([
+    'Total',
+    fmtNumJP(result.design_primary_energy_mj || totalDesign) + ' MJ',
+    fmtNumJP(result.standard_primary_energy_mj || totalStandard) + ' MJ',
+    fmtBEI(result.bei),
+  ]);
+
+  // Renewable deduction row
+  if (renewableEnergy > 0) {
+    breakdownRows.push([
+      'Renewable Deduction',
+      '-' + fmtNumJP(renewableEnergy) + ' MJ',
+      '-',
+      '-',
+    ]);
+  }
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: margin, right: margin },
+    head: [['Category', 'Design Value', 'Standard Value', 'Ratio (BEI_i)']],
+    body: breakdownRows,
+    theme: 'striped',
+    headStyles: {
+      fillColor: COLORS.slate,
+      textColor: COLORS.white,
+      fontStyle: 'bold',
+      fontSize: 9,
+      halign: 'center',
+      cellPadding: { top: 3, bottom: 3, left: 3, right: 3 },
+    },
+    bodyStyles: {
+      fontSize: 8.5,
+      cellPadding: { top: 2, bottom: 2, left: 3, right: 3 },
+    },
+    alternateRowStyles: {
+      fillColor: COLORS.rowEven,
+    },
+    columnStyles: {
+      0: { cellWidth: contentWidth * 0.28 },
+      1: { cellWidth: contentWidth * 0.24, halign: 'right' },
+      2: { cellWidth: contentWidth * 0.24, halign: 'right' },
+      3: { cellWidth: contentWidth * 0.24, halign: 'center' },
+    },
+    didParseCell: (data) => {
+      const isTotalRow = data.row.index === CATEGORY_ORDER.length;
+      const isRenewableRow = renewableEnergy > 0 && data.row.index === CATEGORY_ORDER.length + 1;
+      if (isTotalRow && data.section === 'body') {
+        data.cell.styles.fillColor = COLORS.yellowBg;
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fontSize = 9;
+      }
+      if (isRenewableRow && data.section === 'body') {
+        data.cell.styles.fillColor = COLORS.blueBg;
+        data.cell.styles.fontStyle = 'italic';
+      }
+    },
+  });
+  y = doc.lastAutoTable.finalY + 8;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 5. CALCULATION FORMULA SECTION
+  // ═══════════════════════════════════════════════════════════════════════════
+  y = ensureSpace(doc, y, 40, pageHeight, margin);
+  y = drawSectionHeader(doc, '4.  Calculation Formula', margin, y, contentWidth);
+
+  // Formula box
+  const formulaBoxH = 30;
+  doc.setFillColor(248, 250, 252);
+  setDraw(doc, COLORS.slateLight);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin, y, contentWidth, formulaBoxH, 1.5, 1.5, 'FD');
+
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(10);
+  setText(doc, COLORS.slate);
+  doc.text('BEI = Design Primary Energy / Standard Primary Energy', margin + 4, y + 7);
+
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(9);
+  setText(doc, COLORS.black);
+  const designE = fmtNumJP(result.design_primary_energy_mj);
+  const stdE = fmtNumJP(result.standard_primary_energy_mj);
+  doc.text('    = ' + designE + ' MJ  /  ' + stdE + ' MJ', margin + 4, y + 14);
+
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(11);
+  setText(doc, COLORS.terracotta);
+  doc.text('    = ' + beiStr, margin + 4, y + 22);
+
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(7);
+  setText(doc, COLORS.slateMid);
+  doc.text('* BEI is rounded up at the 3rd decimal place and displayed to 2 decimal places.', margin + 4, y + 28);
+
+  y += formulaBoxH + 8;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 6. STANDARD ENERGY INTENSITIES TABLE
+  // ═══════════════════════════════════════════════════════════════════════════
+  y = ensureSpace(doc, y, 55, pageHeight, margin);
+  y = drawSectionHeader(doc, '5.  Standard Energy Intensities (MJ/m2/yr)', margin, y, contentWidth);
+
+  const intensityRows = [];
+  let intensityTotal = 0;
+  for (const cat of CATEGORY_ORDER) {
+    const vals = standardIntensities[cat];
+    intensityTotal += vals.corrected;
+    intensityRows.push([
+      CATEGORY_NAMES[cat] || cat,
+      fmtNum(vals.base, 2),
+      fmtNum(vals.factor, 3),
+      '0.950',
+      fmtNum(vals.corrected, 2),
+    ]);
+  }
+  intensityRows.push([
+    'Total',
+    '-',
+    '-',
+    '-',
+    fmtNum(result.standard_energy_per_m2 || intensityTotal, 2),
+  ]);
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: margin, right: margin },
+    head: [['Category', 'Base Value', 'Regional Factor', 'Scale Factor', 'Corrected']],
+    body: intensityRows,
+    theme: 'striped',
+    headStyles: {
+      fillColor: COLORS.slate,
+      textColor: COLORS.white,
+      fontStyle: 'bold',
+      fontSize: 9,
+      halign: 'center',
+      cellPadding: { top: 3, bottom: 3, left: 3, right: 3 },
+    },
+    bodyStyles: {
+      fontSize: 8.5,
+      cellPadding: { top: 2, bottom: 2, left: 3, right: 3 },
+      halign: 'right',
+    },
+    alternateRowStyles: {
+      fillColor: COLORS.rowEven,
+    },
+    columnStyles: {
+      0: { halign: 'left', cellWidth: contentWidth * 0.24 },
+      1: { cellWidth: contentWidth * 0.19 },
+      2: { cellWidth: contentWidth * 0.19 },
+      3: { cellWidth: contentWidth * 0.19 },
+      4: { cellWidth: contentWidth * 0.19, fontStyle: 'bold' },
+    },
+    didParseCell: (data) => {
+      if (data.row.index === CATEGORY_ORDER.length && data.section === 'body') {
+        data.cell.styles.fillColor = COLORS.yellowBg;
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fontSize = 9;
+      }
+    },
+  });
+  y = doc.lastAutoTable.finalY + 4;
+
+  // Standard energy summary note
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(8);
+  setText(doc, COLORS.slateMid);
+  const summaryNote =
+    'Standard Primary Energy = ' +
+    fmtNum(result.standard_energy_per_m2 || intensityTotal, 2) +
+    ' MJ/m2/yr x ' +
+    fmtNumJP(floorArea) +
+    ' m2 = ' +
+    fmtNumJP(result.standard_primary_energy_mj) +
+    ' MJ/yr';
+  doc.text(summaryNote, margin + 2, y + 2);
+  y += 10;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 7. LEGAL BASIS SECTION
+  // ═══════════════════════════════════════════════════════════════════════════
+  y = ensureSpace(doc, y, 35, pageHeight, margin);
+  y = drawSectionHeader(doc, '6.  Legal Basis', margin, y, contentWidth);
+
+  const legalItems = [
+    ['Building Energy Conservation Act', 'Act on Improvement of Energy Consumption Performance of Buildings'],
+    ['Model Building Method', 'Standard Input Method per MLIT Notification No. 265 (2016)'],
+    ['MLIT Notification No. 1396', 'Jan 29, 2016 - Primary energy consumption standards'],
+  ];
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: margin, right: margin },
+    theme: 'plain',
+    styles: {
+      fontSize: 8.5,
+      cellPadding: { top: 2, bottom: 2, left: 3, right: 3 },
+      lineColor: COLORS.slateLight,
+      lineWidth: 0.2,
+    },
+    columnStyles: {
+      0: { cellWidth: contentWidth * 0.38, fontStyle: 'bold', fillColor: COLORS.slateLight, textColor: COLORS.slate },
+      1: { cellWidth: contentWidth * 0.62 },
+    },
+    body: legalItems,
+  });
+  y = doc.lastAutoTable.finalY + 8;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 8. NOTES & ASSUMPTIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+  y = ensureSpace(doc, y, 50, pageHeight, margin);
+  y = drawSectionHeader(doc, '7.  Notes & Assumptions', margin, y, contentWidth);
+
+  const notes = [
+    'Climate zone: Zone ' + (formData.climate_zone || '-') + ' regional correction factors applied.',
+    'Scale correction factor: 0.950 (Model Building Method standard value).',
+    'Primary energy conversion: Electricity 9.76 MJ/kWh, City gas 45.0 MJ/m3.',
+    'BEI judgment: BEI <= 1.0 = Compliant. Internally computed to 4 decimal places, displayed to 2.',
+  ];
+
+  if (renewableEnergy > 0) {
+    notes.push('Renewable energy deduction: ' + fmtNumJP(renewableEnergy) + ' MJ/yr (self-consumption basis).');
+  }
+
+  if (result.bei > 0.95 && result.bei <= 1.0) {
+    notes.push('WARNING: BEI is close to the threshold. Recalculate if design changes are made.');
+  }
+  if (result.bei > 1.0) {
+    notes.push('WARNING: Non-compliant. Design revision is required to meet standards.');
+  }
+
+  if (result.notes && Array.isArray(result.notes)) {
+    result.notes.forEach(n => notes.push(String(n)));
+  }
+
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(8);
+  setText(doc, COLORS.black);
+  for (const note of notes) {
+    y = ensureSpace(doc, y, 6, pageHeight, margin);
+    // Terracotta bullet
+    setFill(doc, COLORS.terracotta);
+    doc.circle(margin + 2, y - 0.5, 0.8, 'F');
+    // Wrapped text
+    const lines = doc.splitTextToSize(note, contentWidth - 8);
+    doc.text(lines, margin + 6, y);
+    y += lines.length * 3.5 + 1.5;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FOOTER ON ALL PAGES
+  // ═══════════════════════════════════════════════════════════════════════════
+  addFooter(doc, documentId, pageWidth, pageHeight, margin);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SAVE
+  // ═══════════════════════════════════════════════════════════════════════════
+  const safeName = projectName
+    ? projectName.replace(/[^a-zA-Z0-9_\u3000-\u9FFF]/g, '_') + '_'
+    : '';
+  const fileName = 'BEI_Report_' + safeName + new Date().toISOString().split('T')[0] + '.pdf';
+  doc.save(fileName);
+
+  return { documentId, fileName };
+}

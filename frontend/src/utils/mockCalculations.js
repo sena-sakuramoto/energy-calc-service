@@ -78,7 +78,9 @@ export const STANDARD_INTENSITIES = {
 };
 
 // 地域別補正係数
-const REGIONAL_FACTORS = {
+// 全地域の原単位が定義されていない建物用途（zone 4 のみ）に対して、
+// zone 4 の暖房・冷房値を他地域向けに補正するための係数
+export const REGIONAL_FACTORS = {
   1: { heating: 2.38, cooling: 0.66 },
   2: { heating: 2.01, cooling: 0.69 },
   3: { heating: 1.54, cooling: 0.86 },
@@ -86,7 +88,7 @@ const REGIONAL_FACTORS = {
   5: { heating: 1.07, cooling: 1.07 },
   6: { heating: 0.84, cooling: 1.15 },
   7: { heating: 0.70, cooling: 1.27 },
-  8: { heading: 0.36, cooling: 1.35 }
+  8: { heating: 0.36, cooling: 1.35 }
 };
 
 // 規模係数（簡易版）
@@ -175,10 +177,26 @@ export function mockBEICalculation(requestData) {
       useInfo = `複合用途建物 (${usage_mix.length}用途)`;
     } else {
       // 単一用途の場合
-      standardIntensity = STANDARD_INTENSITIES[use]?.[zone] || 
+      const hasZoneData = !!STANDARD_INTENSITIES[use]?.[zone];
+      standardIntensity = STANDARD_INTENSITIES[use]?.[zone] ||
                          STANDARD_INTENSITIES[use]?.[4] ||
                          STANDARD_INTENSITIES.office[4];
-      
+
+      // zone固有データがなくzone 4にフォールバックした場合、地域別補正係数を適用
+      if (!hasZoneData && zone !== 4) {
+        const factors = REGIONAL_FACTORS[zone] || REGIONAL_FACTORS[4];
+        const adjustedHeating = (standardIntensity.heating || 0) * factors.heating;
+        const adjustedCooling = (standardIntensity.cooling || 0) * factors.cooling;
+        const heatingDiff = adjustedHeating - (standardIntensity.heating || 0);
+        const coolingDiff = adjustedCooling - (standardIntensity.cooling || 0);
+        standardIntensity = {
+          ...standardIntensity,
+          heating: adjustedHeating,
+          cooling: adjustedCooling,
+          total: standardIntensity.total + heatingDiff + coolingDiff
+        };
+      }
+
       standardPrimaryEnergy = standardIntensity.total * building_area_m2;
       useInfo = `${BUILDING_TYPES[use] || use} (${zone}地域)`;
     }

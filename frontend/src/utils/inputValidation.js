@@ -125,34 +125,34 @@ export const validateEnergyInput = (buildingType, category, value, floorArea) =>
       warnings.push({
         level: WARNING_LEVELS.WARNING,
         message: `${getCategoryDisplayName(category)}の値が一般的な範囲より大幅に小さいです`,
-        suggestion: `一般的な範囲: ${range.min}-${range.max} ${range.unit}（現在: ${perM2Value.toFixed(1)} MJ/m²年）`,
+        suggestion: `一般的な範囲: ${range.min}-${range.max} MJ/m²年（現在: ${perM2Value.toFixed(1)} MJ/m²年）`,
         recommendation: `値を確認してください。設備が無い場合は0でも構いません`
       });
     } else if (perM2Value < range.min) {
       warnings.push({
         level: WARNING_LEVELS.INFO,
         message: `${getCategoryDisplayName(category)}の値が一般的な範囲より小さいです`,
-        suggestion: `一般的な範囲: ${range.min}-${range.max} ${range.unit}（現在: ${perM2Value.toFixed(1)} MJ/m²年）`
+        suggestion: `一般的な範囲: ${range.min}-${range.max} MJ/m²年（現在: ${perM2Value.toFixed(1)} MJ/m²年）`
       });
     } else if (perM2Value > range.max * 2) {
       warnings.push({
         level: WARNING_LEVELS.ERROR,
         message: `${getCategoryDisplayName(category)}の値が一般的な範囲より大幅に大きいです`,
-        suggestion: `一般的な範囲: ${range.min}-${range.max} ${range.unit}（現在: ${perM2Value.toFixed(1)} MJ/m²年）`,
+        suggestion: `一般的な範囲: ${range.min}-${range.max} MJ/m²年（現在: ${perM2Value.toFixed(1)} MJ/m²年）`,
         recommendation: `入力値を再確認してください。単位間違いの可能性があります`
       });
     } else if (perM2Value > range.max) {
       warnings.push({
         level: WARNING_LEVELS.WARNING,
         message: `${getCategoryDisplayName(category)}の値が一般的な範囲より大きいです`,
-        suggestion: `一般的な範囲: ${range.min}-${range.max} ${range.unit}（現在: ${perM2Value.toFixed(1)} MJ/m²年）`,
+        suggestion: `一般的な範囲: ${range.min}-${range.max} MJ/m²年（現在: ${perM2Value.toFixed(1)} MJ/m²年）`,
         recommendation: `特殊な設備がある場合は問題ありません`
       });
     } else {
       warnings.push({
         level: WARNING_LEVELS.INFO,
         message: `${getCategoryDisplayName(category)}の値は適切な範囲内です`,
-        suggestion: `一般的な値: ${range.typical} ${range.unit}（現在: ${perM2Value.toFixed(1)} MJ/m²年）`
+        suggestion: `一般的な値: ${range.typical} MJ/m²年（現在: ${perM2Value.toFixed(1)} MJ/m²年）`
       });
     }
   }
