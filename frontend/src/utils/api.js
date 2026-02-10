@@ -578,6 +578,49 @@ export const beiAPI = {
   }
 };
 
+// 公式入力シート API (様式A〜I → 国交省API経由で公式PDF/計算)
+export const officialAPI = {
+  // 公式PDF取得 (入力データから)
+  getReport: async (officialInput) => {
+    const response = await apiClient.post('/official/report', officialInput, {
+      responseType: 'blob',
+      timeout: 180000, // 3分（公式API処理に時間がかかる場合あり）
+    });
+    return response;
+  },
+
+  // 公式計算結果取得 (入力データから)
+  getCompute: async (officialInput) => {
+    const response = await apiClient.post('/official/compute', officialInput, {
+      timeout: 180000,
+    });
+    return response;
+  },
+
+  // Excel直接アップロード → 公式PDF
+  uploadExcelForReport: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post('/official/upload-report', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      responseType: 'blob',
+      timeout: 180000,
+    });
+    return response;
+  },
+
+  // Excel直接アップロード → 公式計算結果
+  uploadExcelForCompute: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post('/official/upload-compute', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 180000,
+    });
+    return response;
+  },
+};
+
 // エネルギー計算API
 export const energyAPI = {
   calculatePower: async (data) => {
