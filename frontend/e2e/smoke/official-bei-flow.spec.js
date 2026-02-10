@@ -157,3 +157,32 @@ test('official BEI flow: blocks compute when required fields are missing', async
   await expect(page.getByText('公式計算結果')).toHaveCount(0);
   expect(computeCallCount).toBe(0);
 });
+
+test('official BEI flow: sample input button populates required fields', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+
+  await page.goto('/register');
+  await page.getByRole('button', { name: 'メール・パスワードで登録' }).click();
+  await page.locator('#fullName').fill(TEST_USER.fullName);
+  await page.locator('#email').fill(TEST_USER.email);
+  await page.locator('#password').fill(TEST_USER.password);
+  await page.getByRole('button', { name: 'アカウントを作成' }).click();
+  await page.waitForURL('**/login?registered=true');
+
+  await page.getByRole('button', { name: 'メール・パスワードでログイン' }).click();
+  await page.locator('#email').fill(TEST_USER.email);
+  await page.locator('#password').fill(TEST_USER.password);
+  await page.getByRole('button', { name: 'ログイン', exact: true }).click();
+  await page.waitForURL('**/dashboard');
+
+  await page.goto('/tools/official-bei');
+  await expect(page.getByRole('button', { name: 'サンプル入力' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'サンプル入力' }).click();
+
+  await expect(page.locator('input[placeholder="例: ○○ビル"]')).toHaveValue('サンプルオフィスビル');
+  await expect(page.locator('select').nth(0)).toHaveValue('6地域');
+  await expect(page.locator('select').nth(1)).toHaveValue('事務所モデル');
+  await expect(page.locator('input[placeholder="1000"]')).toHaveValue('500');
+});

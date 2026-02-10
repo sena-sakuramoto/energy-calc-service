@@ -121,6 +121,160 @@ const emptyElevator = () => ({ name: '', control_type: '' });
 const emptySolarPV = () => ({ system_name: '', cell_type: '', installation_mode: '', capacity_kw: '', panel_direction: '', panel_angle: '' });
 const emptyCogen = () => ({ name: '', rated_output: '', count: 1, gen_eff_100: '', gen_eff_75: '', gen_eff_50: '', heat_eff_100: '', heat_eff_75: '', heat_eff_50: '', heat_recovery_for: '' });
 
+const SAMPLE_DATA = {
+  building: {
+    building_name: 'サンプルオフィスビル',
+    region: '6地域',
+    solar_region: 'A4区分',
+    building_type: '事務所モデル',
+    room_type: '事務室',
+    calc_floor_area: '500',
+    ac_floor_area: '420',
+    total_area: '500',
+    prefecture: '東京都',
+    city: '千代田区',
+    floors_above: '5',
+    floors_below: '0',
+    total_height: '18',
+    perimeter: '90',
+    non_ac_core_direction: '北',
+    non_ac_core_length: '8',
+  },
+  windows: [{
+    name: '窓-1',
+    width: '1.6',
+    height: '1.8',
+    area: '2.88',
+    window_type: '金属製(二層以上の複層ガラス)',
+    glass_type: '',
+    glass_u_value: '',
+    glass_shgc: '',
+    window_u_value: '2.3',
+    window_shgc: '0.55',
+  }],
+  insulations: [{
+    name: '断熱-1',
+    part_class: '外壁',
+    input_method: '熱貫流率を入力する',
+    material_category: '',
+    material_detail: '',
+    conductivity: '',
+    thickness: '',
+    u_value: '0.65',
+  }],
+  envelopes: [{
+    name: '北面壁-1',
+    direction: '北',
+    width: '12',
+    height: '4',
+    area: '48',
+    insulation_name: '断熱-1',
+    window_name: '窓-1',
+    window_count: '2',
+    has_blind: '無',
+    shade_coeff_cooling: '1',
+    shade_coeff_heating: '1',
+  }],
+  heatSources: [{
+    name: 'PAC-1',
+    type: 'パッケージエアコンディショナ(空冷式)',
+    count: 1,
+    capacity_cooling: '32',
+    capacity_heating: '36',
+    power_cooling: '9',
+    power_heating: '9.5',
+    fuel_cooling: '',
+    fuel_heating: '',
+  }],
+  outdoorAir: [{
+    name: 'OA-1',
+    count: 1,
+    supply_airflow: '3000',
+    exhaust_airflow: '2800',
+    heat_exchange_eff_cooling: '60',
+    heat_exchange_eff_heating: '60',
+    auto_bypass: '有',
+    preheat_stop: '無',
+  }],
+  pumps: [{
+    name: 'P-1',
+    count: 1,
+    flow_rate: '22',
+    variable_flow: '有',
+    min_flow_input: '',
+    min_flow_ratio: '',
+  }],
+  fans: [{
+    name: 'F-1',
+    count: 1,
+    airflow: '2500',
+    variable_airflow: '有',
+    min_airflow_input: '',
+    min_airflow_ratio: '',
+  }],
+  ventilations: [{
+    room_name: '機械室1',
+    room_type: '機械室',
+    floor_area: '25',
+    method: '第一種換気',
+    equipment_name: 'VENT-1',
+    count: 1,
+    airflow: '600',
+    motor_power: '350',
+    high_eff_motor: '有',
+    inverter: '有',
+    airflow_control: '有',
+  }],
+  lightings: [{
+    room_name: '事務室1',
+    room_type: '事務室',
+    floor_area: '120',
+    room_height: '2.8',
+    fixture_name: 'LED-1',
+    power_per_unit: '34',
+    count: 18,
+    occupancy_sensor: '有',
+    daylight_control: '無',
+    schedule_control: '有',
+    initial_illuminance: '有',
+  }],
+  hotWaters: [{
+    system_name: '給湯-1',
+    use_type: '洗面・手洗い',
+    source_name: 'HPWH-1',
+    count: 1,
+    heating_capacity: '18',
+    power_consumption: '4.5',
+    fuel_consumption: '',
+    insulation_level: '保温仕様B',
+    water_saving: '節湯B1',
+  }],
+  elevators: [{
+    name: 'EV-1',
+    control_type: '可変電圧可変周波数制御方式(回生あり)',
+  }],
+  solarPVs: [{
+    system_name: 'PV-1',
+    cell_type: '結晶系太陽電池',
+    installation_mode: '屋根置き形',
+    capacity_kw: '12',
+    panel_direction: '0度(南)',
+    panel_angle: '30度',
+  }],
+  cogenerations: [{
+    name: 'CGS-1',
+    rated_output: '30',
+    count: 1,
+    gen_eff_100: '30',
+    gen_eff_75: '28',
+    gen_eff_50: '25',
+    heat_eff_100: '',
+    heat_eff_75: '',
+    heat_eff_50: '',
+    heat_recovery_for: '給湯のみ',
+  }],
+};
+
 // ── ヘルパーコンポーネント ──────────────────────────────────────────
 
 function Select({ value, onChange, options, placeholder, className = '' }) {
@@ -370,6 +524,27 @@ export default function OfficialBEI() {
     appendError,
     moveToStepFromPath,
   ]);
+
+  const applySampleInput = useCallback(() => {
+    setBuilding({ ...SAMPLE_DATA.building });
+    setWindows(SAMPLE_DATA.windows.map((row) => ({ ...row })));
+    setInsulations(SAMPLE_DATA.insulations.map((row) => ({ ...row })));
+    setEnvelopes(SAMPLE_DATA.envelopes.map((row) => ({ ...row })));
+    setHeatSources(SAMPLE_DATA.heatSources.map((row) => ({ ...row })));
+    setOutdoorAir(SAMPLE_DATA.outdoorAir.map((row) => ({ ...row })));
+    setPumps(SAMPLE_DATA.pumps.map((row) => ({ ...row })));
+    setFans(SAMPLE_DATA.fans.map((row) => ({ ...row })));
+    setVentilations(SAMPLE_DATA.ventilations.map((row) => ({ ...row })));
+    setLightings(SAMPLE_DATA.lightings.map((row) => ({ ...row })));
+    setHotWaters(SAMPLE_DATA.hotWaters.map((row) => ({ ...row })));
+    setElevators(SAMPLE_DATA.elevators.map((row) => ({ ...row })));
+    setSolarPVs(SAMPLE_DATA.solarPVs.map((row) => ({ ...row })));
+    setCogenerations(SAMPLE_DATA.cogenerations.map((row) => ({ ...row })));
+    setFieldErrors({});
+    setComputeResult(null);
+    setError(null);
+    setStep(1);
+  }, []);
 
   // 数値変換ユーティリティ
   const num = (v) => { const n = parseFloat(v); return isNaN(n) ? undefined : n; };
@@ -995,6 +1170,19 @@ export default function OfficialBEI() {
       backText="計算ツール一覧に戻る"
     >
       <div className="max-w-5xl mx-auto">
+        <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={applySampleInput}
+            className="bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+          >
+            サンプル入力
+          </button>
+          <span className="text-xs text-primary-500">
+            一括でサンプル建物データを入力できます
+          </span>
+        </div>
+
         {/* ステップインジケーター */}
         <div className="mb-8 overflow-x-auto">
           <div className="flex items-center min-w-max">
