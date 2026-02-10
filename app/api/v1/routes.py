@@ -18,6 +18,7 @@ from app.services.energy import (
 from app.services.tariff import quote_bill
 from app.services.bei import evaluate_bei
 from app.services.report import (
+    API_BASE,
     get_official_report_from_api,
     get_official_compute_from_api,
     get_official_report_from_excel,
@@ -129,6 +130,22 @@ router.include_router(compliance_router, prefix="/compliance", tags=["Compliance
 def get_official_readiness():
     """運用 readiness チェック結果を返す。"""
     return evaluate_production_readiness(settings)
+
+
+@router.get(
+    "/official/version",
+    summary="公式API連携バージョン情報",
+    description="このサーバーで有効な公式API連携設定を返します。",
+    tags=["Official API"],
+)
+def get_official_version():
+    """公式API連携のバージョン情報を返す。"""
+    return {
+        "official_routes_enabled": True,
+        "official_api_base": API_BASE,
+        "api_prefix": settings.API_PREFIX,
+    }
+
 
 @router.post(
     "/official/report",
