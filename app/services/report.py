@@ -81,9 +81,25 @@ OFFICIAL_BUILDING_TYPES = {
 }
 
 # Directory that stores the official Excel templates bundled with this repo.
-TEMPLATE_DIR = Path(__file__).resolve().parents[2] / "Excel　書式"
-SMALL_TEMPLATE = TEMPLATE_DIR / "SMALLMODEL_inputSheet_for_Ver3.8_beta.xlsx"
-STANDARD_TEMPLATE = TEMPLATE_DIR / "MODEL_inputSheet_for_Ver3.8_beta.xlsx"
+# Prefer the tracked frontend/public path so production deployments always include the files.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+TEMPLATE_SEARCH_DIRS = [
+    REPO_ROOT / "frontend" / "public" / "templates",
+    REPO_ROOT / "Excel　書式",  # legacy local location
+]
+
+
+def _resolve_template_path(filename: str) -> Path:
+    for base_dir in TEMPLATE_SEARCH_DIRS:
+        candidate = base_dir / filename
+        if candidate.exists():
+            return candidate
+    # Keep a deterministic fallback for diagnostics/readiness output.
+    return TEMPLATE_SEARCH_DIRS[0] / filename
+
+
+SMALL_TEMPLATE = _resolve_template_path("SMALLMODEL_inputSheet_for_Ver3.8_beta.xlsx")
+STANDARD_TEMPLATE = _resolve_template_path("MODEL_inputSheet_for_Ver3.8_beta.xlsx")
 
 
 def normalize_official_region(zone: Any) -> str:
