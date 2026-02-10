@@ -10,8 +10,29 @@ from app.api.v1.routes import router as public_router
 from app.db.base import Base
 from app.db.session import engine
 from app.middleware.security import SecurityMiddleware, RateLimitMiddleware, LoggingMiddleware
+from app.services.readiness import evaluate_production_readiness
 
 load_dotenv()
+
+
+def _enforce_production_readiness() -> None:
+    if settings.env.lower() != "production":
+        return
+    if not settings.PRODUCTION_ENFORCE_READINESS:
+        return
+
+    readiness = evaluate_production_readiness(settings)
+    if readiness["ready"]:
+        return
+
+    failed = ", ".join(readiness["failed_checks"])
+    raise RuntimeError(
+        f"Production readiness checks failed: {failed}. "
+        "Fix configuration or set PRODUCTION_ENFORCE_READINESS=false for emergency bypass."
+    )
+
+
+_enforce_production_readiness()
 
 # Create database tables on startup
 Base.metadata.create_all(bind=engine)

@@ -25,6 +25,7 @@ class Settings(BaseSettings):
 
     # Feature defaults
     DEFAULT_TARIFF_PER_KWH: float = 25.0
+    PRODUCTION_ENFORCE_READINESS: bool = False
 
     # CORS
     CORS_ORIGINS: List[str] = [

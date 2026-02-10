@@ -1,11 +1,12 @@
 // frontend/src/pages/tools/official-bei.jsx
 // 公式入力シート (様式A〜I) に基づくBEI計算 + 国交省公式PDF出力
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   FaCalculator, FaBuilding, FaThermometerHalf, FaFan,
   FaWind, FaLightbulb, FaShower, FaArrowsAltV, FaSolarPanel,
   FaCogs, FaCheckCircle, FaArrowRight, FaArrowLeft,
   FaFilePdf, FaFileExcel, FaUpload, FaExclamationTriangle,
+  FaStar, FaRegStar, FaTimes, FaExternalLinkAlt,
 } from 'react-icons/fa';
 import CalculatorLayout from '../../components/CalculatorLayout';
 import FormSection from '../../components/FormSection';
@@ -88,6 +89,207 @@ const FIELD_STEP_HINTS = [
   { prefix: 'solar_pvs.', step: 9 },
   { prefix: 'cogenerations.', step: 9 },
 ];
+
+// ── クイックモード: スマートデフォルト ──────────────────────────────
+const SMART_DEFAULTS = {
+  '事務所モデル': {
+    windows: [{ name: '標準窓', window_type: '金属製(二層以上の複層ガラス)', window_u_value: '2.33', window_shgc: '0.55', width: '1.6', height: '1.8', area: '2.88' }],
+    insulations: [{ name: '標準外壁断熱', part_class: '外壁', input_method: '熱貫流率を入力する', u_value: '0.50' }],
+    heatSources: [{ name: '標準PAC', type: 'パッケージエアコンディショナ(空冷式)', count: 1, capacity_cooling: '28', capacity_heating: '32', power_cooling: '8', power_heating: '8.5' }],
+    outdoorAir: [{ name: '標準OA', count: 1, supply_airflow: '3000', exhaust_airflow: '2800', heat_exchange_eff_cooling: '60', heat_exchange_eff_heating: '60', auto_bypass: '有', preheat_stop: '無' }],
+    ventilations: [{ room_name: '機械室', room_type: '機械室', floor_area: '25', method: '第一種換気', equipment_name: '標準換気', count: 1, airflow: '600', motor_power: '350', high_eff_motor: '有', inverter: '有', airflow_control: '有' }],
+    lightings: [{ room_name: '事務室', room_type: '事務室', floor_area: '120', room_height: '2.8', fixture_name: '標準LED', power_per_unit: '34', count: 18, occupancy_sensor: '有', daylight_control: '無', schedule_control: '有', initial_illuminance: '有' }],
+    hotWaters: [{ system_name: '標準給湯', use_type: '洗面・手洗い', source_name: '標準HPWH', count: 1, heating_capacity: '18', power_consumption: '4.5', insulation_level: '保温仕様B', water_saving: '節湯B1' }],
+    elevators: [{ name: '標準EV', control_type: '可変電圧可変周波数制御方式(回生あり)' }],
+  },
+};
+
+// 標準一次エネルギー消費量原単位 (MJ/m²/年) - クイック推定用
+const QUICK_STANDARD_INTENSITY = {
+  '事務所モデル': 296, 'ビジネスホテルモデル': 470, 'シティホテルモデル': 470,
+  '総合病院モデル': 590, '福祉施設モデル': 400, 'クリニックモデル': 350,
+  '学校モデル': 200, '幼稚園モデル': 200, '大学モデル': 220,
+  '講堂モデル': 200, '大規模物販モデル': 280, '小規模物販モデル': 260,
+  '飲食店モデル': 310, '集会所モデル': 200, '工場モデル': 190,
+};
+
+// BEIゲージコンポーネント
+function BEIGauge({ bei, isEstimate = false }) {
+  const displayBei = bei != null ? Number(bei).toFixed(2) : null;
+  const isCompliant = bei != null && bei <= 1.0;
+  const getColor = (v) => {
+    if (v <= 0.80) return { bar: 'bg-green-500', text: 'text-green-700', label: '優秀' };
+    if (v <= 0.90) return { bar: 'bg-green-400', text: 'text-green-600', label: '良好' };
+    if (v <= 1.00) return { bar: 'bg-yellow-400', text: 'text-yellow-700', label: '適合' };
+    if (v <= 1.10) return { bar: 'bg-orange-400', text: 'text-orange-700', label: '不適合' };
+    return { bar: 'bg-red-500', text: 'text-red-700', label: '不適合' };
+  };
+  if (bei == null) return null;
+  const style = getColor(bei);
+  const pct = Math.min(Math.max(bei / 1.5 * 100, 5), 100);
+  return (
+    <div className="bg-white rounded-2xl border border-warm-200 p-6 shadow-sm">
+      <div className="text-center mb-4">
+        <div className="text-xs text-primary-400 mb-1">{isEstimate ? 'BEI推定値' : 'BEI計算結果'}</div>
+        <div className={`text-5xl font-bold ${style.text}`}>{displayBei}</div>
+        <div className={`mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold ${isCompliant ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+          {isCompliant ? <FaCheckCircle /> : <FaExclamationTriangle />}
+          {style.label}{isEstimate ? '（推定）' : ''}
+        </div>
+      </div>
+      <div className="relative h-3 bg-primary-100 rounded-full overflow-hidden">
+        <div className={`absolute left-0 top-0 h-full rounded-full transition-all duration-700 ease-out ${style.bar}`} style={{ width: `${pct}%` }} />
+        <div className="absolute top-0 h-full w-0.5 bg-primary-400" style={{ left: `${100/1.5*1.0}%` }} title="基準値 1.0" />
+      </div>
+      <div className="flex justify-between mt-1 text-[10px] text-primary-400">
+        <span>0</span><span>0.5</span><span className="font-bold text-primary-600">1.0 基準</span><span>1.5</span>
+      </div>
+    </div>
+  );
+}
+
+// ── 計算完了モーダル ──────────────────────────────────────────
+const MODAL_DISMISSED_KEY = 'energy_calc_modal_dismissed';
+const FEEDBACK_SENT_KEY = 'energy_calc_feedback_sent';
+
+function CompletionModal({ onClose, beiValue }) {
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [showCircle, setShowCircle] = useState(false);
+
+  const handleSubmitFeedback = () => {
+    // localStorage にフィードバック保存（将来的にAPI送信に差し替え可能）
+    try {
+      const feedbacks = JSON.parse(localStorage.getItem('energy_calc_feedbacks') || '[]');
+      feedbacks.push({ rating, comment, beiValue, timestamp: new Date().toISOString() });
+      localStorage.setItem('energy_calc_feedbacks', JSON.stringify(feedbacks));
+      localStorage.setItem(FEEDBACK_SENT_KEY, 'true');
+    } catch {}
+    setSubmitted(true);
+    setTimeout(() => setShowCircle(true), 600);
+  };
+
+  const handleDismiss = () => {
+    try { localStorage.setItem(MODAL_DISMISSED_KEY, Date.now().toString()); } catch {}
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={handleDismiss}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in" onClick={e => e.stopPropagation()}>
+        <button onClick={handleDismiss} className="absolute top-4 right-4 text-primary-400 hover:text-primary-600 transition-colors z-10">
+          <FaTimes />
+        </button>
+
+        {!showCircle ? (
+          <div className="p-8">
+            {/* 計算完了メッセージ */}
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                <FaCheckCircle className="text-green-500 text-3xl" />
+              </div>
+              <h3 className="text-xl font-bold text-primary-800 mb-1">計算が完了しました</h3>
+              {beiValue != null && (
+                <p className="text-primary-500 text-sm">
+                  BEI値: <span className={`font-bold ${beiValue <= 1.0 ? 'text-green-600' : 'text-red-500'}`}>{Number(beiValue).toFixed(2)}</span>
+                  {beiValue <= 1.0 ? ' — 省エネ基準適合' : ' — 基準超過'}
+                </p>
+              )}
+            </div>
+
+            {!submitted ? (
+              <>
+                {/* 星評価 */}
+                <div className="text-center mb-5">
+                  <p className="text-sm font-medium text-primary-700 mb-3">この計算ツールは役立ちましたか？</p>
+                  <div className="flex items-center justify-center gap-1">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button key={star}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setRating(star)}
+                        className="text-3xl transition-colors duration-150 hover:scale-110 transform"
+                      >
+                        {star <= (hoverRating || rating)
+                          ? <FaStar className="text-yellow-400" />
+                          : <FaRegStar className="text-primary-300" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* コメント（任意） */}
+                {rating > 0 && (
+                  <div className="mb-5 animate-fade-in">
+                    <textarea
+                      value={comment}
+                      onChange={e => setComment(e.target.value)}
+                      placeholder="ご意見・改善点があれば（任意）"
+                      rows={2}
+                      className="w-full p-3 border border-primary-200 rounded-xl text-sm focus:ring-2 focus:ring-accent-400 focus:border-accent-400 resize-none placeholder:text-primary-300"
+                    />
+                  </div>
+                )}
+
+                {/* 送信ボタン */}
+                {rating > 0 && (
+                  <button onClick={handleSubmitFeedback}
+                    className="w-full bg-accent-500 hover:bg-accent-600 text-white font-bold py-3 rounded-xl transition-colors duration-200 animate-fade-in">
+                    フィードバックを送信
+                  </button>
+                )}
+
+                {/* スキップ */}
+                <button onClick={() => { setSubmitted(true); setTimeout(() => setShowCircle(true), 400); }}
+                  className="w-full text-primary-400 hover:text-primary-600 text-sm mt-3 py-2 transition-colors">
+                  スキップ
+                </button>
+              </>
+            ) : (
+              <div className="text-center animate-fade-in">
+                <p className="text-primary-600 font-medium">ありがとうございます！</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* サークル紹介 */
+          <div className="animate-fade-in">
+            <div className="bg-gradient-to-br from-primary-800 to-primary-900 p-8 text-center">
+              <p className="text-primary-300 text-xs font-medium uppercase tracking-wider mb-2">もっと便利に</p>
+              <h3 className="text-xl font-bold text-white mb-3">省エネ計算だけじゃない。</h3>
+              <p className="text-primary-300 text-sm leading-relaxed mb-2">
+                AI建築サークルに参加すると、省エネ計算はもちろん
+                <span className="text-white font-medium">工程管理・構造計算・AI設計支援</span>など
+                すべてのツールが使い放題。
+              </p>
+              <div className="flex items-center justify-center gap-4 text-xs text-primary-400 my-4">
+                <span>Compass</span><span>・</span>
+                <span>KOZO</span><span>・</span>
+                <span>KAKOME</span><span>・</span>
+                <span>他多数</span>
+              </div>
+              <p className="text-white/80 text-sm mb-1">月額 <span className="text-2xl font-bold text-accent-400">¥5,000</span></p>
+              <p className="text-primary-400 text-xs">外注1件分以下で全ツール使い放題</p>
+            </div>
+            <div className="p-6 space-y-3">
+              <a href="https://ai-architecture-circle.com" target="_blank" rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-bold py-3 rounded-xl transition-colors duration-200">
+                サークルを見てみる <FaExternalLinkAlt className="text-xs" />
+              </a>
+              <button onClick={handleDismiss}
+                className="w-full text-primary-400 hover:text-primary-600 text-sm py-2 transition-colors">
+                今はいい
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const isBlank = (value) => value === undefined || value === null || String(value).trim() === '';
 const hasAnyRowValue = (row) => Object.entries(row).some(([key, value]) => {
@@ -360,6 +562,36 @@ export default function OfficialBEI() {
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [computeResult, setComputeResult] = useState(null);
+
+  // ── クイックモード ──
+  const [mode, setMode] = useState('quick'); // 'quick' | 'expert'
+  const [quickData, setQuickData] = useState({ building_name: '', building_type: '', region: '', calc_floor_area: '', has_solar: false, solar_capacity: '' });
+  const [quickEstimate, setQuickEstimate] = useState(null);
+  const [quickLoading, setQuickLoading] = useState(false);
+  const [quickResult, setQuickResult] = useState(null);
+  const [quickError, setQuickError] = useState(null);
+
+  // ── 完了モーダル ──
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completionBei, setCompletionBei] = useState(null);
+
+  const shouldShowModal = () => {
+    try {
+      const dismissed = localStorage.getItem(MODAL_DISMISSED_KEY);
+      if (dismissed) {
+        const elapsed = Date.now() - parseInt(dismissed, 10);
+        if (elapsed < 7 * 24 * 60 * 60 * 1000) return false; // 1週間以内に閉じてたら出さない
+      }
+      return true;
+    } catch { return true; }
+  };
+
+  const triggerCompletionModal = (beiVal) => {
+    if (shouldShowModal()) {
+      setCompletionBei(beiVal);
+      setShowCompletionModal(true);
+    }
+  };
 
   const isSmall = parseFloat(building.calc_floor_area) > 0 && parseFloat(building.calc_floor_area) < 300;
 
@@ -697,6 +929,7 @@ export default function OfficialBEI() {
       const res = await officialAPI.getCompute(payload);
       setComputeResult(res.data);
       setFieldErrors({});
+      triggerCompletionModal(res.data?.BEI ?? res.data?.bei ?? null);
     } catch (e) {
       const status = e.response?.status;
       const detail = e.response?.data?.detail || e.message;
@@ -755,6 +988,252 @@ export default function OfficialBEI() {
 
   const next = () => setStep(s => Math.min(s + 1, STEPS.length));
   const prev = () => setStep(s => Math.max(s - 1, 1));
+
+  // ── クイックモード関数群 ──
+  const updateQuickField = useCallback((field, value) => {
+    setQuickData(prev => {
+      const next = { ...prev, [field]: value };
+      // BEI自動推定
+      const area = parseFloat(next.calc_floor_area);
+      const intensity = QUICK_STANDARD_INTENSITY[next.building_type];
+      if (area > 0 && intensity) {
+        const standardE = intensity * area;
+        let designE = standardE * 0.95; // 標準的な設備でBEI≈0.95
+        if (next.has_solar && parseFloat(next.solar_capacity) > 0) {
+          const solarDeduction = parseFloat(next.solar_capacity) * 1100 * 9.76;
+          designE = Math.max(0, designE - solarDeduction);
+        }
+        const bei = standardE > 0 ? designE / standardE : 0;
+        setQuickEstimate(bei);
+      } else {
+        setQuickEstimate(null);
+      }
+      return next;
+    });
+  }, []);
+
+  const switchToExpertWithQuickData = useCallback(() => {
+    // クイックデータをエキスパートモードに転送
+    const defaults = SMART_DEFAULTS[quickData.building_type] || SMART_DEFAULTS['事務所モデル'];
+    setBuilding(prev => ({
+      ...prev,
+      building_name: quickData.building_name || prev.building_name,
+      building_type: quickData.building_type || prev.building_type,
+      region: quickData.region || prev.region,
+      calc_floor_area: quickData.calc_floor_area || prev.calc_floor_area,
+      ac_floor_area: quickData.calc_floor_area || prev.ac_floor_area,
+      total_area: quickData.calc_floor_area || prev.total_area,
+    }));
+    if (defaults.windows) setWindows(defaults.windows.map(w => ({ ...emptyWindow(), ...w })));
+    if (defaults.insulations) setInsulations(defaults.insulations.map(i => ({ ...emptyInsulation(), ...i })));
+    if (defaults.heatSources) setHeatSources(defaults.heatSources.map(h => ({ ...emptyHeatSource(), ...h })));
+    if (defaults.outdoorAir) setOutdoorAir(defaults.outdoorAir.map(o => ({ ...emptyOutdoorAir(), ...o })));
+    if (defaults.ventilations) setVentilations(defaults.ventilations.map(v => ({ ...emptyVentilation(), ...v })));
+    if (defaults.lightings) setLightings(defaults.lightings.map(l => ({ ...emptyLighting(), ...l })));
+    if (defaults.hotWaters) setHotWaters(defaults.hotWaters.map(h => ({ ...emptyHotWater(), ...h })));
+    if (defaults.elevators) setElevators(defaults.elevators.map(e => ({ ...emptyElevator(), ...e })));
+    if (quickData.has_solar && quickData.solar_capacity) {
+      setSolarPVs([{ ...emptySolarPV(), system_name: 'PV-1', cell_type: '結晶系太陽電池', installation_mode: '屋根置き形', capacity_kw: quickData.solar_capacity, panel_direction: '0度(南)', panel_angle: '30度' }]);
+    }
+    setStep(1);
+    setMode('expert');
+  }, [quickData]);
+
+  const handleQuickCompute = async () => {
+    setQuickError(null);
+    if (!quickData.building_name || !quickData.building_type || !quickData.region || !quickData.calc_floor_area) {
+      setQuickError('すべての必須項目を入力してください。');
+      return;
+    }
+    setQuickLoading(true);
+    try {
+      const defaults = SMART_DEFAULTS[quickData.building_type] || SMART_DEFAULTS['事務所モデル'];
+      const area = parseFloat(quickData.calc_floor_area);
+      const payload = {
+        building_area_m2: area,
+        design_energy: [{ category: 'lighting', value: 1, unit: 'MJ' }],
+        official_input: {
+          building: {
+            building_name: quickData.building_name,
+            region: quickData.region,
+            building_type: quickData.building_type,
+            calc_floor_area: area,
+            ac_floor_area: area,
+            total_area: area,
+          },
+          windows: (defaults.windows || []).map(w => ({ name: w.name, window_type: w.window_type, window_u_value: parseFloat(w.window_u_value), window_shgc: parseFloat(w.window_shgc), area: parseFloat(w.area) || undefined, width: parseFloat(w.width) || undefined, height: parseFloat(w.height) || undefined })),
+          insulations: (defaults.insulations || []).map(i => ({ name: i.name, part_class: i.part_class, input_method: i.input_method, u_value: parseFloat(i.u_value) || undefined })),
+          envelopes: [],
+          heat_sources: (defaults.heatSources || []).map(h => ({ name: h.name, type: h.type, count: h.count || 1, capacity_cooling: parseFloat(h.capacity_cooling), capacity_heating: parseFloat(h.capacity_heating), power_cooling: parseFloat(h.power_cooling), power_heating: parseFloat(h.power_heating) })),
+          outdoor_air: (defaults.outdoorAir || []).map(o => ({ name: o.name, count: o.count || 1, supply_airflow: parseFloat(o.supply_airflow), exhaust_airflow: parseFloat(o.exhaust_airflow), heat_exchange_eff_cooling: parseFloat(o.heat_exchange_eff_cooling), heat_exchange_eff_heating: parseFloat(o.heat_exchange_eff_heating), auto_bypass: o.auto_bypass, preheat_stop: o.preheat_stop })),
+          pumps: [], fans: [],
+          ventilations: (defaults.ventilations || []).map(v => ({ room_name: v.room_name, room_type: v.room_type, floor_area: parseFloat(v.floor_area), method: v.method, equipment_name: v.equipment_name, count: v.count || 1, airflow: parseFloat(v.airflow), motor_power: parseFloat(v.motor_power), high_eff_motor: v.high_eff_motor, inverter: v.inverter, airflow_control: v.airflow_control })),
+          lightings: (defaults.lightings || []).map(l => ({ room_name: l.room_name, room_type: l.room_type, floor_area: parseFloat(l.floor_area), room_height: parseFloat(l.room_height), fixture_name: l.fixture_name, power_per_unit: parseFloat(l.power_per_unit), count: l.count || 1, occupancy_sensor: l.occupancy_sensor, daylight_control: l.daylight_control, schedule_control: l.schedule_control, initial_illuminance: l.initial_illuminance })),
+          hot_waters: (defaults.hotWaters || []).map(h => ({ system_name: h.system_name, use_type: h.use_type, source_name: h.source_name, count: h.count || 1, heating_capacity: parseFloat(h.heating_capacity), power_consumption: parseFloat(h.power_consumption), insulation_level: h.insulation_level, water_saving: h.water_saving })),
+          elevators: (defaults.elevators || []).map(e => ({ name: e.name, control_type: e.control_type })),
+          solar_pvs: quickData.has_solar && quickData.solar_capacity ? [{ system_name: 'PV-1', cell_type: '結晶系太陽電池', installation_mode: '屋根置き形', capacity_kw: parseFloat(quickData.solar_capacity), panel_direction: '0度(南)', panel_angle: '30度' }] : [],
+          cogenerations: [],
+        },
+      };
+      const res = await officialAPI.getCompute(payload);
+      setQuickResult(res.data);
+      triggerCompletionModal(res.data?.BEI ?? res.data?.bei ?? quickEstimate);
+    } catch (e) {
+      const detail = e.response?.data?.detail || e.message;
+      setQuickError(`計算エラー: ${detail}`);
+    } finally {
+      setQuickLoading(false);
+    }
+  };
+
+  // ── クイックモード レンダリング ──
+  const renderQuickMode = () => (
+    <div className="max-w-3xl mx-auto">
+      {/* モード切替 */}
+      <div className="flex items-center justify-center gap-2 mb-8">
+        <button className="px-5 py-2.5 rounded-xl font-bold text-sm bg-accent-500 text-white shadow-md">
+          クイックモード
+        </button>
+        <button onClick={() => setMode('expert')} className="px-5 py-2.5 rounded-xl font-medium text-sm text-primary-500 hover:bg-primary-50 transition-colors">
+          詳細入力モード
+        </button>
+      </div>
+
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-primary-800 mb-2">4項目入力するだけ</h2>
+        <p className="text-primary-500">建物の基本情報だけで、BEIを瞬時に推定。公式計算も実行できます。</p>
+      </div>
+
+      {/* 入力フォーム */}
+      <div className="bg-white rounded-2xl border border-warm-200 shadow-sm p-8 mb-6">
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-semibold text-primary-700 mb-1.5">建物名称 <span className="text-red-500">*</span></label>
+            <input type="text" value={quickData.building_name} onChange={e => updateQuickField('building_name', e.target.value)}
+              placeholder="例: ○○オフィスビル" className="w-full p-3 border border-primary-200 rounded-xl focus:ring-2 focus:ring-accent-400 focus:border-accent-400 transition-all placeholder:text-primary-300" />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-primary-700 mb-1.5">建物用途 <span className="text-red-500">*</span></label>
+            <select value={quickData.building_type} onChange={e => updateQuickField('building_type', e.target.value)}
+              className="w-full p-3 border border-primary-200 rounded-xl focus:ring-2 focus:ring-accent-400 focus:border-accent-400 transition-all">
+              <option value="">選択してください</option>
+              {BUILDING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-primary-700 mb-1.5">地域区分 <span className="text-red-500">*</span></label>
+              <select value={quickData.region} onChange={e => updateQuickField('region', e.target.value)}
+                className="w-full p-3 border border-primary-200 rounded-xl focus:ring-2 focus:ring-accent-400 focus:border-accent-400 transition-all">
+                <option value="">選択</option>
+                {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-primary-700 mb-1.5">床面積 <span className="text-red-500">*</span></label>
+              <div className="flex items-center gap-2">
+                <input type="number" value={quickData.calc_floor_area} onChange={e => updateQuickField('calc_floor_area', e.target.value)}
+                  placeholder="500" min="0" className="flex-1 p-3 border border-primary-200 rounded-xl focus:ring-2 focus:ring-accent-400 focus:border-accent-400 transition-all" />
+                <span className="text-sm text-primary-500 whitespace-nowrap">m²</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 太陽光オプション */}
+          <div className="bg-warm-50 rounded-xl p-4 border border-warm-200">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={quickData.has_solar} onChange={e => updateQuickField('has_solar', e.target.checked)}
+                className="w-5 h-5 rounded text-accent-500 focus:ring-accent-400" />
+              <div>
+                <span className="font-medium text-primary-700">太陽光発電あり</span>
+                <span className="text-xs text-primary-400 ml-2">(BEIが下がります)</span>
+              </div>
+            </label>
+            {quickData.has_solar && (
+              <div className="mt-3 flex items-center gap-2">
+                <label className="text-sm text-primary-600">システム容量:</label>
+                <input type="number" value={quickData.solar_capacity} onChange={e => updateQuickField('solar_capacity', e.target.value)}
+                  placeholder="10" min="0" className="w-24 p-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-accent-400 text-sm" />
+                <span className="text-sm text-primary-500">kW</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* BEI推定ゲージ */}
+      {quickEstimate != null && (
+        <div className="mb-6">
+          <BEIGauge bei={quickEstimate} isEstimate={true} />
+          <p className="text-center text-xs text-primary-400 mt-2">※ 標準的な設備仕様を仮定した推定値です。正確な値は公式計算で確認してください。</p>
+        </div>
+      )}
+
+      {/* アクションボタン */}
+      <div className="space-y-3">
+        <button onClick={handleQuickCompute} disabled={quickLoading || !quickData.building_type || !quickData.region || !quickData.calc_floor_area}
+          className="w-full bg-accent-500 hover:bg-accent-600 disabled:opacity-40 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-lg flex items-center justify-center gap-2">
+          <FaCalculator /> {quickLoading ? '公式計算中...' : '公式BEI計算を実行'}
+        </button>
+        <button onClick={switchToExpertWithQuickData}
+          className="w-full text-primary-500 hover:text-primary-700 hover:bg-primary-50 font-medium py-3 px-6 rounded-xl transition-all text-sm flex items-center justify-center gap-2">
+          詳細入力モードで全項目を入力する <FaArrowRight className="text-xs" />
+        </button>
+      </div>
+
+      {/* エラー表示 */}
+      {quickError && (
+        <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-2">
+          <FaExclamationTriangle className="text-red-500 mt-0.5 flex-shrink-0" />
+          <span className="text-sm text-red-800">{quickError}</span>
+        </div>
+      )}
+
+      {/* 公式計算結果 */}
+      {quickResult && (
+        <div className="mt-6 bg-green-50 border border-green-200 rounded-xl p-6 space-y-4">
+          <h4 className="font-bold text-green-800 flex items-center gap-2 text-lg">
+            <FaCheckCircle /> 公式計算完了
+          </h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white rounded-lg p-4 text-center">
+              <div className="text-xs text-primary-400 mb-1">ステータス</div>
+              <div className="font-bold text-primary-800">{quickResult?.Status || 'N/A'}</div>
+            </div>
+            <div className="bg-white rounded-lg p-4 text-center">
+              <div className="text-xs text-primary-400 mb-1">バリデーション</div>
+              <div className="font-bold text-primary-800">{quickResult?.BasicInformationValidationResult?.IsValid ? '正常' : '要確認'}</div>
+            </div>
+          </div>
+          {Array.isArray(quickResult?.BasicInformationValidationResult?.Errors) && quickResult.BasicInformationValidationResult.Errors.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm font-medium text-red-800 mb-1">エラー詳細</p>
+              <ul className="text-sm text-red-700 space-y-1">
+                {quickResult.BasicInformationValidationResult.Errors.slice(0, 5).map((item, idx) => (
+                  <li key={idx}>・{item?.Message || '入力内容を確認してください。'}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <div className="flex gap-3">
+            <button onClick={switchToExpertWithQuickData}
+              className="flex-1 bg-primary-700 hover:bg-primary-800 text-white font-medium py-3 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2">
+              詳細を確認・修正する
+            </button>
+          </div>
+          <pre className="text-xs text-green-900 overflow-auto max-h-48 bg-white rounded-lg p-3 border border-green-100">
+            {JSON.stringify(quickResult, null, 2)}
+          </pre>
+        </div>
+      )}
+
+      {/* 注意書き */}
+      <div className="mt-8 text-center text-xs text-primary-400">
+        <p>クイックモードは標準的な設備仕様を自動適用します。</p>
+        <p>詳細な設備情報がある場合は「詳細入力モード」をご利用ください。</p>
+      </div>
+    </div>
+  );
 
   // ── レンダリング: 各ステップ ──────────────────────────────────
 
@@ -1188,24 +1667,26 @@ export default function OfficialBEI() {
 
   return (
     <CalculatorLayout
-      title="公式BEI計算 (様式入力)"
-      subtitle="公式入力シート(様式A〜I)に基づく計算 - 国交省公式API経由で公式様式PDFを出力"
+      title={mode === 'quick' ? '楽々BEI計算' : '公式BEI計算 (様式入力)'}
+      subtitle={mode === 'quick' ? '4項目入力するだけで省エネ適合判定。標準的な設備仕様を自動適用します。' : '公式入力シート(様式A〜I)に基づく計算 - 国交省公式API経由で公式様式PDFを出力'}
       icon={FaCalculator}
       backUrl="/tools"
       backText="計算ツール一覧に戻る"
     >
+      {mode === 'quick' ? renderQuickMode() : (
       <div className="max-w-5xl mx-auto">
-        <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={applySampleInput}
-            className="bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
-          >
-            サンプル入力
+        {/* エキスパートモード: モード切替 + ツールバー */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <button onClick={() => setMode('quick')} className="text-sm text-accent-500 hover:text-accent-600 font-medium flex items-center gap-1">
+            <FaArrowLeft className="text-xs" /> クイックモードに戻る
           </button>
-          <span className="text-xs text-primary-500">
-            一括でサンプル建物データを入力できます
-          </span>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={applySampleInput}
+              className="bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
+              サンプル入力
+            </button>
+            <span className="text-xs text-primary-500">一括でサンプル建物データを入力できます</span>
+          </div>
         </div>
         <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
           <a
@@ -1274,6 +1755,15 @@ export default function OfficialBEI() {
           ) : null}
         </div>
       </div>
+      )}
+
+      {/* 計算完了モーダル */}
+      {showCompletionModal && (
+        <CompletionModal
+          beiValue={completionBei}
+          onClose={() => setShowCompletionModal(false)}
+        />
+      )}
     </CalculatorLayout>
   );
 }

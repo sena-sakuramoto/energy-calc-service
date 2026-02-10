@@ -5,22 +5,176 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Base layer ───────────────────────────────────── */
+
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-warm-50 text-primary-700 font-sans;
   }
 }
 
+/* ── Animation keyframes ──────────────────────────── */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ── Utility layer: animation helpers ─────────────── */
+
+@layer utilities {
+  .animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+  .animate-slide-in-right {
+    animation: slideInRight 0.4s ease-out forwards;
+  }
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
+  }
+  .animate-scale-in {
+    animation: scale-in 0.3s ease-out forwards;
+  }
+  .animation-delay-100 {
+    animation-delay: 0.1s;
+  }
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+  }
+  .animation-delay-300 {
+    animation-delay: 0.3s;
+  }
+  .animation-delay-400 {
+    animation-delay: 0.4s;
+  }
+}
+
+/* ── Component layer: buttons ─────────────────────── */
+
 @layer components {
   .btn-accent {
-    @apply bg-accent-500 hover:bg-accent-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-colors duration-200;
+    @apply bg-accent-500 hover:bg-accent-600 active:bg-accent-700 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5;
   }
 
   .btn-secondary {
-    @apply bg-primary-700 hover:bg-primary-800 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-colors duration-200;
+    @apply bg-primary-700 hover:bg-primary-800 active:bg-primary-900 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200;
   }
 
   .btn-outline {
-    @apply border-2 border-primary-700 text-primary-700 hover:bg-primary-700 hover:text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200;
+    @apply border-2 border-primary-700 text-primary-700 hover:bg-primary-700 hover:text-white font-bold py-3 px-6 rounded-xl transition-all duration-200;
+  }
+
+  .btn-ghost {
+    @apply text-primary-600 hover:text-primary-800 hover:bg-primary-50 font-medium py-2 px-4 rounded-lg transition-all duration-200;
+  }
+
+  .btn-lg {
+    @apply py-4 px-8 text-lg;
+  }
+}
+
+/* ── Component layer: cards ───────────────────────── */
+
+@layer components {
+  .card {
+    @apply bg-white rounded-2xl border border-warm-200 shadow-sm hover:shadow-md transition-shadow duration-300;
+  }
+
+  .card-interactive {
+    @apply bg-white rounded-2xl border border-warm-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer;
+  }
+}
+
+/* ── Component layer: form inputs ─────────────────── */
+
+@layer components {
+  .input-field {
+    @apply w-full p-3 border border-primary-200 rounded-xl bg-white focus:ring-2 focus:ring-accent-400 focus:border-accent-400 transition-all duration-200 placeholder:text-primary-300;
+  }
+
+  .select-field {
+    @apply w-full p-3 border border-primary-200 rounded-xl bg-white focus:ring-2 focus:ring-accent-400 focus:border-accent-400 transition-all duration-200 appearance-none;
+  }
+
+  .label-field {
+    @apply block text-sm font-semibold text-primary-700 mb-1.5;
+  }
+}
+
+/* ── Component layer: BEI gauge / badges ──────────── */
+
+@layer components {
+  .bei-gauge {
+    @apply relative w-48 h-24 overflow-hidden;
+  }
+
+  .bei-badge-pass {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800 border border-green-200;
+  }
+
+  .bei-badge-fail {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-red-100 text-red-800 border border-red-200;
+  }
+}
+
+/* ── Component layer: step indicators ─────────────── */
+
+@layer components {
+  .step-dot-active {
+    @apply w-10 h-10 rounded-full bg-accent-500 text-white flex items-center justify-center font-bold shadow-md ring-4 ring-accent-100;
+  }
+
+  .step-dot-complete {
+    @apply w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold;
+  }
+
+  .step-dot-pending {
+    @apply w-10 h-10 rounded-full bg-primary-100 text-primary-400 flex items-center justify-center font-medium;
+  }
+
+  .step-line-complete {
+    @apply h-1 bg-green-400 flex-1;
+  }
+
+  .step-line-pending {
+    @apply h-1 bg-primary-100 flex-1;
+  }
+}
+
+/* ── Print styles ─────────────────────────────────── */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
   }
 }

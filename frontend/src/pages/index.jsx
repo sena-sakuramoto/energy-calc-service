@@ -3,402 +3,447 @@ import Layout from '../components/Layout';
 import { useAuth } from '../contexts/FirebaseAuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaCalculator, FaChartBar, FaFileDownload, FaCheckCircle, FaBuilding, FaDraftingCompass } from 'react-icons/fa';
-import SocialProof from '../components/SocialProof';
+import {
+  FaBuilding,
+  FaCloudDownloadAlt,
+  FaMousePointer,
+  FaFolderOpen,
+  FaShieldAlt,
+  FaCheckCircle,
+  FaArrowRight,
+  FaFileAlt,
+  FaClock,
+  FaYenSign,
+} from 'react-icons/fa';
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
 
-  // GitHub Pages環境の検出
-  const isGitHubPages = typeof window !== 'undefined' &&
+  // GitHub Pages environment detection
+  const isGitHubPages =
+    typeof window !== 'undefined' &&
     window.location.hostname.includes('github.io');
   const assetBase = isGitHubPages ? '/energy-calc-service' : '';
   const logoSrc = `${assetBase}/logo.png`;
 
-  return (
-    <Layout>
+  // Full-bleed wrapper style to break out of Layout container
+  const fullBleed = {
+    width: '100vw',
+    position: 'relative',
+    left: '50%',
+    right: '50%',
+    marginLeft: '-50vw',
+    marginRight: '-50vw',
+  };
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-b from-warm-50 to-warm-100 py-20">
-        <div className="container mx-auto text-center px-4">
-          <div className="flex justify-center mb-6">
-            <div className="bg-white/60 backdrop-blur-sm p-3 rounded-3xl shadow-lg border border-warm-200">
+  return (
+    <Layout
+      title="楽々省エネ計算 | 無料BEI計算ツール"
+      description="省エネ法適合判定を5分で完了。国交省公式API準拠のBEI計算ツール。モデル建物法v3.8対応、公式PDF出力、完全無料。"
+      keywords="省エネ計算,BEI,省エネ法,モデル建物法,適合判定,建築,無料"
+    >
+      {/* ===== Hero Section ===== */}
+      <section style={fullBleed} className="bg-gradient-to-b from-warm-50 to-white">
+        <div className="max-w-5xl mx-auto px-4 pt-16 pb-20 text-center">
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-white/70 backdrop-blur-sm p-3 rounded-2xl shadow-md border border-warm-200">
               <Image
                 src={logoSrc}
                 alt="楽々省エネ計算 ロゴ"
-                width={128}
-                height={128}
-                className="w-24 h-24 md:w-32 md:h-32 object-contain"
+                width={96}
+                height={96}
+                className="w-20 h-20 md:w-24 md:h-24 object-contain"
                 priority
               />
             </div>
           </div>
-          <h1 className="text-6xl md:text-7xl font-bold mb-4 text-primary-800">
+
+          {/* Headline */}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-primary-800 tracking-tight mb-4">
             楽々省エネ計算
           </h1>
-          <p className="text-lg md:text-xl text-primary-500 mb-2 max-w-2xl mx-auto">
-            複雑化する省エネ法を、シンプルに。
-          </p>
-          <p className="text-sm text-primary-400 mb-6">
-            by Archi-Prisma Design works 株式会社
-          </p>
-          <p className="text-xl md:text-2xl text-primary-600 mb-6 max-w-3xl mx-auto leading-relaxed">
-            建築設計者の負担を軽減し、本来の創造的な設計業務に集中できる<br />
-            <span className="font-semibold text-accent-500">簡単・正確・安心</span>な省エネ計算ツール
+
+          {/* Subtitle */}
+          <p className="text-xl md:text-2xl text-primary-600 font-medium mb-3 max-w-2xl mx-auto">
+            省エネ法適合判定を、<span className="text-accent-500">5分</span>で。<span className="text-accent-500">無料</span>で。
           </p>
 
-          {/* 共同開発企画 */}
-          <div className="mb-8 max-w-3xl mx-auto">
-            <div className="bg-warm-100 border border-accent-200 text-primary-800 px-8 py-6 rounded-xl shadow-md">
-              <div className="flex items-center justify-center mb-3">
-                <span className="bg-accent-500 text-white px-4 py-1 rounded-full text-sm font-bold mr-3">期間限定</span>
-                <span className="font-bold text-xl">共同開発企画進行中</span>
-              </div>
-              <p className="text-center text-lg font-medium mb-3">
-                <span className="text-xl font-bold text-accent-600">協力者様と一緒に完成を目指します</span>
-                <span className="block text-sm text-primary-500 mt-1">
-                  デモ版で皆様のご意見をお聞かせいただきながら、協力者様と共に奔闘中です
-                </span>
-              </p>
-              <div className="text-center">
-                <p className="text-sm text-primary-600 mb-3">
-                  {isAuthenticated ? (
-                    <>全機能利用可能 / 省エネ計算が5分で完了 / 申請書類自動作成<br />
-                    プロジェクト管理機能 / 計算結果の保存・共有</>
-                  ) : (
-                    <>簡単30秒でアカウント作成 / 登録後すぐ使える / 全機能利用可能<br />
-                    省エネ計算が5分で完了 / 申請書類自動作成</>
-                  )}
-                </p>
-                <Link
-                  href="/campaign"
-                  className="text-sm text-accent-600 hover:text-accent-700 font-bold underline"
-                >
-                  企画詳細を見る
-                </Link>
-              </div>
-            </div>
-          </div>
+          {/* Sub-subtitle */}
+          <p className="text-sm md:text-base text-primary-400 mb-10">
+            国交省公式API準拠&ensp;/&ensp;モデル建物法 v3.8対応
+          </p>
 
-          {isGitHubPages || !isAuthenticated ? (
-            <div className="space-y-4">
-              {/* メインCTAボタン */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-                <Link
-                  href="/register"
-                  className="relative bg-accent-500 hover:bg-accent-600 text-white font-bold py-5 px-10 rounded-xl shadow-lg transition-colors duration-200 text-xl"
-                >
-                  <span className="absolute -top-2 -right-2 bg-primary-700 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    無料
-                  </span>
-                  無料アカウント作成して開始
-                </Link>
-                <Link
-                  href="/campaign"
-                  className="bg-primary-700 hover:bg-primary-800 text-white font-bold py-5 px-8 rounded-xl shadow-lg transition-colors duration-200 text-lg"
-                >
-                  企画詳細
-                </Link>
-              </div>
-
-              {/* ログイン案内 */}
-              <div className="text-center mb-6">
-                <p className="text-primary-500">
-                  既にアカウントをお持ちの方は
-                  <Link href="/login" className="text-accent-500 hover:text-accent-600 font-bold ml-2">
-                    こちらからログイン
-                  </Link>
-                </p>
-              </div>
-
-              {/* 公開情報 */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
-                <Link
-                  href="/campaign"
-                  className="bg-accent-500 hover:bg-accent-600 text-white font-medium py-3 px-4 rounded-lg shadow-md transition-colors duration-200 text-center"
-                >
-                  共同開発企画
-                </Link>
-                <Link
-                  href="/register"
-                  className="bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-4 rounded-lg shadow-md transition-colors duration-200 text-center"
-                >
-                  公式BEIを始める
-                </Link>
-              </div>
-            </div>
-          ) : isAuthenticated ? (
+          {/* CTA Buttons -- Auth-aware */}
+          {isAuthenticated ? (
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/dashboard"
-                className="bg-primary-700 hover:bg-primary-800 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-colors duration-200"
+                className="inline-flex items-center justify-center gap-2 bg-primary-700 hover:bg-primary-800 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors duration-200 text-lg"
               >
                 ダッシュボード
               </Link>
               <Link
                 href="/tools/official-bei"
-                className="bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-colors duration-200"
+                className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors duration-200 text-lg"
               >
-                公式BEI計算を使用
+                BEI計算を開始
+                <FaArrowRight className="text-sm" />
               </Link>
             </div>
           ) : (
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
                 href="/register"
-                className="bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-colors duration-200"
+                className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg transition-colors duration-200 text-lg"
               >
-                無料で始める
+                無料で計算を始める
+                <FaArrowRight className="text-sm" />
               </Link>
-              <Link
-                href="/login"
-                className="bg-primary-700 hover:bg-primary-800 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-colors duration-200"
+              <a
+                href="#how-it-works"
+                className="inline-flex items-center justify-center gap-2 border-2 border-primary-300 text-primary-600 hover:border-primary-500 hover:text-primary-800 font-semibold py-4 px-8 rounded-xl transition-colors duration-200 text-lg"
               >
-                ログイン
-              </Link>
+                詳しく見る
+              </a>
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Features Section */}
-      <div className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-16 text-primary-800">
+          {/* Login hint for unauthenticated */}
+          {!isAuthenticated && (
+            <p className="mt-5 text-sm text-primary-400">
+              既にアカウントをお持ちの方は
+              <Link href="/login" className="text-accent-500 hover:text-accent-600 font-semibold ml-1 underline underline-offset-2">
+                ログイン
+              </Link>
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* ===== Trust Bar ===== */}
+      <section style={fullBleed} className="bg-white border-y border-warm-200">
+        <div className="max-w-4xl mx-auto px-4 py-5">
+          <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-3 text-sm text-primary-500">
+            <span className="flex items-center gap-2">
+              <FaShieldAlt className="text-primary-400" />
+              国交省API準拠
+            </span>
+            <span className="hidden sm:block text-primary-300">|</span>
+            <span className="flex items-center gap-2">
+              <FaFileAlt className="text-primary-400" />
+              モデル建物法 v3.8
+            </span>
+            <span className="hidden sm:block text-primary-300">|</span>
+            <span className="flex items-center gap-2">
+              <FaShieldAlt className="text-primary-400" />
+              SSL暗号化
+            </span>
+            <span className="hidden sm:block text-primary-300">|</span>
+            <span className="flex items-center gap-2 font-semibold text-accent-500">
+              <FaCheckCircle />
+              完全無料
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== How It Works ===== */}
+      <section id="how-it-works" style={fullBleed} className="bg-warm-50">
+        <div className="max-w-5xl mx-auto px-4 py-20">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-primary-800 mb-4">
+            3ステップで完了
+          </h2>
+          <p className="text-center text-primary-500 mb-14 max-w-xl mx-auto">
+            複雑な省エネ計算を、直感的な操作で。
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-8 md:gap-6">
+            {/* Step 1 */}
+            <div className="relative text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-700 text-white text-2xl mb-5 shadow-md">
+                <FaMousePointer />
+              </div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-3 bg-accent-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow">
+                1
+              </div>
+              <h3 className="text-lg font-bold text-primary-800 mb-2">
+                建物情報を入力
+              </h3>
+              <p className="text-sm text-primary-500 leading-relaxed">
+                建物用途・地域・面積を<br className="hidden md:block" />
+                ドロップダウンから選択
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="relative text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-700 text-white text-2xl mb-5 shadow-md">
+                <FaBuilding />
+              </div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-3 bg-accent-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow">
+                2
+              </div>
+              <h3 className="text-lg font-bold text-primary-800 mb-2">
+                自動でBEI計算
+              </h3>
+              <p className="text-sm text-primary-500 leading-relaxed">
+                国交省APIで<br className="hidden md:block" />
+                公式の適合判定を実行
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="relative text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-700 text-white text-2xl mb-5 shadow-md">
+                <FaCloudDownloadAlt />
+              </div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-3 bg-accent-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow">
+                3
+              </div>
+              <h3 className="text-lg font-bold text-primary-800 mb-2">
+                公式PDFを出力
+              </h3>
+              <p className="text-sm text-primary-500 leading-relaxed">
+                そのまま申請に使える<br className="hidden md:block" />
+                公式フォーマットのPDF
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== Features Grid ===== */}
+      <section style={fullBleed} className="bg-white">
+        <div className="max-w-5xl mx-auto px-4 py-20">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-primary-800 mb-4">
             主な機能
           </h2>
+          <p className="text-center text-primary-500 mb-14 max-w-xl mx-auto">
+            省エネ適合判定に必要な全てを、ひとつのツールで。
+          </p>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {/* 公式BEI計算カード */}
-            <Link href={isAuthenticated ? "/tools/official-bei" : "/register"} className="group block h-full">
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-warm-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer h-full flex flex-col">
-                <div className="w-16 h-16 bg-primary-700 rounded-2xl flex items-center justify-center mb-6">
-                  <FaBuilding className="text-white text-2xl" />
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Card 1: 公式BEI計算 */}
+            <Link
+              href={isAuthenticated ? '/tools/official-bei' : '/register'}
+              className="group block"
+            >
+              <div className="bg-white rounded-2xl p-8 shadow-sm border border-warm-200 hover:shadow-lg hover:border-accent-200 transition-all duration-300 h-full flex flex-col">
+                <div className="w-14 h-14 bg-primary-700 rounded-xl flex items-center justify-center mb-5">
+                  <FaBuilding className="text-white text-xl" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3 text-primary-800 group-hover:text-accent-500 transition-colors">
+                <h3 className="text-xl font-bold text-primary-800 mb-3 group-hover:text-accent-500 transition-colors">
                   公式BEI計算
                 </h3>
-                <p className="text-primary-500 mb-6 leading-relaxed">
-                  様式A〜I入力をもとに、国交省API準拠で省エネ適合判定を行います。
+                <p className="text-sm text-primary-500 mb-5 leading-relaxed">
+                  国交省API連携で、省エネ適合判定をそのまま公式計算として実行。
                 </p>
-                <div className="space-y-2 mb-6">
-                  <div className="flex items-center text-sm text-primary-500">
-                    <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                    様式A〜I入力対応
-                  </div>
-                  <div className="flex items-center text-sm text-primary-500">
-                    <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
+                <ul className="space-y-2.5 mb-6 text-sm text-primary-500">
+                  <li className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 bg-accent-400 rounded-full flex-shrink-0" />
+                    様式A〜I対応
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 bg-accent-400 rounded-full flex-shrink-0" />
                     国交省公式API連携
-                  </div>
-                  <div className="flex items-center text-sm text-primary-500">
-                    <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 bg-accent-400 rounded-full flex-shrink-0" />
                     公式PDF出力
-                  </div>
-                </div>
-                <div className="mt-auto inline-flex items-center text-accent-500 font-medium group-hover:translate-x-1 transition-transform duration-200">
-                  公式計算を開始
-                  <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  </li>
+                </ul>
+                <div className="mt-auto inline-flex items-center text-accent-500 font-medium text-sm group-hover:translate-x-1 transition-transform duration-200">
+                  計算を開始
+                  <FaArrowRight className="ml-2 text-xs" />
                 </div>
               </div>
             </Link>
 
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-warm-200 hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
-              <div className="text-primary-700 text-4xl mb-6 flex justify-center">
-                <FaCalculator />
+            {/* Card 2: 選択式の簡単入力 */}
+            <Link
+              href={isAuthenticated ? '/tools/official-bei' : '/register'}
+              className="group block"
+            >
+              <div className="bg-white rounded-2xl p-8 shadow-sm border border-warm-200 hover:shadow-lg hover:border-accent-200 transition-all duration-300 h-full flex flex-col">
+                <div className="w-14 h-14 bg-primary-700 rounded-xl flex items-center justify-center mb-5">
+                  <FaMousePointer className="text-white text-xl" />
+                </div>
+                <h3 className="text-xl font-bold text-primary-800 mb-3 group-hover:text-accent-500 transition-colors">
+                  選択式の簡単入力
+                </h3>
+                <p className="text-sm text-primary-500 mb-5 leading-relaxed">
+                  専門知識がなくても迷わない。ドロップダウンとガイドで直感的に入力。
+                </p>
+                <ul className="space-y-2.5 mb-6 text-sm text-primary-500">
+                  <li className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 bg-accent-400 rounded-full flex-shrink-0" />
+                    ドロップダウンで入力
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 bg-accent-400 rounded-full flex-shrink-0" />
+                    サンプルデータ付き
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 bg-accent-400 rounded-full flex-shrink-0" />
+                    入力ガイド付き
+                  </li>
+                </ul>
+                <div className="mt-auto inline-flex items-center text-accent-500 font-medium text-sm group-hover:translate-x-1 transition-transform duration-200">
+                  試してみる
+                  <FaArrowRight className="ml-2 text-xs" />
+                </div>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-primary-800">エネルギー計算</h3>
-              <p className="text-primary-500 mb-4">
-                電力・エネルギー消費量・コスト計算と機器使用量の集計。電気設備設計に必要な基本計算をサポート。
-              </p>
-              <ul className="text-sm text-primary-500 space-y-2">
-                <li className="flex items-center"><FaCheckCircle className="text-accent-400 mr-2" />単相・三相電力計算</li>
-                <li className="flex items-center"><FaCheckCircle className="text-accent-400 mr-2" />機器別エネルギー集計</li>
-                <li className="flex items-center"><FaCheckCircle className="text-accent-400 mr-2" />電力コスト試算</li>
-              </ul>
-              <div className="mt-auto pt-6">
-                <Link
-                  href={isAuthenticated ? "/tools/energy-calculator" : "/register"}
-                  className="inline-flex items-center text-accent-500 hover:text-accent-600 font-medium"
-                >
-                  {isAuthenticated ? "エネルギー計算を開始 →" : "アカウント作成して開始 →"}
-                </Link>
-              </div>
-            </div>
+            </Link>
 
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-warm-200 hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
-              <div className="text-primary-700 text-4xl mb-6 flex justify-center">
-                <FaFileDownload />
+            {/* Card 3: プロジェクト管理 */}
+            <Link
+              href={isAuthenticated ? '/dashboard' : '/register'}
+              className="group block"
+            >
+              <div className="bg-white rounded-2xl p-8 shadow-sm border border-warm-200 hover:shadow-lg hover:border-accent-200 transition-all duration-300 h-full flex flex-col">
+                <div className="w-14 h-14 bg-primary-700 rounded-xl flex items-center justify-center mb-5">
+                  <FaFolderOpen className="text-white text-xl" />
+                </div>
+                <h3 className="text-xl font-bold text-primary-800 mb-3 group-hover:text-accent-500 transition-colors">
+                  プロジェクト管理
+                </h3>
+                <p className="text-sm text-primary-500 mb-5 leading-relaxed">
+                  複数案件をまとめて管理。計算履歴の保存と各種出力に対応。
+                </p>
+                <ul className="space-y-2.5 mb-6 text-sm text-primary-500">
+                  <li className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 bg-accent-400 rounded-full flex-shrink-0" />
+                    複数案件管理
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 bg-accent-400 rounded-full flex-shrink-0" />
+                    計算履歴保存
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 bg-accent-400 rounded-full flex-shrink-0" />
+                    Excel / PDF出力
+                  </li>
+                </ul>
+                <div className="mt-auto inline-flex items-center text-accent-500 font-medium text-sm group-hover:translate-x-1 transition-transform duration-200">
+                  管理画面へ
+                  <FaArrowRight className="ml-2 text-xs" />
+                </div>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-primary-800">電力料金見積もり</h3>
-              <p className="text-primary-500 mb-4">
-                フラット・段階制・時間帯別料金に対応した詳細な電力料金計算。基本料金や各種調整費も含めた正確な見積もり。
-              </p>
-              <ul className="text-sm text-primary-500 space-y-2">
-                <li className="flex items-center"><FaCheckCircle className="text-accent-400 mr-2" />多様な料金体系対応</li>
-                <li className="flex items-center"><FaCheckCircle className="text-accent-400 mr-2" />時間別使用量プロファイル</li>
-                <li className="flex items-center"><FaCheckCircle className="text-accent-400 mr-2" />詳細な料金内訳表示</li>
-              </ul>
-              <div className="mt-auto pt-6">
-                <Link
-                  href={isAuthenticated ? "/tools/tariff-calculator" : "/register"}
-                  className="inline-flex items-center text-accent-500 hover:text-accent-600 font-medium"
-                >
-                  {isAuthenticated ? "料金計算を開始 →" : "アカウント作成して開始 →"}
-                </Link>
-              </div>
-            </div>
+            </Link>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Social Proof Section */}
-      <SocialProof />
-
-      {/* Benefits Section */}
-      <div className="py-20 bg-warm-100">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-16 text-primary-800">
-            導入メリット
+      {/* ===== Value Proposition ===== */}
+      <section style={fullBleed} className="bg-warm-50 border-y border-warm-200">
+        <div className="max-w-4xl mx-auto px-4 py-20">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-primary-800 mb-4">
+            省エネ計算の負担を、ゼロに近づける
           </h2>
-          <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
-            <div className="flex items-start space-x-4">
-              <div className="bg-primary-100 p-3 rounded-full flex-shrink-0">
-                <FaBuilding className="text-2xl text-primary-700" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold mb-2 text-primary-800">設計業務の効率化</h3>
-                <p className="text-primary-500">
-                  従来の手計算や複雑な計算ソフトから解放。直感的な操作で省エネ計算を短時間で完了し、設計検討時間を大幅に短縮できます。
-                </p>
-              </div>
+          <p className="text-center text-primary-500 mb-14 max-w-xl mx-auto">
+            外注や手計算にかかっていた時間とコストを大幅に削減。
+          </p>
+
+          <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Before */}
+            <div className="bg-white rounded-2xl p-8 border border-warm-300">
+              <p className="text-xs font-bold text-primary-400 uppercase tracking-wider mb-5">
+                従来の方法
+              </p>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <FaYenSign className="text-primary-300 mt-1 flex-shrink-0" />
+                  <div>
+                    <span className="block font-semibold text-primary-700">外注費 約5万円〜 / 件</span>
+                    <span className="text-sm text-primary-400">案件ごとに費用が発生</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <FaClock className="text-primary-300 mt-1 flex-shrink-0" />
+                  <div>
+                    <span className="block font-semibold text-primary-700">3〜5営業日</span>
+                    <span className="text-sm text-primary-400">外注先の対応待ち</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <FaFileAlt className="text-primary-300 mt-1 flex-shrink-0" />
+                  <div>
+                    <span className="block font-semibold text-primary-700">修正のたびにやり直し</span>
+                    <span className="text-sm text-primary-400">設計変更への柔軟性が低い</span>
+                  </div>
+                </li>
+              </ul>
             </div>
 
-            <div className="flex items-start space-x-4">
-              <div className="bg-accent-50 p-3 rounded-full flex-shrink-0">
-                <FaCheckCircle className="text-2xl text-accent-500" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold mb-2 text-primary-800">計算精度の向上</h3>
-                <p className="text-primary-500">
-                  建築物省エネ法の最新基準に完全準拠。計算ミスのリスクを排除し、申請時のやり直しを防止。確実な省エネ適合性判定が可能です。
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="bg-primary-100 p-3 rounded-full flex-shrink-0">
-                <FaFileDownload className="text-2xl text-primary-700" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold mb-2 text-primary-800">申請書類の自動生成</h3>
-                <p className="text-primary-500">
-                  計算結果から行政機関への申請に必要な書類を自動生成。フォーマットに悩むことなく、すぐに申請手続きを進められます。
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="bg-accent-50 p-3 rounded-full flex-shrink-0">
-                <FaDraftingCompass className="text-2xl text-accent-500" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold mb-2 text-primary-800">持続可能な設計支援</h3>
-                <p className="text-primary-500">
-                  様々な設計パラメータでの比較検討が簡単。最適な省エネ設計を見つけ出し、環境負荷の少ない建築物の実現を支援します。
-                </p>
-              </div>
+            {/* After */}
+            <div className="bg-primary-800 rounded-2xl p-8 text-white shadow-lg">
+              <p className="text-xs font-bold text-accent-300 uppercase tracking-wider mb-5">
+                楽々省エネ計算
+              </p>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <FaYenSign className="text-accent-400 mt-1 flex-shrink-0" />
+                  <div>
+                    <span className="block font-semibold">完全無料</span>
+                    <span className="text-sm text-primary-300">何件でも追加費用なし</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <FaClock className="text-accent-400 mt-1 flex-shrink-0" />
+                  <div>
+                    <span className="block font-semibold">最短5分</span>
+                    <span className="text-sm text-primary-300">入力から結果出力まで</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <FaFileAlt className="text-accent-400 mt-1 flex-shrink-0" />
+                  <div>
+                    <span className="block font-semibold">何度でも再計算</span>
+                    <span className="text-sm text-primary-300">設計変更に即座に対応</span>
+                  </div>
+                </li>
+              </ul>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* CTA Section */}
-      <div className="py-20 bg-primary-800">
-        <div className="container mx-auto text-center px-4">
-          <h2 className="text-4xl font-bold text-white mb-6">
+          <p className="text-center text-sm text-primary-400 mt-8">
+            大幅な工数削減で、設計業務に集中できる時間を取り戻す。
+          </p>
+        </div>
+      </section>
+
+      {/* ===== Bottom CTA ===== */}
+      <section style={fullBleed} className="bg-primary-800">
+        <div className="max-w-3xl mx-auto px-4 py-20 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             もう省エネ計算で悩まない。
           </h2>
-          <p className="text-xl text-primary-300 mb-8 max-w-3xl mx-auto">
-            「楽々省エネ計算」で、設計業務をもっとクリエイティブに。<br />
-            {isAuthenticated ? 'いつでもご利用いただけます。' : '無料でお試しください。'}
+          <p className="text-lg text-primary-300 mb-10 max-w-xl mx-auto leading-relaxed">
+            {isAuthenticated
+              ? '計算ツールはいつでもご利用いただけます。'
+              : '無料アカウントを作成して、今すぐ省エネ計算を始めましょう。'}
           </p>
+
           {isAuthenticated ? (
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/tools/official-bei"
-                className="bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-colors duration-200"
-              >
-                公式BEI計算を開始
-              </Link>
-              <Link
-                href="/dashboard"
-                className="border-2 border-white text-white hover:bg-white hover:text-primary-800 font-bold py-4 px-8 rounded-lg transition-colors duration-200"
-              >
-                ダッシュボード
-              </Link>
-            </div>
+            <Link
+              href="/tools/official-bei"
+              className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg transition-colors duration-200 text-lg"
+            >
+              BEI計算を開始
+              <FaArrowRight className="text-sm" />
+            </Link>
           ) : (
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/register"
-                className="bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-colors duration-200"
-              >
-                楽々始める
-              </Link>
-              <Link
-                href="/login"
-                className="border-2 border-white text-white hover:bg-white hover:text-primary-800 font-bold py-4 px-8 rounded-lg transition-colors duration-200"
-              >
-                ログインして開始
-              </Link>
-            </div>
+            <Link
+              href="/register"
+              className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-10 rounded-xl shadow-lg transition-colors duration-200 text-lg"
+            >
+              無料で計算を始める
+              <FaArrowRight className="text-sm" />
+            </Link>
           )}
         </div>
-      </div>
-
-      {/* 協力者様への感謝セクション */}
-      <div className="bg-warm-100 py-12">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-primary-800 mb-6">
-            協力者様への感謝
-          </h2>
-          <div className="max-w-4xl mx-auto">
-            <p className="text-lg text-primary-600 mb-4 leading-relaxed">
-              このサービスは、<span className="font-semibold text-accent-500">多くの協力者様の貴重なサポート</span>のおかげで
-              ここまで開発を進めることができました。
-            </p>
-            <p className="text-primary-500 mb-6">
-              現在はデモ版として皆様にお使いいただきながら、
-              <strong className="text-accent-500">皆様のご意見やフィードバックを元に</strong>、
-              協力者様と一緒にさらに良いサービスへと成長させていただいています。
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-warm-200">
-                <div className="text-accent-500 text-2xl mb-2"><FaChartBar /></div>
-                <div className="font-semibold text-primary-800 mb-1">フィードバック</div>
-                <div className="text-sm text-primary-500">皆様の声が開発の原動力</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-warm-200">
-                <div className="text-accent-500 text-2xl mb-2"><FaBuilding /></div>
-                <div className="font-semibold text-primary-800 mb-1">協同開発</div>
-                <div className="text-sm text-primary-500">協力者様と一緒に成長</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-warm-200">
-                <div className="text-accent-500 text-2xl mb-2"><FaDraftingCompass /></div>
-                <div className="font-semibold text-primary-800 mb-1">継続改善</div>
-                <div className="text-sm text-primary-500">日々より良いサービスへ</div>
-              </div>
-            </div>
-            <div className="text-center">
-              <p className="text-accent-500 font-medium">
-                皆様の温かいサポートに心から感謝いたします
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      </section>
     </Layout>
   );
 }
