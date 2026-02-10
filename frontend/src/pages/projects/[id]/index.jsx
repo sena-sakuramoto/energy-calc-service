@@ -222,25 +222,25 @@ const ProjectDetail = () => {
             </Link>
           </div>
 
-          {/* クイック計算 */}
+          {/* 公式BEI計算 */}
           <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-primary-500">
             <div className="flex items-center mb-4">
               <div className="bg-primary-100 p-3 rounded-full mr-4">
                 <FaEdit className="text-primary-500 text-xl" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-primary-900">簡易計算ツール</h3>
-                <p className="text-primary-600">BEI計算機を使用</p>
+                <h3 className="text-xl font-semibold text-primary-900">公式BEI計算</h3>
+                <p className="text-primary-600">様式入力で国交省API計算</p>
               </div>
             </div>
             <p className="text-sm text-primary-500 mb-4">
-              基本的な建物情報から概算BEI値を素早く算出。設計初期段階での検討に便利です。
+              様式A〜Iの入力内容をもとに公式計算を実行し、申請用PDFまで作成できます。
             </p>
             <Link
-              href="/tools/bei-calculator"
+              href="/tools/official-bei"
               className="w-full bg-primary-600 text-white py-3 px-6 rounded-lg hover:bg-primary-700 transition-colors font-medium text-center block"
             >
-              簡易計算開始
+              公式BEI計算を開く
             </Link>
           </div>
         </div>

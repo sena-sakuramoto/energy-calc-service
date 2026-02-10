@@ -2,8 +2,11 @@
 import Layout from '../components/Layout';
 import Link from 'next/link';
 import { FaBuilding, FaUsers, FaLightbulb, FaHeart, FaShieldAlt, FaLeaf, FaChartLine, FaCheckCircle } from 'react-icons/fa';
+import { useAuth } from '../contexts/FirebaseAuthContext';
 
 export default function About() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <Layout title="私たちについて - 楽々省エネ計算">
       <div className="max-w-4xl mx-auto">
@@ -215,10 +218,10 @@ export default function About() {
               お問い合わせフォーム
             </Link>
             <Link
-              href="/system/status"
+              href={isAuthenticated ? "/tools/official-bei" : "/register"}
               className="border-2 border-white text-white hover:bg-white hover:text-primary-800 font-bold py-3 px-6 rounded-lg transition-all duration-300 inline-block"
             >
-              サービス稼働状況を確認
+              公式BEI計算を使う
             </Link>
             <Link
               href="/campaign"

@@ -39,10 +39,10 @@ function Error({ statusCode, hasGetInitialPropsRun, err }) {
             {isAuthenticated ? (
               <>
                 <Link
-                  href="/tools/bei-calculator"
+                  href="/tools/official-bei"
                   className="block w-full bg-accent-600 text-white py-3 px-4 rounded-lg hover:bg-accent-700 transition-colors font-medium"
                 >
-                  BEI計算ツール
+                  公式BEI計算
                 </Link>
                 <Link
                   href="/projects"
@@ -64,12 +64,6 @@ function Error({ statusCode, hasGetInitialPropsRun, err }) {
               className="block w-full bg-primary-600 text-white py-3 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
             >
               共同開発企画
-            </Link>
-            <Link
-              href="/system/status"
-              className="block w-full bg-primary-700 text-white py-3 px-4 rounded-lg hover:bg-primary-800 transition-colors font-medium"
-            >
-              サービス状況
             </Link>
           </div>
 

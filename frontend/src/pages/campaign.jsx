@@ -298,10 +298,10 @@ export default function Campaign() {
                 {isAuthenticated ? (
                   <>
                     <Link
-                      href="/tools/bei-calculator"
+                      href="/tools/official-bei"
                       className="bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-12 rounded-lg shadow-xl transition-all duration-300 text-lg"
                     >
-                      計算ツールを使用
+                      公式BEI計算を使用
                     </Link>
                     <Link
                       href="/projects"
@@ -319,10 +319,10 @@ export default function Campaign() {
                       無料で始める
                     </Link>
                     <Link
-                      href="/tools/bei-calculator"
+                      href="/tools/official-bei"
                       className="border-2 border-white text-white hover:bg-white hover:text-primary-800 font-bold py-4 px-8 rounded-lg transition-all duration-300"
                     >
-                      まずは機能を確認
+                      公式BEI画面を確認
                     </Link>
                   </>
                 )}
@@ -343,8 +343,8 @@ export default function Campaign() {
             </div>
 
             <div className="text-primary-300 text-sm">
-              <p className="mb-1">契約期間の縛りなし / いつでもキャンセル可能</p>
-              <p>期間終了前にメール通知 / クレジットカード登録不要</p>
+              <p className="mb-1">登録も利用も無料 / 退会はいつでも可能</p>
+              <p>無料でご利用いただけます / クレジットカード登録不要</p>
             </div>
           </div>
         </div>
@@ -367,8 +367,8 @@ export default function Campaign() {
             )}
 
             <div className="border-b border-primary-200 pb-4">
-              <h3 className="font-bold text-primary-900 mb-2">Q. 計算精度は有料版と同じですか？</h3>
-              <p className="text-primary-700">A. はい、建築物省エネ法に完全準拠した正確な計算を行います。有料版と全く同じエンジンです。</p>
+              <h3 className="font-bold text-primary-900 mb-2">Q. 計算の精度は信頼できますか？</h3>
+              <p className="text-primary-700">A. 国土交通省が公開しているモデル建物法の計算ロジックに基づいて実装しています。ただし計算結果は参考値として、専門家による確認をお願いいたします。</p>
             </div>
 
             <div className="border-b border-primary-200 pb-4">
@@ -383,11 +383,7 @@ export default function Campaign() {
 
             <div>
               <h3 className="font-bold text-primary-900 mb-2">Q. サービスは安定していますか？</h3>
-              <p className="text-primary-700">A. はい、24時間監視体制で99.9%の稼働率を保っています。
-                <Link href="/system/status" className="text-accent-500 hover:text-accent-600 font-medium ml-2">
-                  リアルタイムの稼働状況はこちら
-                </Link>
-              </p>
+              <p className="text-primary-700">A. クラウド上で運用しており、安定稼働に努めています。稼働に関するご質問はお問い合わせからご連絡ください。</p>
             </div>
           </div>
         </div>
@@ -398,10 +394,10 @@ export default function Campaign() {
             <h3 className="text-xl font-bold text-primary-900 mb-4">安心してご利用いただくために</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Link
-                href="/system/status"
+                href={isAuthenticated ? "/tools/official-bei" : "/register"}
                 className="bg-white hover:bg-warm-50 text-primary-900 font-medium py-3 px-4 rounded-lg shadow transition-all duration-300"
               >
-                サービス稼働状況
+                公式BEI計算
               </Link>
               <Link
                 href="/about"

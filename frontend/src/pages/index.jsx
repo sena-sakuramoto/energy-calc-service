@@ -120,10 +120,10 @@ export default function Home() {
                   共同開発企画
                 </Link>
                 <Link
-                  href="/system/status"
+                  href="/register"
                   className="bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-4 rounded-lg shadow-md transition-colors duration-200 text-center"
                 >
-                  サービス状況
+                  公式BEIを始める
                 </Link>
               </div>
             </div>
@@ -136,10 +136,10 @@ export default function Home() {
                 ダッシュボード
               </Link>
               <Link
-                href="/tools/bei-calculator"
+                href="/tools/official-bei"
                 className="bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-colors duration-200"
               >
-                計算ツールを使用
+                公式BEI計算を使用
               </Link>
             </div>
           ) : (
@@ -169,34 +169,34 @@ export default function Home() {
           </h2>
 
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {/* BEI計算カード */}
-            <Link href={isAuthenticated ? "/tools/bei-calculator" : "/register"} className="group">
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-warm-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+            {/* 公式BEI計算カード */}
+            <Link href={isAuthenticated ? "/tools/official-bei" : "/register"} className="group block h-full">
+              <div className="bg-white rounded-2xl p-8 shadow-sm border border-warm-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer h-full flex flex-col">
                 <div className="w-16 h-16 bg-primary-700 rounded-2xl flex items-center justify-center mb-6">
                   <FaBuilding className="text-white text-2xl" />
                 </div>
                 <h3 className="text-2xl font-bold mb-3 text-primary-800 group-hover:text-accent-500 transition-colors">
-                  BEI計算
+                  公式BEI計算
                 </h3>
                 <p className="text-primary-500 mb-6 leading-relaxed">
-                  建築物エネルギー消費性能を正確に計算。省エネ基準適合性を瞬時に判定します。
+                  様式A〜I入力をもとに、国交省API準拠で省エネ適合判定を行います。
                 </p>
                 <div className="space-y-2 mb-6">
                   <div className="flex items-center text-sm text-primary-500">
                     <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                    地域区分別基準値対応
+                    様式A〜I入力対応
                   </div>
                   <div className="flex items-center text-sm text-primary-500">
                     <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                    複合用途建物対応
+                    国交省公式API連携
                   </div>
                   <div className="flex items-center text-sm text-primary-500">
                     <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                    再エネ控除計算
+                    公式PDF出力
                   </div>
                 </div>
-                <div className="inline-flex items-center text-accent-500 font-medium group-hover:translate-x-1 transition-transform duration-200">
-                  今すぐ計算
+                <div className="mt-auto inline-flex items-center text-accent-500 font-medium group-hover:translate-x-1 transition-transform duration-200">
+                  公式計算を開始
                   <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -204,7 +204,7 @@ export default function Home() {
               </div>
             </Link>
 
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-warm-200 hover:shadow-lg transition-shadow duration-300">
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-warm-200 hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
               <div className="text-primary-700 text-4xl mb-6 flex justify-center">
                 <FaCalculator />
               </div>
@@ -217,7 +217,7 @@ export default function Home() {
                 <li className="flex items-center"><FaCheckCircle className="text-accent-400 mr-2" />機器別エネルギー集計</li>
                 <li className="flex items-center"><FaCheckCircle className="text-accent-400 mr-2" />電力コスト試算</li>
               </ul>
-              <div className="mt-6">
+              <div className="mt-auto pt-6">
                 <Link
                   href={isAuthenticated ? "/tools/energy-calculator" : "/register"}
                   className="inline-flex items-center text-accent-500 hover:text-accent-600 font-medium"
@@ -227,7 +227,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-warm-200 hover:shadow-lg transition-shadow duration-300">
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-warm-200 hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
               <div className="text-primary-700 text-4xl mb-6 flex justify-center">
                 <FaFileDownload />
               </div>
@@ -240,7 +240,7 @@ export default function Home() {
                 <li className="flex items-center"><FaCheckCircle className="text-accent-400 mr-2" />時間別使用量プロファイル</li>
                 <li className="flex items-center"><FaCheckCircle className="text-accent-400 mr-2" />詳細な料金内訳表示</li>
               </ul>
-              <div className="mt-6">
+              <div className="mt-auto pt-6">
                 <Link
                   href={isAuthenticated ? "/tools/tariff-calculator" : "/register"}
                   className="inline-flex items-center text-accent-500 hover:text-accent-600 font-medium"
@@ -327,10 +327,10 @@ export default function Home() {
           {isAuthenticated ? (
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/tools/bei-calculator"
+                href="/tools/official-bei"
                 className="bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-colors duration-200"
               >
-                BEI計算を開始
+                公式BEI計算を開始
               </Link>
               <Link
                 href="/dashboard"

@@ -106,3 +106,54 @@ test('official BEI flow: input -> compute -> pdf -> excel upload', async ({ page
   await expect(page.getByText('公式PDF生成エラー')).toHaveCount(0);
   await expect(page.getByText('Excelアップロードエラー')).toHaveCount(0);
 });
+
+test('official BEI flow: blocks compute when required fields are missing', async ({ page }) => {
+  let computeCallCount = 0;
+
+  await page.route('**/official/**', async (route) => {
+    const request = route.request();
+    const url = request.url();
+
+    if (url.includes('/official/compute')) {
+      computeCallCount += 1;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ Status: 'OK' }),
+      });
+      return;
+    }
+
+    await route.continue();
+  });
+
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+
+  await page.goto('/register');
+  await page.getByRole('button', { name: 'メール・パスワードで登録' }).click();
+  await page.locator('#fullName').fill(TEST_USER.fullName);
+  await page.locator('#email').fill(TEST_USER.email);
+  await page.locator('#password').fill(TEST_USER.password);
+  await page.getByRole('button', { name: 'アカウントを作成' }).click();
+  await page.waitForURL('**/login?registered=true');
+
+  await page.getByRole('button', { name: 'メール・パスワードでログイン' }).click();
+  await page.locator('#email').fill(TEST_USER.email);
+  await page.locator('#password').fill(TEST_USER.password);
+  await page.getByRole('button', { name: 'ログイン', exact: true }).click();
+  await page.waitForURL('**/dashboard');
+
+  await page.goto('/tools/official-bei');
+  await expect(page.getByRole('heading', { name: '公式BEI計算 (様式入力)' })).toBeVisible();
+
+  for (let i = 0; i < 9; i += 1) {
+    await page.getByRole('button', { name: '次へ' }).click();
+  }
+
+  await page.getByRole('button', { name: '公式計算実行' }).click();
+
+  await expect(page.getByText('入力内容に不足があります。必須項目を確認してください。')).toBeVisible();
+  await expect(page.getByText('公式計算結果')).toHaveCount(0);
+  expect(computeCallCount).toBe(0);
+});

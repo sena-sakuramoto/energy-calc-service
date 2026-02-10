@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/FirebaseAuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaUser, FaSignOutAlt, FaCalculator, FaChevronDown, FaBars, FaTimes, FaBook, FaChartLine, FaGift } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt, FaCalculator, FaChevronDown, FaBars, FaTimes, FaBook, FaGift } from 'react-icons/fa';
 
 export default function Header() {
   const { isAuthenticated, logout } = useAuth();
@@ -57,14 +57,6 @@ export default function Header() {
               </Link>
             </li>
 
-            {/* サービス状況 */}
-            <li className="list-none">
-              <Link href="/system/status" className="flex items-center hover:text-warm-300 transition-colors">
-                <FaChartLine className="mr-2" />
-                サービス状況
-              </Link>
-            </li>
-
             {/* 計算ツールドロップダウン - 認証時のみ表示 */}
             {isAuthenticated && (
               <li className="relative list-none">
@@ -80,11 +72,11 @@ export default function Header() {
                 {isToolsOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50">
                     <Link
-                      href="/tools/bei-calculator"
+                      href="/tools/official-bei"
                       className="block px-4 py-2 text-primary-700 hover:bg-warm-100 hover:text-accent-500 transition-colors"
                       onClick={closeMenus}
                     >
-                      BEI計算
+                      公式BEI計算
                     </Link>
                     <Link
                       href="/tools/energy-calculator"
@@ -99,14 +91,6 @@ export default function Header() {
                       onClick={closeMenus}
                     >
                       電力料金見積もり
-                    </Link>
-                    <hr className="my-1 border-warm-200" />
-                    <Link
-                      href="/tools/official-bei"
-                      className="block px-4 py-2 text-primary-700 hover:bg-warm-100 hover:text-accent-500 transition-colors font-medium"
-                      onClick={closeMenus}
-                    >
-                      公式BEI計算
                     </Link>
                   </div>
                 )}
@@ -176,27 +160,17 @@ export default function Header() {
                 共同開発
               </Link>
 
-              {/* サービス状況 (モバイル) */}
-              <Link
-                href="/system/status"
-                className="flex items-center hover:text-warm-300 transition-colors"
-                onClick={closeMenus}
-              >
-                <FaChartLine className="mr-2" />
-                サービス状況
-              </Link>
-
               {/* 計算ツール - 認証時のみ表示 */}
               {isAuthenticated && (
                 <div className="border-l-4 border-accent-400 pl-4">
                   <div className="text-warm-300 font-medium mb-2">計算ツール</div>
                   <div className="flex flex-col space-y-2 ml-2">
                     <Link
-                      href="/tools/bei-calculator"
+                      href="/tools/official-bei"
                       className="text-sm hover:text-warm-300 transition-colors"
                       onClick={closeMenus}
                     >
-                      BEI計算
+                      公式BEI計算
                     </Link>
                     <Link
                       href="/tools/energy-calculator"
@@ -211,13 +185,6 @@ export default function Header() {
                       onClick={closeMenus}
                     >
                       電力料金見積もり
-                    </Link>
-                    <Link
-                      href="/tools/official-bei"
-                      className="text-sm hover:text-warm-300 transition-colors font-medium"
-                      onClick={closeMenus}
-                    >
-                      公式BEI計算
                     </Link>
                   </div>
                 </div>

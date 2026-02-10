@@ -67,6 +67,36 @@ const PANEL_DIRECTIONS = ['0度(南)','30度','60度','90度(西)','120度','150
 const PANEL_ANGLES = ['0度(水平)','10度','20度','30度','40度','50度','60度','70度','80度','90度(垂直)'];
 const COGEN_HEAT_RECOVERY = ['冷房のみ','暖房のみ','給湯のみ','冷房と暖房','冷房と給湯','暖房と給湯','冷房と暖房と給湯'];
 const SMALLMODEL_UPLOAD_MESSAGE = '小規模版（SMALLMODEL）原本Excelの直接アップロードは未対応です。公式BEI画面から入力して送信するか、MODEL形式の入力シートをご利用ください。';
+const REQUIRED_INPUT_MESSAGE = '入力内容に不足があります。必須項目を確認してください。';
+
+const FIELD_STEP_HINTS = [
+  { prefix: 'building.', step: 1 },
+  { prefix: 'windows.', step: 2 },
+  { prefix: 'insulations.', step: 3 },
+  { prefix: 'envelopes.', step: 4 },
+  { prefix: 'heat_sources.', step: 5 },
+  { prefix: 'outdoor_air.', step: 5 },
+  { prefix: 'pumps.', step: 5 },
+  { prefix: 'fans.', step: 5 },
+  { prefix: 'ventilations.', step: 6 },
+  { prefix: 'lightings.', step: 7 },
+  { prefix: 'hot_waters.', step: 8 },
+  { prefix: 'elevators.', step: 9 },
+  { prefix: 'solar_pvs.', step: 9 },
+  { prefix: 'cogenerations.', step: 9 },
+];
+
+const isBlank = (value) => value === undefined || value === null || String(value).trim() === '';
+const hasAnyRowValue = (row) => Object.entries(row).some(([key, value]) => {
+  if (isBlank(value)) return false;
+  if (key === 'count' && (value === 1 || value === '1')) return false;
+  return true;
+});
+
+const getStepFromFieldPath = (path) => {
+  const hit = FIELD_STEP_HINTS.find(({ prefix }) => path.startsWith(prefix));
+  return hit ? hit.step : 10;
+};
 
 // ── 初期データ ──────────────────────────────────────────────
 
@@ -121,6 +151,11 @@ function TextInput({ value, onChange, placeholder, className = '' }) {
   );
 }
 
+function FieldError({ message }) {
+  if (!message) return null;
+  return <p className="mt-1 text-xs text-red-600">{message}</p>;
+}
+
 function TableRowControls({ onAdd, onRemove, canRemove }) {
   return (
     <div className="flex gap-2 mt-2">
@@ -166,6 +201,7 @@ export default function OfficialBEI() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [computeResult, setComputeResult] = useState(null);
 
   const isSmall = parseFloat(building.calc_floor_area) > 0 && parseFloat(building.calc_floor_area) < 300;
@@ -177,6 +213,164 @@ export default function OfficialBEI() {
   const addRow = useCallback((setter, factory) => { setter(prev => [...prev, factory()]); }, []);
   const removeRow = useCallback((setter, index) => { setter(prev => prev.filter((_, i) => i !== index)); }, []);
 
+  const getFieldError = useCallback((path) => fieldErrors[path], [fieldErrors]);
+
+  const clearFieldError = useCallback((path) => {
+    setFieldErrors((prev) => {
+      if (!prev[path]) return prev;
+      const next = { ...prev };
+      delete next[path];
+      return next;
+    });
+  }, []);
+
+  const updateBuildingField = useCallback((field, value) => {
+    setBuilding((prev) => ({ ...prev, [field]: value }));
+    clearFieldError(`building.${field}`);
+  }, [clearFieldError]);
+
+  const updateTableField = useCallback((setter, errorPrefix, index, field, value) => {
+    updateRow(setter, index, field, value);
+    clearFieldError(`${errorPrefix}.${index}.${field}`);
+  }, [updateRow, clearFieldError]);
+
+  const inputClass = useCallback(
+    (path) => getFieldError(path) ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : '',
+    [getFieldError]
+  );
+
+  const moveToStepFromPath = useCallback((path) => {
+    const target = getStepFromFieldPath(path);
+    if (target && target !== step) {
+      setStep(target);
+    }
+  }, [step]);
+
+  const appendError = useCallback((errors, path, message) => {
+    if (!errors[path]) {
+      errors[path] = message;
+    }
+  }, []);
+
+  const validateBeforeSubmit = useCallback(() => {
+    const errors = {};
+
+    const requireBuilding = (key, label) => {
+      if (isBlank(building[key])) {
+        appendError(errors, `building.${key}`, `${label}は必須です。`);
+      }
+    };
+
+    requireBuilding('building_name', '建物名称');
+    requireBuilding('region', '省エネ基準地域区分');
+    requireBuilding('building_type', '建物用途');
+    requireBuilding('calc_floor_area', '計算対象床面積');
+
+    const floorArea = parseFloat(building.calc_floor_area);
+    if (!isBlank(building.calc_floor_area) && (Number.isNaN(floorArea) || floorArea <= 0)) {
+      appendError(errors, 'building.calc_floor_area', '計算対象床面積は0より大きい数値を入力してください。');
+    }
+
+    const requireTableFields = (rows, prefix, required) => {
+      rows.forEach((row, index) => {
+        if (!hasAnyRowValue(row)) return;
+        required.forEach(({ key, label }) => {
+          if (isBlank(row[key])) {
+            appendError(errors, `${prefix}.${index}.${key}`, `${label}は必須です。`);
+          }
+        });
+      });
+    };
+
+    requireTableFields(windows, 'windows', [
+      { key: 'name', label: '建具仕様名称' },
+      { key: 'window_type', label: '建具の種類' },
+    ]);
+    windows.forEach((row, index) => {
+      if (!hasAnyRowValue(row)) return;
+      const area = parseFloat(row.area);
+      const width = parseFloat(row.width);
+      const height = parseFloat(row.height);
+      const hasArea = !Number.isNaN(area) && area > 0;
+      const hasWidthHeight = !Number.isNaN(width) && width > 0 && !Number.isNaN(height) && height > 0;
+      if (!hasArea && !hasWidthHeight) {
+        appendError(errors, `windows.${index}.area`, '窓面積、または幅・高さを入力してください。');
+      }
+    });
+
+    requireTableFields(insulations, 'insulations', [
+      { key: 'name', label: '断熱仕様名称' },
+      { key: 'part_class', label: '部位種別' },
+      { key: 'input_method', label: '入力方法' },
+    ]);
+
+    if (!isSmall) {
+      requireTableFields(envelopes, 'envelopes', [
+        { key: 'name', label: '外皮名称' },
+        { key: 'direction', label: '方位' },
+      ]);
+      envelopes.forEach((row, index) => {
+        if (!hasAnyRowValue(row)) return;
+        const area = parseFloat(row.area);
+        const width = parseFloat(row.width);
+        const height = parseFloat(row.height);
+        const hasArea = !Number.isNaN(area) && area > 0;
+        const hasWidthHeight = !Number.isNaN(width) && width > 0 && !Number.isNaN(height) && height > 0;
+        if (!hasArea && !hasWidthHeight) {
+          appendError(errors, `envelopes.${index}.area`, '外皮面積、または幅・高さを入力してください。');
+        }
+      });
+    }
+
+    requireTableFields(heatSources, 'heat_sources', [{ key: 'type', label: '熱源機種' }]);
+    requireTableFields(ventilations, 'ventilations', [
+      { key: 'room_name', label: '室名称' },
+      { key: 'room_type', label: '室用途' },
+    ]);
+    requireTableFields(lightings, 'lightings', [
+      { key: 'room_name', label: '室名称' },
+      { key: 'room_type', label: '室用途' },
+    ]);
+    requireTableFields(hotWaters, 'hot_waters', [
+      { key: 'system_name', label: '給湯系統名称' },
+      { key: 'use_type', label: '給湯用途' },
+    ]);
+    requireTableFields(solarPVs, 'solar_pvs', [
+      { key: 'cell_type', label: '太陽電池の種類' },
+      { key: 'capacity_kw', label: 'システム容量' },
+    ]);
+    if (!isSmall) {
+      requireTableFields(elevators, 'elevators', [{ key: 'control_type', label: '速度制御方式' }]);
+      requireTableFields(cogenerations, 'cogenerations', [{ key: 'rated_output', label: '定格発電出力' }]);
+    }
+
+    setFieldErrors(errors);
+    const firstPath = Object.keys(errors)[0];
+    if (firstPath) {
+      moveToStepFromPath(firstPath);
+      setError(REQUIRED_INPUT_MESSAGE);
+      setComputeResult(null);
+      return false;
+    }
+
+    return true;
+  }, [
+    building,
+    windows,
+    insulations,
+    envelopes,
+    heatSources,
+    ventilations,
+    lightings,
+    hotWaters,
+    solarPVs,
+    elevators,
+    cogenerations,
+    isSmall,
+    appendError,
+    moveToStepFromPath,
+  ]);
+
   // 数値変換ユーティリティ
   const num = (v) => { const n = parseFloat(v); return isNaN(n) ? undefined : n; };
   const int = (v) => { const n = parseInt(v, 10); return isNaN(n) ? undefined : n; };
@@ -186,7 +380,7 @@ export default function OfficialBEI() {
   const buildPayload = () => {
     const official_input = {
       building: {
-        building_name: building.building_name || 'テスト建物',
+        building_name: str(building.building_name),
         region: building.region,
         solar_region: str(building.solar_region),
         building_type: building.building_type,
@@ -292,15 +486,39 @@ export default function OfficialBEI() {
     return detail;
   };
 
+  const moveToStepFromApiError = useCallback((detail) => {
+    if (typeof detail !== 'string') return;
+    const formStepMap = [
+      ['様式A', 1],
+      ['様式B1', 2],
+      ['様式B2', 3],
+      ['様式B3', 4],
+      ['様式C', 5],
+      ['様式D', 6],
+      ['様式E', 7],
+      ['様式F', 8],
+      ['様式G', 9],
+      ['様式H', 9],
+      ['様式I', 9],
+    ];
+    const hit = formStepMap.find(([formKey]) => detail.includes(formKey));
+    if (hit) {
+      setStep(hit[1]);
+    }
+  }, []);
+
   const handleCompute = async () => {
-    setIsLoading(true);
     setError(null);
+    if (!validateBeforeSubmit()) return;
+    setIsLoading(true);
     try {
       const payload = buildPayload();
       const res = await officialAPI.getCompute(payload);
       setComputeResult(res.data);
+      setFieldErrors({});
     } catch (e) {
       const detail = e.response?.data?.detail || e.message;
+      moveToStepFromApiError(String(detail || ''));
       setError(`公式計算エラー: ${normalizeOfficialError(detail)}`);
     } finally {
       setIsLoading(false);
@@ -308,8 +526,9 @@ export default function OfficialBEI() {
   };
 
   const handleDownloadPDF = async () => {
-    setIsLoading(true);
     setError(null);
+    if (!validateBeforeSubmit()) return;
+    setIsLoading(true);
     try {
       const payload = buildPayload();
       const res = await officialAPI.getReport(payload);
@@ -321,6 +540,7 @@ export default function OfficialBEI() {
       URL.revokeObjectURL(url);
     } catch (e) {
       const detail = e.response?.data?.detail || e.message;
+      moveToStepFromApiError(String(detail || ''));
       setError(`公式PDF生成エラー: ${normalizeOfficialError(detail)}`);
     } finally {
       setIsLoading(false);
@@ -359,60 +579,97 @@ export default function OfficialBEI() {
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">建物名称 *</label>
-          <TextInput value={building.building_name} onChange={v => setBuilding(b => ({ ...b, building_name: v }))} placeholder="例: ○○ビル" />
+          <TextInput
+            value={building.building_name}
+            onChange={(v) => updateBuildingField('building_name', v)}
+            placeholder="例: ○○ビル"
+            className={inputClass('building.building_name')}
+          />
+          <FieldError message={getFieldError('building.building_name')} />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">省エネ基準地域区分 *</label>
-          <Select value={building.region} onChange={v => setBuilding(b => ({ ...b, region: v }))} options={REGIONS} />
+          <Select
+            value={building.region}
+            onChange={(v) => updateBuildingField('region', v)}
+            options={REGIONS}
+            className={inputClass('building.region')}
+          />
+          <FieldError message={getFieldError('building.region')} />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">建物用途 *</label>
-          <Select value={building.building_type} onChange={v => setBuilding(b => ({ ...b, building_type: v }))} options={BUILDING_TYPES} />
+          <Select
+            value={building.building_type}
+            onChange={(v) => updateBuildingField('building_type', v)}
+            options={BUILDING_TYPES}
+            className={inputClass('building.building_type')}
+          />
+          <FieldError message={getFieldError('building.building_type')} />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">計算対象床面積 [m2] *</label>
-          <NumInput value={building.calc_floor_area} onChange={v => setBuilding(b => ({ ...b, calc_floor_area: v }))} placeholder="1000" unit="m2" />
+          <NumInput
+            value={building.calc_floor_area}
+            onChange={(v) => updateBuildingField('calc_floor_area', v)}
+            placeholder="1000"
+            unit="m2"
+            className={inputClass('building.calc_floor_area')}
+          />
+          <FieldError message={getFieldError('building.calc_floor_area')} />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">空調対象床面積 [m2]</label>
-          <NumInput value={building.ac_floor_area} onChange={v => setBuilding(b => ({ ...b, ac_floor_area: v }))} placeholder="" unit="m2" />
+          <NumInput value={building.ac_floor_area} onChange={(v) => updateBuildingField('ac_floor_area', v)} placeholder="" unit="m2" />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">延べ面積 [m2]</label>
-          <NumInput value={building.total_area} onChange={v => setBuilding(b => ({ ...b, total_area: v }))} placeholder="" unit="m2" />
+          <NumInput value={building.total_area} onChange={(v) => updateBuildingField('total_area', v)} placeholder="" unit="m2" />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">都道府県</label>
-          <TextInput value={building.prefecture} onChange={v => setBuilding(b => ({ ...b, prefecture: v }))} placeholder="東京都" />
+          <TextInput value={building.prefecture} onChange={(v) => updateBuildingField('prefecture', v)} placeholder="東京都" />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">市区町村</label>
-          <TextInput value={building.city} onChange={v => setBuilding(b => ({ ...b, city: v }))} placeholder="千代田区" />
+          <TextInput value={building.city} onChange={(v) => updateBuildingField('city', v)} placeholder="千代田区" />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">階数（地上）</label>
-          <NumInput value={building.floors_above} onChange={v => setBuilding(b => ({ ...b, floors_above: v }))} placeholder="3" step="1" />
+          <NumInput value={building.floors_above} onChange={(v) => updateBuildingField('floors_above', v)} placeholder="3" step="1" />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">階数（地下）</label>
-          <NumInput value={building.floors_below} onChange={v => setBuilding(b => ({ ...b, floors_below: v }))} placeholder="0" step="1" />
+          <NumInput value={building.floors_below} onChange={(v) => updateBuildingField('floors_below', v)} placeholder="0" step="1" />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">階高の合計 [m]</label>
-          <NumInput value={building.total_height} onChange={v => setBuilding(b => ({ ...b, total_height: v }))} placeholder="" unit="m" />
+          <NumInput value={building.total_height} onChange={(v) => updateBuildingField('total_height', v)} placeholder="" unit="m" />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">外周長さ [m]</label>
-          <NumInput value={building.perimeter} onChange={v => setBuilding(b => ({ ...b, perimeter: v }))} placeholder="" unit="m" />
+          <NumInput value={building.perimeter} onChange={(v) => updateBuildingField('perimeter', v)} placeholder="" unit="m" />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">年間日射地域区分</label>
-          <Select value={building.solar_region} onChange={v => setBuilding(b => ({ ...b, solar_region: v }))} options={SOLAR_REGIONS} placeholder="太陽光発電がある場合のみ" />
+          <Select
+            value={building.solar_region}
+            onChange={(v) => updateBuildingField('solar_region', v)}
+            options={SOLAR_REGIONS}
+            placeholder="太陽光発電がある場合のみ"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">非空調コア部 方位</label>
-          <Select value={building.non_ac_core_direction} onChange={v => setBuilding(b => ({ ...b, non_ac_core_direction: v }))} options={DIRECTIONS} />
+          <Select
+            value={building.non_ac_core_direction}
+            onChange={(v) => updateBuildingField('non_ac_core_direction', v)}
+            options={DIRECTIONS}
+          />
         </div>
+      </div>
+      <div className="mt-4 bg-primary-50 border border-primary-200 rounded-lg p-3 text-xs text-primary-700">
+        必須入力: 「建物名称」「省エネ基準地域区分」「建物用途」「計算対象床面積」。
       </div>
       {isSmall && (
         <div className="mt-4 bg-accent-50 border border-accent-200 rounded-lg p-3 text-sm text-accent-700">
@@ -423,7 +680,7 @@ export default function OfficialBEI() {
     </FormSection>
   );
 
-  const renderTableForm = (title, icon, items, setter, factory, fields) => (
+  const renderTableForm = (title, icon, items, setter, factory, fields, errorPrefix) => (
     <FormSection title={title} icon={icon}>
       {items.map((item, i) => (
         <div key={i} className="border border-primary-200 rounded-lg p-4 mb-3">
@@ -432,13 +689,48 @@ export default function OfficialBEI() {
             {fields.map(({ key, label, type, options, unit, placeholder }) => (
               <div key={key}>
                 <label className="block text-xs font-medium text-primary-600 mb-1">{label}</label>
-                {type === 'select' ? (
-                  <Select value={item[key]} onChange={v => updateRow(setter, i, key, v)} options={options} />
-                ) : type === 'number' ? (
-                  <NumInput value={item[key]} onChange={v => updateRow(setter, i, key, v)} unit={unit} placeholder={placeholder} />
-                ) : (
-                  <TextInput value={item[key]} onChange={v => updateRow(setter, i, key, v)} placeholder={placeholder} />
-                )}
+                {(() => {
+                  const path = `${errorPrefix}.${i}.${key}`;
+                  const message = getFieldError(path);
+                  if (type === 'select') {
+                    return (
+                      <>
+                        <Select
+                          value={item[key]}
+                          onChange={(v) => updateTableField(setter, errorPrefix, i, key, v)}
+                          options={options}
+                          className={message ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : ''}
+                        />
+                        <FieldError message={message} />
+                      </>
+                    );
+                  }
+                  if (type === 'number') {
+                    return (
+                      <>
+                        <NumInput
+                          value={item[key]}
+                          onChange={(v) => updateTableField(setter, errorPrefix, i, key, v)}
+                          unit={unit}
+                          placeholder={placeholder}
+                          className={message ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : ''}
+                        />
+                        <FieldError message={message} />
+                      </>
+                    );
+                  }
+                  return (
+                    <>
+                      <TextInput
+                        value={item[key]}
+                        onChange={(v) => updateTableField(setter, errorPrefix, i, key, v)}
+                        placeholder={placeholder}
+                        className={message ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : ''}
+                      />
+                      <FieldError message={message} />
+                    </>
+                  );
+                })()}
               </div>
             ))}
           </div>
@@ -458,6 +750,17 @@ export default function OfficialBEI() {
   const renderOutput = () => (
     <FormSection title="確認・公式PDF出力" icon={FaFilePdf}>
       <div className="space-y-4">
+        {Object.keys(fieldErrors).length > 0 && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h4 className="font-semibold text-red-800 mb-2">入力不足項目</h4>
+            <ul className="text-sm text-red-700 space-y-1">
+              {Object.entries(fieldErrors).slice(0, 8).map(([path, message]) => (
+                <li key={path}>・{message}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="bg-warm-50 border border-primary-200 rounded-lg p-4">
           <h3 className="font-semibold text-primary-800 mb-2">入力内容サマリー</h3>
           <div className="grid md:grid-cols-2 gap-2 text-sm text-primary-700">
@@ -504,10 +807,33 @@ export default function OfficialBEI() {
         )}
 
         {computeResult && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+            <h4 className="font-semibold text-green-800 flex items-center gap-2">
               <FaCheckCircle /> 公式計算結果
             </h4>
+            <div className="grid md:grid-cols-2 gap-2 text-sm text-green-900">
+              <div>
+                総合ステータス:
+                <strong className="ml-1">{computeResult?.Status || 'N/A'}</strong>
+              </div>
+              <div>
+                基本情報バリデーション:
+                <strong className="ml-1">
+                  {computeResult?.BasicInformationValidationResult?.IsValid ? 'OK' : '要修正'}
+                </strong>
+              </div>
+            </div>
+            {Array.isArray(computeResult?.BasicInformationValidationResult?.Errors) &&
+              computeResult.BasicInformationValidationResult.Errors.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-sm font-medium text-red-800 mb-1">基本情報エラー</p>
+                  <ul className="text-sm text-red-700 space-y-1">
+                    {computeResult.BasicInformationValidationResult.Errors.slice(0, 5).map((item, index) => (
+                      <li key={`${item?.Message || 'err'}-${index}`}>・{item?.Message || '入力内容を確認してください。'}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             <pre className="text-xs text-green-900 overflow-auto max-h-64 bg-white rounded p-3">
               {JSON.stringify(computeResult, null, 2)}
             </pre>
@@ -528,7 +854,7 @@ export default function OfficialBEI() {
         { key: 'window_type', label: '建具の種類', type: 'select', options: WINDOW_TYPES },
         { key: 'window_u_value', label: '窓 熱貫流率', type: 'number', unit: 'W/(m2K)' },
         { key: 'window_shgc', label: '窓 日射熱取得率', type: 'number', unit: '-' },
-      ]);
+      ], 'windows');
       case 3: return renderTableForm('様式B2: 断熱仕様', FaThermometerHalf, insulations, setInsulations, emptyInsulation, [
         { key: 'name', label: '断熱仕様名称', type: 'text', placeholder: '断熱-1' },
         { key: 'part_class', label: '部位種別', type: 'select', options: PART_CLASSES },
@@ -536,7 +862,7 @@ export default function OfficialBEI() {
         { key: 'material_category', label: '断熱材種類(大分類)', type: 'select', options: INSULATION_MATERIALS },
         { key: 'thickness', label: '厚み', type: 'number', unit: 'mm' },
         { key: 'u_value', label: '熱貫流率', type: 'number', unit: 'W/(m2K)' },
-      ]);
+      ], 'insulations');
       case 4:
         if (isSmall) return (
           <FormSection title="様式B3: 外皮仕様" icon={FaBuilding}>
@@ -557,7 +883,7 @@ export default function OfficialBEI() {
           { key: 'has_blind', label: 'ブラインド', type: 'select', options: BOOLEAN_LIST },
           { key: 'shade_coeff_cooling', label: '日除け係数(冷房)', type: 'number' },
           { key: 'shade_coeff_heating', label: '日除け係数(暖房)', type: 'number' },
-        ]);
+        ], 'envelopes');
       case 5: return (
         <>
           {renderTableForm('様式C1: 空調熱源', FaFan, heatSources, setHeatSources, emptyHeatSource, [
@@ -568,7 +894,7 @@ export default function OfficialBEI() {
             { key: 'capacity_heating', label: '定格能力 暖房', type: 'number', unit: 'kW/台' },
             { key: 'power_cooling', label: '消費電力 冷房', type: 'number', unit: 'kW/台' },
             { key: 'power_heating', label: '消費電力 暖房', type: 'number', unit: 'kW/台' },
-          ])}
+          ], 'heat_sources')}
           {renderTableForm('様式C2: 空調外気処理', FaWind, outdoorAir, setOutdoorAir, emptyOutdoorAir, [
             { key: 'name', label: '送風機名称', type: 'text', placeholder: 'OA-1' },
             { key: 'count', label: '台数', type: 'number', placeholder: '1' },
@@ -578,19 +904,19 @@ export default function OfficialBEI() {
             { key: 'heat_exchange_eff_heating', label: '全熱交換効率 暖房', type: 'number', unit: '%' },
             { key: 'auto_bypass', label: '自動換気切替', type: 'select', options: BOOLEAN_LIST },
             { key: 'preheat_stop', label: '予熱時外気停止', type: 'select', options: BOOLEAN_LIST },
-          ])}
+          ], 'outdoor_air')}
           {!isSmall && renderTableForm('様式C3: 空調二次ポンプ', FaCogs, pumps, setPumps, emptyPump, [
             { key: 'name', label: 'ポンプ名称', type: 'text' },
             { key: 'count', label: '台数', type: 'number', placeholder: '1' },
             { key: 'flow_rate', label: '設計流量', type: 'number', unit: 'm3/h台' },
             { key: 'variable_flow', label: '変流量制御', type: 'select', options: BOOLEAN_LIST },
-          ])}
+          ], 'pumps')}
           {!isSmall && renderTableForm('様式C4: 空調送風機', FaFan, fans, setFans, emptyFan, [
             { key: 'name', label: '送風機名称', type: 'text' },
             { key: 'count', label: '台数', type: 'number', placeholder: '1' },
             { key: 'airflow', label: '設計風量', type: 'number', unit: 'm3/h台' },
             { key: 'variable_airflow', label: '変風量制御', type: 'select', options: BOOLEAN_LIST },
-          ])}
+          ], 'fans')}
         </>
       );
       case 6: return renderTableForm('様式D: 換気', FaWind, ventilations, setVentilations, emptyVentilation, [
@@ -605,7 +931,7 @@ export default function OfficialBEI() {
         { key: 'high_eff_motor', label: '高効率電動機', type: 'select', options: BOOLEAN_LIST },
         { key: 'inverter', label: 'インバーター', type: 'select', options: BOOLEAN_LIST },
         { key: 'airflow_control', label: '送風量制御', type: 'select', options: BOOLEAN_LIST },
-      ]);
+      ], 'ventilations');
       case 7: return renderTableForm('様式E: 照明', FaLightbulb, lightings, setLightings, emptyLighting, [
         { key: 'room_name', label: '室名称', type: 'text', placeholder: '事務室1' },
         { key: 'room_type', label: '室用途', type: 'text', placeholder: '事務室' },
@@ -618,7 +944,7 @@ export default function OfficialBEI() {
         { key: 'daylight_control', label: '明るさ制御', type: 'select', options: BOOLEAN_LIST },
         { key: 'schedule_control', label: 'タイムスケジュール', type: 'select', options: BOOLEAN_LIST },
         { key: 'initial_illuminance', label: '初期照度補正', type: 'select', options: BOOLEAN_LIST },
-      ]);
+      ], 'lightings');
       case 8: return renderTableForm('様式F: 給湯', FaShower, hotWaters, setHotWaters, emptyHotWater, [
         { key: 'system_name', label: '給湯系統名称', type: 'text', placeholder: '給湯-1' },
         { key: 'use_type', label: '給湯用途', type: 'select', options: HW_USE_TYPES },
@@ -629,13 +955,13 @@ export default function OfficialBEI() {
         { key: 'fuel_consumption', label: '定格燃料消費量', type: 'number', unit: 'kW/台' },
         { key: 'insulation_level', label: '配管保温仕様', type: 'select', options: INSULATION_LEVELS },
         { key: 'water_saving', label: '節湯器具', type: 'select', options: WATER_SAVING },
-      ]);
+      ], 'hot_waters');
       case 9: return (
         <>
           {!isSmall && renderTableForm('様式G: 昇降機', FaArrowsAltV, elevators, setElevators, emptyElevator, [
             { key: 'name', label: '昇降機名称', type: 'text', placeholder: 'EV-1' },
             { key: 'control_type', label: '速度制御方式', type: 'select', options: ELEVATOR_CONTROLS },
-          ])}
+          ], 'elevators')}
           {renderTableForm('様式H: 太陽光発電', FaSolarPanel, solarPVs, setSolarPVs, emptySolarPV, [
             { key: 'system_name', label: 'システム名称', type: 'text', placeholder: 'PV-1' },
             { key: 'cell_type', label: '太陽電池の種類', type: 'select', options: SOLAR_CELL_TYPES },
@@ -643,7 +969,7 @@ export default function OfficialBEI() {
             { key: 'capacity_kw', label: 'システム容量', type: 'number', unit: 'kW' },
             { key: 'panel_direction', label: 'パネル方位角', type: 'select', options: PANEL_DIRECTIONS },
             { key: 'panel_angle', label: 'パネル傾斜角', type: 'select', options: PANEL_ANGLES },
-          ])}
+          ], 'solar_pvs')}
           {!isSmall && renderTableForm('様式I: コージェネ', FaCogs, cogenerations, setCogenerations, emptyCogen, [
             { key: 'name', label: '設備名称', type: 'text' },
             { key: 'rated_output', label: '定格発電出力', type: 'number', unit: 'kW/台' },
@@ -652,7 +978,7 @@ export default function OfficialBEI() {
             { key: 'gen_eff_75', label: '発電効率 75%', type: 'number', unit: '%' },
             { key: 'gen_eff_50', label: '発電効率 50%', type: 'number', unit: '%' },
             { key: 'heat_recovery_for', label: '排熱利用先', type: 'select', options: COGEN_HEAT_RECOVERY },
-          ])}
+          ], 'cogenerations')}
         </>
       );
       case 10: return renderOutput();
@@ -694,6 +1020,13 @@ export default function OfficialBEI() {
             ))}
           </div>
         </div>
+
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-2">
+            <FaExclamationTriangle className="text-red-500 mt-0.5 flex-shrink-0" />
+            <span className="text-sm text-red-800">{error}</span>
+          </div>
+        )}
 
         {/* フォーム */}
         {renderCurrentStep()}

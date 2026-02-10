@@ -97,13 +97,6 @@ export default function Dashboard() {
 
   const calculationTools = [
     {
-      name: 'BEI計算',
-      description: '建築物エネルギー消費性能指標を算出',
-      href: '/tools/bei-calculator',
-      icon: FaBuilding,
-      color: 'bg-primary-700',
-    },
-    {
       name: 'エネルギー計算',
       description: '電力・エネルギー消費量を計算',
       href: '/tools/energy-calculator',
@@ -117,6 +110,13 @@ export default function Dashboard() {
       icon: FaYenSign,
       color: 'bg-primary-600',
     },
+    {
+      name: '公式BEI計算（申請対応）',
+      description: '様式A〜I入力で国交省公式APIによる計算',
+      href: '/tools/official-bei',
+      icon: FaCalculator,
+      color: 'bg-primary-800',
+    },
   ];
 
   const announcements = [
@@ -129,7 +129,7 @@ export default function Dashboard() {
     {
       id: 2,
       date: '2026-01',
-      text: 'BEI計算ツールに複合用途対応を追加しました',
+      text: '公式BEI計算フロー（様式入力）を公開しました',
       type: 'feature',
     },
     {

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '../contexts/FirebaseAuthContext';
 
 export default function Footer() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   return (
     <footer className="bg-primary-900 text-white">
       <div className="container mx-auto px-4 py-12">
@@ -39,21 +39,17 @@ export default function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-4 text-accent-400">主要サービス</h4>
             <ul className="space-y-2">
-              {isAuthenticated && (
-                <li>
-                  <Link href="/tools/bei-calculator" className="text-warm-300 hover:text-accent-400 transition-colors text-sm">
-                    BEI計算（無料）
-                  </Link>
-                </li>
-              )}
               <li>
-                <Link href="/campaign" className="text-warm-300 hover:text-accent-400 transition-colors text-sm">
-                  共同開発企画
+                <Link
+                  href={isAuthenticated ? "/tools/official-bei" : "/register"}
+                  className="text-warm-300 hover:text-accent-400 transition-colors text-sm"
+                >
+                  公式BEI計算
                 </Link>
               </li>
               <li>
-                <Link href="/system/status" className="text-warm-300 hover:text-accent-400 transition-colors text-sm">
-                  サービス稼働状況
+                <Link href="/campaign" className="text-warm-300 hover:text-accent-400 transition-colors text-sm">
+                  共同開発企画
                 </Link>
               </li>
               <li>
@@ -61,14 +57,6 @@ export default function Footer() {
                   お問い合わせ
                 </Link>
               </li>
-              {/* 管理者専用リンク */}
-              {isAuthenticated && user?.isAdmin && (
-                <li>
-                  <Link href="/admin/firebase-users" className="text-accent-300 hover:text-accent-200 transition-colors text-sm">
-                    Firebase ユーザー管理
-                  </Link>
-                </li>
-              )}
             </ul>
           </div>
 
