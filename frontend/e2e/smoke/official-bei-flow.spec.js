@@ -186,3 +186,69 @@ test('official BEI flow: sample input button populates required fields', async (
   await expect(page.locator('select').nth(1)).toHaveValue('事務所モデル');
   await expect(page.locator('input[placeholder="1000"]')).toHaveValue('500');
 });
+
+test('official BEI flow: template download links are available', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+
+  await page.goto('/register');
+  await page.getByRole('button', { name: 'メール・パスワードで登録' }).click();
+  await page.locator('#fullName').fill(TEST_USER.fullName);
+  await page.locator('#email').fill(TEST_USER.email);
+  await page.locator('#password').fill(TEST_USER.password);
+  await page.getByRole('button', { name: 'アカウントを作成' }).click();
+  await page.waitForURL('**/login?registered=true');
+
+  await page.getByRole('button', { name: 'メール・パスワードでログイン' }).click();
+  await page.locator('#email').fill(TEST_USER.email);
+  await page.locator('#password').fill(TEST_USER.password);
+  await page.getByRole('button', { name: 'ログイン', exact: true }).click();
+  await page.waitForURL('**/dashboard');
+
+  await page.goto('/tools/official-bei');
+
+  const modelTemplateLink = page.getByRole('link', { name: 'MODELテンプレートをダウンロード', exact: true });
+  const smallTemplateLink = page.getByRole('link', { name: 'SMALLMODELテンプレートをダウンロード' });
+
+  await expect(modelTemplateLink).toBeVisible();
+  await expect(smallTemplateLink).toBeVisible();
+  await expect(modelTemplateLink).toHaveAttribute('href', '/templates/MODEL_inputSheet_for_Ver3.8_beta.xlsx');
+  await expect(smallTemplateLink).toHaveAttribute('href', '/templates/SMALLMODEL_inputSheet_for_Ver3.8_beta.xlsx');
+});
+
+test('official BEI flow: shows deployment hint when official endpoint is missing', async ({ page }) => {
+  await page.route('**/official/compute', async (route) => {
+    await route.fulfill({
+      status: 404,
+      contentType: 'application/json',
+      body: JSON.stringify({ detail: 'Not Found' }),
+    });
+  });
+
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+
+  await page.goto('/register');
+  await page.getByRole('button', { name: 'メール・パスワードで登録' }).click();
+  await page.locator('#fullName').fill(TEST_USER.fullName);
+  await page.locator('#email').fill(TEST_USER.email);
+  await page.locator('#password').fill(TEST_USER.password);
+  await page.getByRole('button', { name: 'アカウントを作成' }).click();
+  await page.waitForURL('**/login?registered=true');
+
+  await page.getByRole('button', { name: 'メール・パスワードでログイン' }).click();
+  await page.locator('#email').fill(TEST_USER.email);
+  await page.locator('#password').fill(TEST_USER.password);
+  await page.getByRole('button', { name: 'ログイン', exact: true }).click();
+  await page.waitForURL('**/dashboard');
+
+  await page.goto('/tools/official-bei');
+  await page.getByRole('button', { name: 'サンプル入力' }).click();
+
+  for (let i = 0; i < 9; i += 1) {
+    await page.getByRole('button', { name: '次へ' }).click();
+  }
+
+  await page.getByRole('button', { name: '公式計算実行' }).click();
+  await expect(page.getByText('公式機能のバックエンドが未反映です。').first()).toBeVisible();
+});

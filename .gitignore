@@ -62,6 +62,7 @@ customer_data/
 # 機密情報・個人情報
 *.json.bak
 *.xlsx
+!frontend/public/templates/*.xlsx
 *.csv
 project_exports/
 calculation_reports/

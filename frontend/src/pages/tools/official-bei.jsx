@@ -67,7 +67,10 @@ const PANEL_DIRECTIONS = ['0度(南)','30度','60度','90度(西)','120度','150
 const PANEL_ANGLES = ['0度(水平)','10度','20度','30度','40度','50度','60度','70度','80度','90度(垂直)'];
 const COGEN_HEAT_RECOVERY = ['冷房のみ','暖房のみ','給湯のみ','冷房と暖房','冷房と給湯','暖房と給湯','冷房と暖房と給湯'];
 const SMALLMODEL_UPLOAD_MESSAGE = '小規模版（SMALLMODEL）原本Excelの直接アップロードは未対応です。公式BEI画面から入力して送信するか、MODEL形式の入力シートをご利用ください。';
+const OFFICIAL_ENDPOINT_MISSING_MESSAGE = '公式機能のバックエンドが未反映です。運用サーバーに /api/v1/official/* をデプロイしてください。';
 const REQUIRED_INPUT_MESSAGE = '入力内容に不足があります。必須項目を確認してください。';
+const MODEL_TEMPLATE_PATH = '/templates/MODEL_inputSheet_for_Ver3.8_beta.xlsx';
+const SMALL_TEMPLATE_PATH = '/templates/SMALLMODEL_inputSheet_for_Ver3.8_beta.xlsx';
 
 const FIELD_STEP_HINTS = [
   { prefix: 'building.', step: 1 },
@@ -650,7 +653,10 @@ export default function OfficialBEI() {
     };
   };
 
-  const normalizeOfficialError = (detail) => {
+  const normalizeOfficialError = (detail, status) => {
+    if (status === 404 || detail === 'Not Found' || String(detail || '').includes('Not Found')) {
+      return OFFICIAL_ENDPOINT_MISSING_MESSAGE;
+    }
     if (typeof detail !== 'string') return detail;
     if (
       detail.includes('小規模版（SMALLMODEL）原本Excelの直接アップロードは未対応です') ||
@@ -692,9 +698,10 @@ export default function OfficialBEI() {
       setComputeResult(res.data);
       setFieldErrors({});
     } catch (e) {
+      const status = e.response?.status;
       const detail = e.response?.data?.detail || e.message;
       moveToStepFromApiError(String(detail || ''));
-      setError(`公式計算エラー: ${normalizeOfficialError(detail)}`);
+      setError(`公式計算エラー: ${normalizeOfficialError(detail, status)}`);
     } finally {
       setIsLoading(false);
     }
@@ -714,9 +721,10 @@ export default function OfficialBEI() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
+      const status = e.response?.status;
       const detail = e.response?.data?.detail || e.message;
       moveToStepFromApiError(String(detail || ''));
-      setError(`公式PDF生成エラー: ${normalizeOfficialError(detail)}`);
+      setError(`公式PDF生成エラー: ${normalizeOfficialError(detail, status)}`);
     } finally {
       setIsLoading(false);
     }
@@ -736,8 +744,9 @@ export default function OfficialBEI() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e2) {
+      const status = e2.response?.status;
       const detail = e2.response?.data?.detail || e2.message;
-      setError(`Excelアップロードエラー: ${normalizeOfficialError(detail)}`);
+      setError(`Excelアップロードエラー: ${normalizeOfficialError(detail, status)}`);
     } finally {
       setIsLoading(false);
       e.target.value = '';
@@ -967,6 +976,22 @@ export default function OfficialBEI() {
 
         <div className="border-t border-primary-200 pt-4">
           <h4 className="font-medium text-primary-700 mb-2">Excelファイルを直接アップロードして公式PDFを取得</h4>
+          <div className="grid md:grid-cols-2 gap-2 mb-3">
+            <a
+              href={MODEL_TEMPLATE_PATH}
+              download
+              className="inline-flex items-center justify-center text-sm bg-white border border-primary-300 text-primary-700 py-2 px-3 rounded-lg hover:bg-primary-50 transition-colors"
+            >
+              MODELテンプレートをダウンロード
+            </a>
+            <a
+              href={SMALL_TEMPLATE_PATH}
+              download
+              className="inline-flex items-center justify-center text-sm bg-white border border-primary-300 text-primary-700 py-2 px-3 rounded-lg hover:bg-primary-50 transition-colors"
+            >
+              SMALLMODELテンプレートをダウンロード
+            </a>
+          </div>
           <label className="flex items-center gap-2 bg-warm-50 border border-primary-200 rounded-lg p-4 cursor-pointer hover:bg-warm-100 transition-colors">
             <FaUpload className="text-primary-500" />
             <span className="text-sm text-primary-700">記入済みExcelをアップロード (.xlsx / .xlsm)</span>
@@ -1170,7 +1195,7 @@ export default function OfficialBEI() {
       backText="計算ツール一覧に戻る"
     >
       <div className="max-w-5xl mx-auto">
-        <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+        <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
           <button
             type="button"
             onClick={applySampleInput}
@@ -1181,6 +1206,22 @@ export default function OfficialBEI() {
           <span className="text-xs text-primary-500">
             一括でサンプル建物データを入力できます
           </span>
+        </div>
+        <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+          <a
+            href={MODEL_TEMPLATE_PATH}
+            download
+            className="inline-flex items-center justify-center text-xs bg-white border border-primary-300 text-primary-700 py-1.5 px-3 rounded-lg hover:bg-primary-50 transition-colors"
+          >
+            MODELテンプレートをダウンロード
+          </a>
+          <a
+            href={SMALL_TEMPLATE_PATH}
+            download
+            className="inline-flex items-center justify-center text-xs bg-white border border-primary-300 text-primary-700 py-1.5 px-3 rounded-lg hover:bg-primary-50 transition-colors"
+          >
+            SMALLMODELテンプレートをダウンロード
+          </a>
         </div>
 
         {/* ステップインジケーター */}
