@@ -1,12 +1,14 @@
-# Phase 2: 紹介システム + AI製品推薦 + 決済
+# Phase 2: 紹介システム + AI製品推薦 + メーカーダッシュボード
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** AI製品推薦エンジン、メーカー紹介フロー、Stripe決済、改善シミュレーションを実装し、収益化可能な状態にする。
+**Goal:** AI製品推薦エンジン、メーカー紹介フロー、メーカー向けダッシュボード（リード管理・データレポート）、改善シミュレーションを実装し、メーカースポンサー収益モデルの基盤を構築する。
 
-**Architecture:** Claude APIで建物条件に基づく製品推薦を生成。メーカー紹介はDB管理+メール通知。Stripeで都度/月額課金。改善シミュレーションは製品変更→公式API再計算→差分表示。
+**ビジネスモデル:** 建築士は完全無料。収益はメーカーからのスポンサー契約（優先表示・データ提供）+ リード課金（見積依頼1件あたり）+ 紹介成約手数料。価格.com型の両面市場プラットフォーム。
 
-**Tech Stack:** FastAPI, Next.js 14, Tailwind CSS, Anthropic Claude API, Stripe, nodemailer
+**Architecture:** Claude APIで建物条件に基づく製品推薦を生成。メーカー紹介はDB管理+メール通知。メーカー向けダッシュボードで製品選択データ・リード情報をレポート表示。改善シミュレーションは製品変更→公式API再計算→差分表示。
+
+**Tech Stack:** FastAPI, Next.js 14, Tailwind CSS, Anthropic Claude API, Chart.js, nodemailer
 
 **前提:** Phase 1 が完了していること（製品DB、ProductSelector、公式APIリトライ済み）
 
@@ -15,7 +17,7 @@
 **完了条件:**
 - AI推薦が建物条件に応じた製品リストを返す
 - 紹介フローで見積依頼メールが送信される
-- Stripe Checkout で都度/月額課金が動作する
+- メーカーダッシュボードで製品選択回数・リード件数・地域分布が表示される
 - 改善シミュレーションで製品変更→BEI差分が表示される
 - `pytest` 全テストPASS
 - `cd frontend && npm run build` 成功
@@ -513,125 +515,244 @@ git commit -m "feat(referral): add manufacturer referral system with email notif
 
 ---
 
-## Task 3: Stripe決済統合
+## Task 3: メーカーダッシュボード + データレポート
+
+**ビジネスモデル背景:** 建築士は無料。メーカーがスポンサー契約で収益を得る「価格.com型」モデル。
+メーカーに提供する価値: (1) 製品選択回数データ (2) 見積依頼リード (3) 地域・用途別トレンド (4) 競合比較データ。
 
 **Files:**
-- Create: `app/api/v1/payment.py`
-- Modify: `requirements.txt` (stripe追加)
+- Create: `app/models/product_event.py` (製品選択イベントログ)
+- Create: `app/api/v1/analytics.py` (メーカー向けデータAPI)
+- Create: `frontend/src/pages/admin/manufacturer-dashboard.jsx`
+- Modify: `app/api/v1/products.py` (選択イベント記録追加)
+- Modify: `app/db/base.py` (モデル import)
 - Modify: `app/main.py` (ルーター追加)
-- Modify: `app/core/config.py` (Stripe設定追加)
+- Create: `tests/test_analytics.py`
 
-**Step 1: requirements.txt に追加**
+**Step 1: 製品選択イベントモデル**
 
-```
-stripe==8.0.0
-```
-
-**Step 2: config.py にStripe設定追加**
+`app/models/product_event.py`:
 
 ```python
-    # Stripe
-    STRIPE_SECRET_KEY: str = ""
-    STRIPE_WEBHOOK_SECRET: str = ""
-    STRIPE_PRICE_SINGLE: str = ""     # 都度利用 4,980円
-    STRIPE_PRICE_PRO: str = ""        # 月額Pro 14,800円
-    STRIPE_PRICE_TEAM: str = ""       # 月額Team 29,800円
+"""Product selection event tracking for manufacturer analytics."""
+from sqlalchemy import Column, Integer, String, Float, DateTime, Text
+from sqlalchemy.sql import func
+
+from app.db.base import Base
+
+
+class ProductEvent(Base):
+    __tablename__ = "product_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_type = Column(String(50), nullable=False, index=True)  # "selected", "recommended", "referral_requested"
+    product_id = Column(String(100), nullable=False, index=True)
+    product_name = Column(String(200), nullable=False)
+    manufacturer = Column(String(100), nullable=False, index=True)
+    category = Column(String(50), nullable=False, index=True)
+    # コンテキスト
+    building_zone = Column(Integer, nullable=True)
+    building_use = Column(String(100), nullable=True)
+    floor_area = Column(Float, nullable=True)
+    # メタデータ
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    session_id = Column(String(100), nullable=True)
 ```
 
-**Step 3: 決済エンドポイント**
-
-`app/api/v1/payment.py`:
+**Step 2: `app/db/base.py` に import 追加**
 
 ```python
-"""Stripe payment endpoints for per-use and subscription billing."""
-import os
-from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, EmailStr
+from app.models.product_event import ProductEvent  # noqa: F401
+```
+
+**Step 3: メーカー向けデータAPI**
+
+`app/api/v1/analytics.py`:
+
+```python
+"""Manufacturer analytics and data reporting API."""
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+from sqlalchemy import func as sql_func, extract
 from typing import Optional
 
-import stripe
+from app.db.session import get_db
+from app.models.product_event import ProductEvent
+from app.models.referral import Referral
 
-from app.core.config import settings
-
-router = APIRouter(prefix="/payment", tags=["Payment"])
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
-
-FRONTEND_URL = "https://rakuraku-energy.archi-prisma.co.jp"
+router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 
-class CheckoutRequest(BaseModel):
-    plan: str  # "single", "pro", "team"
-    email: EmailStr
-    success_url: Optional[str] = None
-    cancel_url: Optional[str] = None
+@router.get("/manufacturer/{manufacturer}")
+async def manufacturer_report(
+    manufacturer: str,
+    months: int = Query(3, ge=1, le=12),
+    db: Session = Depends(get_db),
+):
+    """メーカー別のデータレポート。スポンサー契約先に提供。"""
 
+    # 製品選択回数
+    selection_count = (
+        db.query(sql_func.count(ProductEvent.id))
+        .filter(ProductEvent.manufacturer == manufacturer)
+        .filter(ProductEvent.event_type == "selected")
+        .scalar() or 0
+    )
 
-@router.post("/checkout")
-async def create_checkout_session(req: CheckoutRequest):
-    """Stripe Checkout セッションを作成。"""
-    if not stripe.api_key:
-        raise HTTPException(status_code=500, detail="決済システムが設定されていません。")
+    # カテゴリ別内訳
+    by_category = dict(
+        db.query(ProductEvent.category, sql_func.count(ProductEvent.id))
+        .filter(ProductEvent.manufacturer == manufacturer)
+        .group_by(ProductEvent.category).all()
+    )
 
-    price_map = {
-        "single": settings.STRIPE_PRICE_SINGLE,
-        "pro": settings.STRIPE_PRICE_PRO,
-        "team": settings.STRIPE_PRICE_TEAM,
+    # 地域別分布
+    by_zone = dict(
+        db.query(ProductEvent.building_zone, sql_func.count(ProductEvent.id))
+        .filter(ProductEvent.manufacturer == manufacturer)
+        .filter(ProductEvent.building_zone.isnot(None))
+        .group_by(ProductEvent.building_zone).all()
+    )
+
+    # 用途別分布
+    by_use = dict(
+        db.query(ProductEvent.building_use, sql_func.count(ProductEvent.id))
+        .filter(ProductEvent.manufacturer == manufacturer)
+        .filter(ProductEvent.building_use.isnot(None))
+        .group_by(ProductEvent.building_use).all()
+    )
+
+    # 月次推移
+    by_month = (
+        db.query(
+            extract("year", ProductEvent.created_at).label("year"),
+            extract("month", ProductEvent.created_at).label("month"),
+            sql_func.count(ProductEvent.id).label("count"),
+        )
+        .filter(ProductEvent.manufacturer == manufacturer)
+        .group_by("year", "month")
+        .order_by("year", "month")
+        .all()
+    )
+
+    # リード数（見積依頼）
+    lead_count = (
+        db.query(sql_func.count(Referral.id))
+        .filter(Referral.manufacturer == manufacturer)
+        .scalar() or 0
+    )
+
+    # 競合比較（同カテゴリの他社選択数）
+    categories = list(by_category.keys())
+    competitors = {}
+    for cat in categories:
+        top_manufacturers = (
+            db.query(ProductEvent.manufacturer, sql_func.count(ProductEvent.id).label("cnt"))
+            .filter(ProductEvent.category == cat)
+            .filter(ProductEvent.event_type == "selected")
+            .group_by(ProductEvent.manufacturer)
+            .order_by(sql_func.count(ProductEvent.id).desc())
+            .limit(5)
+            .all()
+        )
+        competitors[cat] = [{"manufacturer": m, "count": c} for m, c in top_manufacturers]
+
+    return {
+        "manufacturer": manufacturer,
+        "total_selections": selection_count,
+        "total_leads": lead_count,
+        "by_category": by_category,
+        "by_zone": by_zone,
+        "by_use": by_use,
+        "by_month": [{"year": int(r.year), "month": int(r.month), "count": r.count} for r in by_month],
+        "competitor_comparison": competitors,
     }
-    price_id = price_map.get(req.plan)
-    if not price_id:
-        raise HTTPException(status_code=400, detail=f"不明なプラン: {req.plan}")
-
-    mode = "payment" if req.plan == "single" else "subscription"
-
-    try:
-        session = stripe.checkout.Session.create(
-            mode=mode,
-            customer_email=req.email,
-            line_items=[{"price": price_id, "quantity": 1}],
-            success_url=req.success_url or f"{FRONTEND_URL}/tools/official-bei?payment=success",
-            cancel_url=req.cancel_url or f"{FRONTEND_URL}/tools/official-bei?payment=cancel",
-            metadata={"plan": req.plan},
-        )
-        return {"checkout_url": session.url, "session_id": session.id}
-    except stripe.error.StripeError as e:
-        raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/webhook")
-async def stripe_webhook(request: Request):
-    """Stripe Webhook — 決済完了時の処理。"""
-    payload = await request.body()
-    sig_header = request.headers.get("stripe-signature", "")
-
-    if not settings.STRIPE_WEBHOOK_SECRET:
-        raise HTTPException(status_code=500, detail="Webhook secret not configured")
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET,
-        )
-    except (ValueError, stripe.error.SignatureVerificationError):
-        raise HTTPException(status_code=400, detail="Invalid webhook signature")
-
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        # TODO: ユーザーの計算回数・サブスク状態をDBに反映
-        pass
-
-    return {"status": "ok"}
+@router.get("/overview")
+async def analytics_overview(db: Session = Depends(get_db)):
+    """全体概要（管理者用）。"""
+    total_calculations = (
+        db.query(sql_func.count(ProductEvent.id))
+        .filter(ProductEvent.event_type == "selected")
+        .scalar() or 0
+    )
+    total_leads = db.query(sql_func.count(Referral.id)).scalar() or 0
+    by_manufacturer = dict(
+        db.query(ProductEvent.manufacturer, sql_func.count(ProductEvent.id))
+        .filter(ProductEvent.event_type == "selected")
+        .group_by(ProductEvent.manufacturer)
+        .order_by(sql_func.count(ProductEvent.id).desc())
+        .all()
+    )
+    return {
+        "total_calculations": total_calculations,
+        "total_leads": total_leads,
+        "by_manufacturer": by_manufacturer,
+    }
 ```
 
-**Step 4: ルーター追加 + Commit**
+**Step 4: 製品選択時にイベント記録を追加**
+
+`app/api/v1/products.py` の既存エンドポイントに製品選択イベントの記録機能を追加:
 
 ```python
-from app.api.v1.payment import router as payment_router
-app.include_router(payment_router, prefix=settings.API_PREFIX)
+from app.models.product_event import ProductEvent
+
+@router.post("/track-selection")
+async def track_product_selection(
+    product_id: str,
+    product_name: str,
+    manufacturer: str,
+    category: str,
+    building_zone: Optional[int] = None,
+    building_use: Optional[str] = None,
+    floor_area: Optional[float] = None,
+    session_id: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """製品選択イベントを記録（メーカーデータレポート用）。"""
+    event = ProductEvent(
+        event_type="selected",
+        product_id=product_id,
+        product_name=product_name,
+        manufacturer=manufacturer,
+        category=category,
+        building_zone=building_zone,
+        building_use=building_use,
+        floor_area=floor_area,
+        session_id=session_id,
+    )
+    db.add(event)
+    db.commit()
+    return {"status": "tracked"}
+```
+
+**Step 5: メーカーダッシュボード画面**
+
+`frontend/src/pages/admin/manufacturer-dashboard.jsx`:
+
+メーカー向けダッシュボード（スポンサー契約先に提供）:
+- 製品選択回数サマリー（総数 + 前月比）
+- 製品別選択ランキング（棒グラフ: Chart.js）
+- 地域別・用途別ヒートマップ
+- 見積依頼（リード）一覧
+- 競合比較チャート（円グラフ: 同カテゴリ内シェア）
+- 月次推移グラフ（折れ線: Chart.js）
+- CSV/PDFエクスポート機能
+
+**Step 6: ルーター追加 + テスト → Commit**
+
+```python
+from app.api.v1.analytics import router as analytics_router
+app.include_router(analytics_router, prefix=settings.API_PREFIX)
 ```
 
 ```bash
-git add app/api/v1/payment.py app/core/config.py requirements.txt app/main.py
-git commit -m "feat(payment): add Stripe checkout for single/pro/team plans"
+pytest -v
+cd frontend && npm run build
+git add app/models/product_event.py app/api/v1/analytics.py app/api/v1/products.py app/db/base.py app/main.py frontend/src/pages/admin/manufacturer-dashboard.jsx tests/test_analytics.py
+git commit -m "feat(analytics): add manufacturer dashboard with product selection tracking and lead reporting"
 ```
 
 ---
