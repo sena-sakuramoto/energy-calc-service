@@ -1,20 +1,22 @@
-# Phase 2: 紹介システム + AI製品推薦 + メーカーダッシュボード
+# Phase 2: Stripe決済 + 紹介システム + AI製品推薦 + メーカーダッシュボード
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** AI製品推薦エンジン、メーカー紹介フロー、メーカー向けダッシュボード（リード管理・データレポート）、改善シミュレーションを実装し、メーカースポンサー収益モデルの基盤を構築する。
+**Goal:** Stripe月額課金（¥9,800/月）、AI製品推薦エンジン、メーカー紹介フロー、メーカー向けダッシュボード、改善シミュレーションを実装する。
 
-**ビジネスモデル:** 建築士は完全無料。収益はメーカーからのスポンサー契約（優先表示・データ提供）+ リード課金（見積依頼1件あたり）+ 紹介成約手数料。価格.com型の両面市場プラットフォーム。
+**ビジネスモデル:** 有料→無料スイッチ戦略。ローンチ時は月額¥9,800で建築士に売る。100社到達後にメーカースポンサーを獲得し、建築士側を無料化。サークル会員（¥5,000/月）は追加料金なしで利用可能。
 
-**Architecture:** Claude APIで建物条件に基づく製品推薦を生成。メーカー紹介はDB管理+メール通知。メーカー向けダッシュボードで製品選択データ・リード情報をレポート表示。改善シミュレーションは製品変更→公式API再計算→差分表示。
+**Architecture:** Stripe Checkoutで月額課金。Claude APIで製品推薦。メーカー紹介はDB管理+メール通知。メーカー向けダッシュボードで製品選択データ・リード情報をレポート表示。改善シミュレーションは製品変更→公式API再計算→差分表示。
 
-**Tech Stack:** FastAPI, Next.js 14, Tailwind CSS, Anthropic Claude API, Chart.js, nodemailer
+**Tech Stack:** FastAPI, Next.js 14, Tailwind CSS, Stripe, Anthropic Claude API, Chart.js, nodemailer
 
 **前提:** Phase 1 が完了していること（製品DB、ProductSelector、公式APIリトライ済み）
 
 **UI設計原則:** CLAUDE.mdの12原則に従うこと。特に原則1（選択肢 > 自由入力）と原則2（AI出力にアクションボタン）を厳守。デザイン禁止事項（AIグラデーション青→紫、Inter、Lucideのみ、shadcnデフォルト）を遵守。
 
 **完了条件:**
+- Stripe Checkoutで月額¥9,800の課金が動作する
+- サークル会員判定が正しく動作する（追加料金なし）
 - AI推薦が建物条件に応じた製品リストを返す
 - 紹介フローで見積依頼メールが送信される
 - メーカーダッシュボードで製品選択回数・リード件数・地域分布が表示される
@@ -24,7 +26,156 @@
 
 ---
 
-## Task 1: AI製品推薦エンジン
+## Task 1: Stripe月額課金（¥9,800/月）
+
+**ビジネスモデル背景:** 有料→無料スイッチ戦略。ローンチ時は月額¥9,800で収益を確保。サークル会員（¥5,000/月）は楽々省エネ計算を追加料金なしで利用可能。100社到達→スポンサー獲得後に無料化する。
+
+**Files:**
+- Create: `app/services/stripe_billing.py` (Stripe課金サービス)
+- Create: `app/api/v1/billing.py` (課金APIエンドポイント)
+- Create: `app/middleware/subscription.py` (課金チェックミドルウェア)
+- Create: `frontend/src/pages/pricing.jsx` (料金ページ)
+- Create: `frontend/src/components/SubscriptionGate.jsx` (課金ゲートコンポーネント)
+- Modify: `requirements.txt` (stripe追加)
+- Create: `tests/test_billing.py`
+
+**Step 1: requirements.txt に追加**
+
+```
+stripe==9.12.0
+```
+
+**Step 2: Stripe課金サービス**
+
+`app/services/stripe_billing.py`:
+
+```python
+"""Stripe billing service for monthly subscription."""
+from __future__ import annotations
+
+import logging
+import os
+from typing import Optional
+
+import stripe
+
+logger = logging.getLogger(__name__)
+
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID_ENERGY", "")  # ¥9,800/月のPrice ID
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET_ENERGY", "")
+
+stripe.api_key = STRIPE_SECRET_KEY
+
+
+def create_checkout_session(
+    *,
+    customer_email: str,
+    success_url: str,
+    cancel_url: str,
+) -> dict:
+    """Create Stripe Checkout session for ¥9,800/month subscription."""
+    session = stripe.checkout.Session.create(
+        mode="subscription",
+        payment_method_types=["card"],
+        customer_email=customer_email,
+        line_items=[{"price": STRIPE_PRICE_ID, "quantity": 1}],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        allow_promotion_codes=True,
+    )
+    return {"checkout_url": session.url, "session_id": session.id}
+
+
+def check_subscription(customer_email: str) -> dict:
+    """Check if user has active subscription or is a circle member."""
+    # サークル会員チェック: Stripeの既存サブスクからサークル商品を検索
+    customers = stripe.Customer.list(email=customer_email, limit=1)
+    if not customers.data:
+        return {"active": False, "reason": "no_customer"}
+
+    customer = customers.data[0]
+    subscriptions = stripe.Subscription.list(customer=customer.id, status="active")
+
+    for sub in subscriptions.data:
+        for item in sub["items"]["data"]:
+            product = stripe.Product.retrieve(item["price"]["product"])
+            product_name = product.get("name", "")
+            # サークル会員判定 (CLAUDE.md準拠)
+            if any(kw in product_name for kw in ["サークル", "circle", "Circle", "AI×建築"]):
+                return {"active": True, "type": "circle_member", "subscription_id": sub.id}
+            # 楽々省エネ月額判定
+            if "省エネ" in product_name or "energy" in product_name.lower():
+                return {"active": True, "type": "energy_subscriber", "subscription_id": sub.id}
+
+    return {"active": False, "reason": "no_active_subscription"}
+```
+
+**Step 3: 課金APIエンドポイント**
+
+`app/api/v1/billing.py`:
+
+```python
+"""Billing API endpoints for Stripe subscription."""
+from fastapi import APIRouter, Request, HTTPException
+from pydantic import BaseModel, EmailStr
+
+from app.services.stripe_billing import (
+    create_checkout_session,
+    check_subscription,
+)
+
+router = APIRouter(prefix="/billing", tags=["Billing"])
+
+
+class CheckoutRequest(BaseModel):
+    email: EmailStr
+    success_url: str = "https://energy.rakusho-ene.com/dashboard?checkout=success"
+    cancel_url: str = "https://energy.rakusho-ene.com/pricing"
+
+
+@router.post("/checkout")
+async def create_checkout(req: CheckoutRequest):
+    """Stripe Checkout セッション作成。"""
+    result = create_checkout_session(
+        customer_email=req.email,
+        success_url=req.success_url,
+        cancel_url=req.cancel_url,
+    )
+    return result
+
+
+@router.get("/status")
+async def subscription_status(email: str):
+    """サブスクリプション状態確認。サークル会員は追加料金なし。"""
+    return check_subscription(email)
+```
+
+**Step 4: 課金チェックミドルウェア**
+
+`app/middleware/subscription.py`:
+
+計算エンドポイント（/api/v1/calculate等）へのリクエスト時に課金状態をチェック。
+未課金ユーザーにはHTTP 402 Payment Requiredを返す。
+フリートライアル（初回3回まで無料）も実装。
+
+**Step 5: 料金ページ + SubscriptionGateコンポーネント**
+
+`frontend/src/pages/pricing.jsx`: 料金ページ（¥9,800/月 + サークル会員特典表示）
+`frontend/src/components/SubscriptionGate.jsx`: 未課金時に料金ページへ誘導するラッパー
+
+**Step 6: テスト → Commit**
+
+```bash
+pytest tests/test_billing.py -v
+cd frontend && npm run build
+git add app/services/stripe_billing.py app/api/v1/billing.py app/middleware/subscription.py frontend/src/pages/pricing.jsx frontend/src/components/SubscriptionGate.jsx tests/test_billing.py requirements.txt
+git commit -m "feat(billing): add Stripe monthly subscription ¥9,800 with circle member detection"
+```
+
+---
+
+## Task 2: AI製品推薦エンジン
 
 **Files:**
 - Create: `app/services/ai_recommend.py`
@@ -292,7 +443,7 @@ git commit -m "feat(ai): add product recommendation engine with Claude API"
 
 ---
 
-## Task 2: メーカー紹介フロー
+## Task 3: メーカー紹介フロー
 
 **Files:**
 - Create: `app/models/referral.py`
@@ -515,7 +666,7 @@ git commit -m "feat(referral): add manufacturer referral system with email notif
 
 ---
 
-## Task 3: メーカーダッシュボード + データレポート
+## Task 4: メーカーダッシュボード + データレポート
 
 **ビジネスモデル背景:** 建築士は無料。メーカーがスポンサー契約で収益を得る「価格.com型」モデル。
 メーカーに提供する価値: (1) 製品選択回数データ (2) 見積依頼リード (3) 地域・用途別トレンド (4) 競合比較データ。
@@ -757,7 +908,7 @@ git commit -m "feat(analytics): add manufacturer dashboard with product selectio
 
 ---
 
-## Task 4: 改善シミュレーション
+## Task 5: 改善シミュレーション
 
 **Files:**
 - Create: `frontend/src/components/ImprovementSimulator.jsx`
@@ -929,7 +1080,7 @@ git commit -m "feat(ui): add BEI improvement simulator with one-click recalculat
 
 ---
 
-## Task 5: Phase 2 最終確認
+## Task 6: Phase 2 最終確認
 
 ```bash
 pytest -v
