@@ -1,0 +1,34 @@
+# 太陽光発電製品データベース
+
+- id: panasonic-hit-250
+  manufacturer: "パナソニック"
+  series: "HIT"
+  name: "HIT P250 アルファ"
+  cell_type: "HIT"
+  capacity_kw: 0.250
+  efficiency_percent: 19.9
+  panel_area_m2: 1.26
+  partner: true
+  catalog_url: "https://sumai.panasonic.jp/solar/"
+
+- id: panasonic-hit-255
+  manufacturer: "パナソニック"
+  series: "HIT"
+  name: "HIT P255 アルファ"
+  cell_type: "HIT"
+  capacity_kw: 0.255
+  efficiency_percent: 20.2
+  panel_area_m2: 1.26
+  partner: true
+  catalog_url: "https://sumai.panasonic.jp/solar/"
+
+- id: panasonic-hit-240
+  manufacturer: "パナソニック"
+  series: "HIT"
+  name: "HIT P240 プラス"
+  cell_type: "HIT"
+  capacity_kw: 0.240
+  efficiency_percent: 19.2
+  panel_area_m2: 1.25
+  partner: true
+  catalog_url: "https://sumai.panasonic.jp/solar/"

@@ -1,0 +1,73 @@
+# 断熱材カテゴリデータベース
+# 出典: 国土交通省 省エネルギー基準 断熱材の熱伝導率表
+# 個別製品ではなくカテゴリ（A-1〜F）で分類（公式計算の入力方式に準拠）
+
+- id: insul-a1-gw10k
+  manufacturer: "一般"
+  series: "グラスウール"
+  name: "グラスウール 10K"
+  category: "A-1"
+  material_type: "グラスウール（10K相当）"
+  lambda_value: 0.050
+  typical_thickness_mm: [50, 75, 100]
+  recommended_zones: [6, 7, 8]
+
+- id: insul-a2-gw16k
+  manufacturer: "一般"
+  series: "グラスウール"
+  name: "グラスウール 16K"
+  category: "A-2"
+  material_type: "グラスウール（16K相当）"
+  lambda_value: 0.045
+  typical_thickness_mm: [50, 75, 100, 105]
+  recommended_zones: [5, 6, 7, 8]
+
+- id: insul-b-gw24k
+  manufacturer: "一般"
+  series: "グラスウール"
+  name: "高性能グラスウール 24K"
+  category: "B"
+  material_type: "高性能グラスウール（24K相当）"
+  lambda_value: 0.038
+  typical_thickness_mm: [75, 100, 105, 120]
+  recommended_zones: [4, 5, 6, 7]
+
+- id: insul-c-gw32k
+  manufacturer: "一般"
+  series: "グラスウール"
+  name: "高性能グラスウール 32K"
+  category: "C"
+  material_type: "高性能グラスウール（32K相当）"
+  lambda_value: 0.035
+  typical_thickness_mm: [75, 100, 105, 120]
+  recommended_zones: [3, 4, 5, 6]
+
+- id: insul-d-xps3
+  manufacturer: "一般"
+  series: "押出法ポリスチレンフォーム"
+  name: "XPS 3種"
+  category: "D"
+  material_type: "押出法ポリスチレンフォーム3種"
+  lambda_value: 0.028
+  typical_thickness_mm: [25, 30, 40, 50, 60]
+  recommended_zones: [2, 3, 4, 5, 6]
+
+- id: insul-e-upf1
+  manufacturer: "一般"
+  series: "硬質ウレタンフォーム"
+  name: "硬質ウレタンフォーム1種"
+  category: "E"
+  material_type: "硬質ウレタンフォーム1種"
+  lambda_value: 0.024
+  typical_thickness_mm: [25, 30, 40, 50]
+  recommended_zones: [1, 2, 3, 4, 5]
+
+- id: insul-f-phenol
+  manufacturer: "一般"
+  series: "フェノールフォーム"
+  name: "フェノールフォーム"
+  category: "F"
+  material_type: "フェノールフォーム"
+  lambda_value: 0.020
+  typical_thickness_mm: [25, 30, 40, 50, 60]
+  recommended_zones: [1, 2, 3, 4]

@@ -52,6 +52,14 @@ from .compliance import (
     EnvelopeResult as ComplianceEnvelopeResult,
     PrimaryEnergyResult as CompliancePrimaryEnergyResult,
 )
+from .residential import (
+    ResidentialEnvelopePart,
+    ResidentialFrontResult,
+    ResidentialVerifyRequest,
+    ResidentialBackendResult,
+    ResidentialComparison,
+    ResidentialVerifyResponse,
+)
 # 他にも building.py, result.py などに対応するスキーマがあれば、同様に追加します。
 # from .building import Building, BuildingCreate # (例)
 # from .result import ResultData # (例)
@@ -95,4 +103,10 @@ __all__ = [
     "ComplianceCalculationResult",
     "ComplianceEnvelopeResult",
     "CompliancePrimaryEnergyResult",
+    "ResidentialEnvelopePart",
+    "ResidentialFrontResult",
+    "ResidentialVerifyRequest",
+    "ResidentialBackendResult",
+    "ResidentialComparison",
+    "ResidentialVerifyResponse",
 ]

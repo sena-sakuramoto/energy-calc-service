@@ -1,0 +1,143 @@
+# 空調設備製品データベース
+# 出典: 各メーカー技術資料（2025-2026年版）
+# partner: true はパートナー企業の製品
+
+- id: panasonic-x-ceiling-56
+  manufacturer: "パナソニック"
+  series: "Xシリーズ"
+  name: "Xシリーズ 天井カセット形 5.6kW"
+  equipment_type: "パッケージエアコン"
+  capacity_kw: 5.6
+  cop_cooling: 3.7
+  cop_heating: 4.2
+  apf: 6.8
+  partner: true
+  recommended_zones: [4, 5, 6, 7, 8]
+  recommended_uses: ["office", "shop_supermarket", "restaurant"]
+  catalog_url: "https://www2.panasonic.biz/jp/air/"
+
+- id: panasonic-x-wall-112
+  manufacturer: "パナソニック"
+  series: "Xシリーズ"
+  name: "Xシリーズ 壁掛形 11.2kW"
+  equipment_type: "パッケージエアコン"
+  capacity_kw: 11.2
+  cop_cooling: 3.6
+  cop_heating: 4.1
+  apf: 6.5
+  partner: true
+  recommended_zones: [4, 5, 6, 7, 8]
+  recommended_uses: ["office", "school_small", "restaurant"]
+  catalog_url: "https://www2.panasonic.biz/jp/air/"
+
+- id: panasonic-x-floor-140
+  manufacturer: "パナソニック"
+  series: "Xシリーズ"
+  name: "Xシリーズ 床置形 14.0kW"
+  equipment_type: "パッケージエアコン"
+  capacity_kw: 14.0
+  cop_cooling: 3.5
+  cop_heating: 4.0
+  apf: 6.2
+  partner: true
+  recommended_zones: [4, 5, 6, 7, 8]
+  recommended_uses: ["office", "shop_department", "restaurant"]
+  catalog_url: "https://www2.panasonic.biz/jp/air/"
+
+- id: panasonic-g-hanging-224
+  manufacturer: "パナソニック"
+  series: "Gシリーズ"
+  name: "Gシリーズ 天井吊形 22.4kW"
+  equipment_type: "パッケージエアコン"
+  capacity_kw: 22.4
+  cop_cooling: 3.3
+  cop_heating: 3.9
+  apf: 5.9
+  partner: true
+  recommended_zones: [4, 5, 6, 7, 8]
+  recommended_uses: ["office", "hotel", "hospital"]
+  catalog_url: "https://www2.panasonic.biz/jp/air/"
+
+- id: panasonic-g-floor-280
+  manufacturer: "パナソニック"
+  series: "Gシリーズ"
+  name: "Gシリーズ 床置形 28.0kW"
+  equipment_type: "パッケージエアコン"
+  capacity_kw: 28.0
+  cop_cooling: 3.2
+  cop_heating: 3.8
+  apf: 5.8
+  partner: true
+  recommended_zones: [4, 5, 6, 7, 8]
+  recommended_uses: ["office", "hotel", "hospital"]
+  catalog_url: "https://www2.panasonic.biz/jp/air/"
+
+- id: panasonic-multi-xlpv-140
+  manufacturer: "パナソニック"
+  series: "ビル用マルチ XLPV"
+  name: "XLPV 14.0kW"
+  equipment_type: "マルチエアコン"
+  capacity_kw: 14.0
+  cop_cooling: 3.9
+  cop_heating: 4.3
+  apf: 6.6
+  partner: true
+  recommended_zones: [3, 4, 5, 6, 7]
+  recommended_uses: ["office", "hotel"]
+  catalog_url: "https://www2.panasonic.biz/jp/air/"
+
+- id: panasonic-multi-xlpv-224
+  manufacturer: "パナソニック"
+  series: "ビル用マルチ XLPV"
+  name: "XLPV 22.4kW"
+  equipment_type: "マルチエアコン"
+  capacity_kw: 22.4
+  cop_cooling: 3.8
+  cop_heating: 4.2
+  apf: 6.5
+  partner: true
+  recommended_zones: [3, 4, 5, 6, 7]
+  recommended_uses: ["office", "hotel"]
+  catalog_url: "https://www2.panasonic.biz/jp/air/"
+
+- id: panasonic-multi-xlhv-280
+  manufacturer: "パナソニック"
+  series: "ビル用マルチ XLHV"
+  name: "XLHV 28.0kW"
+  equipment_type: "マルチエアコン"
+  capacity_kw: 28.0
+  cop_cooling: 3.6
+  cop_heating: 4.1
+  apf: 6.1
+  partner: true
+  recommended_zones: [3, 4, 5, 6, 7]
+  recommended_uses: ["office", "hospital", "hotel"]
+  catalog_url: "https://www2.panasonic.biz/jp/air/"
+
+- id: daikin-vrv-standard
+  manufacturer: "ダイキン"
+  series: "VRV"
+  name: "VRV 標準タイプ"
+  equipment_type: "マルチエアコン"
+  capacity_kw: 22.4
+  cop_cooling: 4.0
+  cop_heating: 4.5
+  apf: 7.1
+  partner: false
+  recommended_zones: [1, 2, 3, 4, 5, 6, 7, 8]
+  recommended_uses: ["office", "hotel", "hospital"]
+  catalog_url: "https://www.daikin.co.jp/products/ac/"
+
+- id: mitsubishi-citymulti
+  manufacturer: "三菱電機"
+  series: "シティマルチ"
+  name: "シティマルチ Y シリーズ"
+  equipment_type: "マルチエアコン"
+  capacity_kw: 22.4
+  cop_cooling: 3.9
+  cop_heating: 4.3
+  apf: 6.8
+  partner: false
+  recommended_zones: [1, 2, 3, 4, 5, 6, 7, 8]
+  recommended_uses: ["office", "hotel", "hospital", "shop_department"]
+  catalog_url: "https://www.mitsubishielectric.co.jp/air/"

@@ -79,6 +79,13 @@ export default function Header() {
                       公式BEI計算
                     </Link>
                     <Link
+                      href="/residential"
+                      className="block px-4 py-2 text-primary-700 hover:bg-warm-100 hover:text-accent-500 transition-colors"
+                      onClick={closeMenus}
+                    >
+                      住宅外皮計算
+                    </Link>
+                    <Link
                       href="/tools/energy-calculator"
                       className="block px-4 py-2 text-primary-700 hover:bg-warm-100 hover:text-accent-500 transition-colors"
                       onClick={closeMenus}
@@ -171,6 +178,13 @@ export default function Header() {
                       onClick={closeMenus}
                     >
                       公式BEI計算
+                    </Link>
+                    <Link
+                      href="/residential"
+                      className="text-sm hover:text-warm-300 transition-colors"
+                      onClick={closeMenus}
+                    >
+                      住宅外皮計算
                     </Link>
                     <Link
                       href="/tools/energy-calculator"

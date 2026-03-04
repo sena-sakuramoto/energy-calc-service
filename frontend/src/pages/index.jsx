@@ -148,6 +148,28 @@ export default function Home() {
         </div>
       </section>
 
+      <section style={fullBleed} className="bg-white">
+        <div className="max-w-5xl mx-auto px-4 py-10">
+          <h2 className="text-2xl md:text-3xl font-bold text-primary-800 text-center mb-6">計算タイプを選択</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Link
+              href={isAuthenticated ? '/tools/official-bei' : '/register'}
+              className="bg-white border border-warm-200 hover:border-accent-300 rounded-xl p-6 shadow-sm transition-colors"
+            >
+              <div className="text-lg font-bold text-primary-800 mb-1">非住宅（モデル建物法）</div>
+              <div className="text-sm text-primary-500">国交省公式API連携のBEI計算・公式PDF出力</div>
+            </Link>
+            <Link
+              href="/residential"
+              className="bg-white border border-warm-200 hover:border-accent-300 rounded-xl p-6 shadow-sm transition-colors"
+            >
+              <div className="text-lg font-bold text-primary-800 mb-1">住宅（外皮計算）</div>
+              <div className="text-sm text-primary-500">UA値・ηAC値のリアルタイム計算と求積表/計算書PDF</div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ===== How It Works ===== */}
       <section id="how-it-works" style={fullBleed} className="bg-warm-50">
         <div className="max-w-5xl mx-auto px-4 py-20">

@@ -79,3 +79,7 @@ temp/
 playwright-report/
 test-results/
 e2e/.auth/
+.playwright-libs/
+
+# API仕様書PDF（バイナリ、リポジトリに含めない）
+api_envelope_spec.pdf

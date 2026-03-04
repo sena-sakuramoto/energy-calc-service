@@ -502,19 +502,38 @@ def _build_excel_buffer(input_data: Dict[str, Any]) -> io.BytesIO:
     return buf
 
 
-def _post_to_api(url: str, excel_buffer: io.BytesIO, timeout: int = 120) -> requests.Response:
-    """POST an Excel buffer to a lowenergy.jp endpoint and return the response."""
+def _post_to_api(
+    url: str,
+    excel_buffer: io.BytesIO,
+    timeout: int = 30,
+    max_retries: int = 3,
+) -> requests.Response:
+    """POST an Excel buffer to a lowenergy.jp endpoint with retry."""
     headers = {"Content-Type": EXCEL_CONTENT_TYPE}
     excel_buffer.seek(0)
     payload = excel_buffer.read()
-    try:
-        response = requests.post(url, data=payload, headers=headers, timeout=timeout)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as exc:
-        detail = exc.response.text if getattr(exc, "response", None) is not None else ""
-        logger.exception("API call failed (%s): %s", url, detail)
-        raise Exception(f"API request failed: {exc} {detail}") from exc
-    return response
+
+    last_exc: Optional[Exception] = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = requests.post(url, data=payload, headers=headers, timeout=timeout)
+            response.raise_for_status()
+            return response
+        except requests.exceptions.RequestException as exc:
+            last_exc = exc
+            detail = exc.response.text if getattr(exc, "response", None) is not None else ""
+            logger.warning(
+                "API call attempt %d/%d failed (%s): %s",
+                attempt, max_retries, url, detail,
+            )
+            if attempt < max_retries:
+                import time
+
+                time.sleep(min(2 ** attempt, 10))
+
+    detail = last_exc.response.text if getattr(last_exc, "response", None) is not None else ""
+    logger.exception("API call failed after %d retries (%s): %s", max_retries, url, detail)
+    raise Exception(f"API request failed: {last_exc} {detail}") from last_exc
 
 
 def _extract_api_error_message(payload: Dict[str, Any]) -> str:

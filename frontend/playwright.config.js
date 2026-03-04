@@ -1,5 +1,13 @@
 // @ts-check
 const { defineConfig, devices } = require('@playwright/test');
+const path = require('path');
+
+const fallbackLibPath = path.resolve(__dirname, '../.playwright-libs/root/usr/lib/x86_64-linux-gnu');
+const launchEnv = { ...process.env };
+
+if (process.platform === 'linux') {
+  launchEnv.LD_LIBRARY_PATH = [fallbackLibPath, process.env.LD_LIBRARY_PATH].filter(Boolean).join(':');
+}
 
 module.exports = defineConfig({
   testDir: './e2e',
@@ -9,11 +17,15 @@ module.exports = defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   timeout: 30_000,
+  globalSetup: './e2e/helpers/ensure-playwright-libs.js',
 
   use: {
     baseURL: 'http://localhost:3001',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    launchOptions: {
+      env: launchEnv,
+    },
   },
 
   projects: [

@@ -5,13 +5,14 @@ import {
   FaCalculator, FaBuilding, FaThermometerHalf, FaFan,
   FaWind, FaLightbulb, FaShower, FaArrowsAltV, FaSolarPanel,
   FaCogs, FaCheckCircle, FaArrowRight, FaArrowLeft,
-  FaFilePdf, FaFileExcel, FaUpload, FaExclamationTriangle,
+  FaFilePdf, FaUpload, FaExclamationTriangle,
   FaStar, FaRegStar, FaTimes, FaExternalLinkAlt,
 } from 'react-icons/fa';
 import CalculatorLayout from '../../components/CalculatorLayout';
 import FormSection from '../../components/FormSection';
-import HelpTooltip from '../../components/HelpTooltip';
-import { officialAPI } from '../../utils/api';
+import ProductSelector from '../../components/ProductSelector';
+import ImprovementSimulator from '../../components/ImprovementSimulator';
+import { officialAPI, productsAPI } from '../../utils/api';
 
 // ── ドロップダウン選択肢 (Excelテンプレートのdataシートから抽出) ──────
 
@@ -539,6 +540,48 @@ const STEPS = [
   { id: 10, label: '確認・出力', shortLabel: '出力', icon: FaFilePdf, form: 'output' },
 ];
 
+const BUILDING_TYPE_TO_USE_KEY = {
+  '事務所モデル': 'office',
+  'ビジネスホテルモデル': 'hotel',
+  'シティホテルモデル': 'hotel',
+  '総合病院モデル': 'hospital',
+  '福祉施設モデル': 'hospital',
+  'クリニックモデル': 'hospital',
+  '学校モデル': 'school_small',
+  '幼稚園モデル': 'school_small',
+  '大学モデル': 'school_university',
+  '講堂モデル': 'assembly',
+  '大規模物販モデル': 'shop_department',
+  '小規模物販モデル': 'shop_supermarket',
+  '飲食店モデル': 'restaurant',
+  '集会所モデル': 'assembly',
+  '工場モデル': 'factory',
+};
+
+const WINDOW_TYPE_MAP = {
+  樹脂: {
+    トリプル: '樹脂製(三層以上の複層ガラス)',
+    'Low-E複層': '樹脂製(二層複層ガラス)',
+    複層: '樹脂製(二層複層ガラス)',
+  },
+  アルミ樹脂複合: {
+    トリプル: '金属樹脂複合製(三層以上の複層ガラス)',
+    'Low-E複層': '金属樹脂複合製(二層複層ガラス)',
+    複層: '金属樹脂複合製(二層複層ガラス)',
+  },
+  アルミ: {
+    トリプル: '金属製(二層以上の複層ガラス)',
+    'Low-E複層': '金属製(二層以上の複層ガラス)',
+    複層: '金属製(二層以上の複層ガラス)',
+  },
+};
+
+const HVAC_TYPE_MAP = {
+  パッケージエアコン: 'パッケージエアコンディショナ(空冷式)',
+  マルチエアコン: 'パッケージエアコンディショナ(空冷式)',
+  チラー: 'ウォータチリングユニット(空冷式)',
+};
+
 // ── メインコンポーネント ──────────────────────────────────────────
 
 export default function OfficialBEI() {
@@ -574,6 +617,15 @@ export default function OfficialBEI() {
   // ── 完了モーダル ──
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionBei, setCompletionBei] = useState(null);
+  const [selectedProducts, setSelectedProducts] = useState({
+    windows: null,
+    insulation: null,
+    hvac: null,
+    lighting: null,
+  });
+  const [aiRecommendations, setAiRecommendations] = useState([]);
+  const [isRecalculating, setIsRecalculating] = useState(false);
+  const [pendingRecommendation, setPendingRecommendation] = useState(null);
 
   const shouldShowModal = () => {
     try {
@@ -594,6 +646,108 @@ export default function OfficialBEI() {
   };
 
   const isSmall = parseFloat(building.calc_floor_area) > 0 && parseFloat(building.calc_floor_area) < 300;
+  const productFilterZone = parseInt(String(building.region || '').replace('地域', ''), 10) || 6;
+  const productFilterUse = BUILDING_TYPE_TO_USE_KEY[building.building_type] || 'office';
+
+  const trackSelectedProduct = useCallback((category, product) => {
+    if (!product?.id) return;
+    productsAPI.trackSelection({
+      product_id: product.id,
+      product_name: product.name,
+      manufacturer: product.manufacturer,
+      category,
+      building_zone: productFilterZone,
+      building_use: productFilterUse,
+      floor_area: Number(building.calc_floor_area || 0) || undefined,
+      session_id: typeof window !== 'undefined' ? localStorage.getItem('session_id') || undefined : undefined,
+    }).catch(() => {
+      // Analytics tracking should not block main workflow.
+    });
+  }, [building.calc_floor_area, productFilterUse, productFilterZone]);
+
+  const mapWindowType = useCallback((product) => {
+    const byType = WINDOW_TYPE_MAP[product.window_type] || {};
+    return byType[product.glass_type] || '金属製(二層以上の複層ガラス)';
+  }, []);
+
+  const applyWindowProduct = useCallback((product) => {
+    setSelectedProducts((prev) => ({ ...prev, windows: product }));
+    if (!product) return;
+    trackSelectedProduct('windows', product);
+
+    setWindows((prev) => {
+      const next = prev.length > 0 ? [...prev] : [emptyWindow()];
+      next[0] = {
+        ...next[0],
+        name: product.name || next[0].name,
+        window_type: mapWindowType(product),
+        window_u_value: product.u_value ?? next[0].window_u_value,
+        window_shgc: product.eta_c ?? next[0].window_shgc,
+      };
+      return next;
+    });
+  }, [mapWindowType, trackSelectedProduct]);
+
+  const applyInsulationProduct = useCallback((product) => {
+    setSelectedProducts((prev) => ({ ...prev, insulation: product }));
+    if (!product) return;
+    trackSelectedProduct('insulation', product);
+
+    setInsulations((prev) => {
+      const next = prev.length > 0 ? [...prev] : [emptyInsulation()];
+      next[0] = {
+        ...next[0],
+        name: product.name || next[0].name,
+        part_class: next[0].part_class || '外壁',
+        input_method: '熱伝導率と厚みを入力する',
+        material_category: product.material_type || next[0].material_category,
+        conductivity: product.lambda_value ?? next[0].conductivity,
+        thickness:
+          product.typical_thickness_mm?.[0] ??
+          next[0].thickness,
+      };
+      return next;
+    });
+  }, [trackSelectedProduct]);
+
+  const applyHvacProduct = useCallback((product) => {
+    setSelectedProducts((prev) => ({ ...prev, hvac: product }));
+    if (!product) return;
+    trackSelectedProduct('hvac', product);
+
+    setHeatSources((prev) => {
+      const next = prev.length > 0 ? [...prev] : [emptyHeatSource()];
+      const capacity = Number(product.capacity_kw || 0);
+      const copCooling = Number(product.cop_cooling || 0);
+      const copHeating = Number(product.cop_heating || 0);
+      next[0] = {
+        ...next[0],
+        name: product.name || next[0].name,
+        type: HVAC_TYPE_MAP[product.equipment_type] || next[0].type || 'パッケージエアコンディショナ(空冷式)',
+        capacity_cooling: capacity || next[0].capacity_cooling,
+        capacity_heating: capacity || next[0].capacity_heating,
+        power_cooling: capacity && copCooling ? (capacity / copCooling).toFixed(2) : next[0].power_cooling,
+        power_heating: capacity && copHeating ? (capacity / copHeating).toFixed(2) : next[0].power_heating,
+      };
+      return next;
+    });
+  }, [trackSelectedProduct]);
+
+  const applyLightingProduct = useCallback((product) => {
+    setSelectedProducts((prev) => ({ ...prev, lighting: product }));
+    if (!product) return;
+    trackSelectedProduct('lighting', product);
+
+    setLightings((prev) => {
+      const next = prev.length > 0 ? [...prev] : [emptyLighting()];
+      next[0] = {
+        ...next[0],
+        fixture_name: product.name || next[0].fixture_name,
+        power_per_unit: product.wattage ?? next[0].power_per_unit,
+      };
+      return next;
+    });
+  }, [trackSelectedProduct]);
 
   // 配列フィールドの汎用更新ヘルパー
   const updateRow = useCallback((setter, index, field, value) => {
@@ -775,8 +929,15 @@ export default function OfficialBEI() {
     setElevators(SAMPLE_DATA.elevators.map((row) => ({ ...row })));
     setSolarPVs(SAMPLE_DATA.solarPVs.map((row) => ({ ...row })));
     setCogenerations(SAMPLE_DATA.cogenerations.map((row) => ({ ...row })));
+    setSelectedProducts({
+      windows: null,
+      insulation: null,
+      hvac: null,
+      lighting: null,
+    });
     setFieldErrors({});
     setComputeResult(null);
+    setAiRecommendations([]);
     setError(null);
     setStep(1);
   }, []);
@@ -920,6 +1081,69 @@ export default function OfficialBEI() {
     }
   }, []);
 
+  const fetchAiRecommendations = useCallback(async (beiValue) => {
+    try {
+      const response = await productsAPI.recommend(
+        productFilterZone,
+        productFilterUse,
+        Number(building.calc_floor_area || 0) || 1,
+        beiValue
+      );
+      setAiRecommendations(response?.recommendations || []);
+    } catch {
+      setAiRecommendations([]);
+    }
+  }, [building.calc_floor_area, productFilterUse, productFilterZone]);
+
+  const handleApplyRecommendation = useCallback((rec) => {
+    if (!rec?.product) return;
+
+    if (rec.category === 'windows') applyWindowProduct(rec.product);
+    if (rec.category === 'insulation') applyInsulationProduct(rec.product);
+    if (rec.category === 'hvac') applyHvacProduct(rec.product);
+    if (rec.category === 'lighting') applyLightingProduct(rec.product);
+
+    setPendingRecommendation(rec);
+  }, [applyHvacProduct, applyInsulationProduct, applyLightingProduct, applyWindowProduct]);
+
+  useEffect(() => {
+    if (!pendingRecommendation) return;
+
+    let canceled = false;
+    const run = async () => {
+      setIsRecalculating(true);
+      setError(null);
+      try {
+        if (!validateBeforeSubmit()) return;
+        const payload = buildPayload();
+        const res = await officialAPI.getCompute(payload);
+        if (canceled) return;
+
+        setComputeResult(res.data);
+        setFieldErrors({});
+        const beiValue = res.data?.BEI ?? res.data?.bei ?? null;
+        triggerCompletionModal(beiValue);
+        await fetchAiRecommendations(beiValue);
+      } catch (e) {
+        if (canceled) return;
+        const status = e.response?.status;
+        const detail = e.response?.data?.detail || e.message;
+        moveToStepFromApiError(String(detail || ''));
+        setError(`公式再計算エラー: ${normalizeOfficialError(detail, status)}`);
+      } finally {
+        if (!canceled) {
+          setIsRecalculating(false);
+          setPendingRecommendation(null);
+        }
+      }
+    };
+
+    run();
+    return () => {
+      canceled = true;
+    };
+  }, [pendingRecommendation]);
+
   const handleCompute = async () => {
     setError(null);
     if (!validateBeforeSubmit()) return;
@@ -929,7 +1153,9 @@ export default function OfficialBEI() {
       const res = await officialAPI.getCompute(payload);
       setComputeResult(res.data);
       setFieldErrors({});
-      triggerCompletionModal(res.data?.BEI ?? res.data?.bei ?? null);
+      const beiValue = res.data?.BEI ?? res.data?.bei ?? null;
+      triggerCompletionModal(beiValue);
+      await fetchAiRecommendations(beiValue);
     } catch (e) {
       const status = e.response?.status;
       const detail = e.response?.data?.detail || e.message;
@@ -1335,9 +1561,13 @@ export default function OfficialBEI() {
         必須入力: 「建物名称」「省エネ基準地域区分」「建物用途」「計算対象床面積」。
       </div>
       {isSmall && (
-        <div className="mt-4 bg-accent-50 border border-accent-200 rounded-lg p-3 text-sm text-accent-700">
-          300m2未満のため、小規模版テンプレート(SMALLMODEL)が使用されます。
-          様式B3(外皮)、C3(ポンプ)、C4(送風機)、G(昇降機)、I(コージェネ)は省略されます。
+        <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+          <p className="font-semibold">300m2未満の建物について</p>
+          <p className="mt-1">
+            現在、公式APIの制限により小規模版テンプレート(SMALLMODEL)は使用できません。
+            通常テンプレート(MODEL)で計算を行います。計算精度に影響はありませんが、
+            一部の入力項目が小規模建物には不要な場合があります。
+          </p>
         </div>
       )}
     </FormSection>
@@ -1431,7 +1661,10 @@ export default function OfficialBEI() {
             <div>地域区分: <strong>{building.region || '-'}</strong></div>
             <div>建物用途: <strong>{building.building_type || '-'}</strong></div>
             <div>計算対象床面積: <strong>{building.calc_floor_area || '-'} m2</strong></div>
-            <div>テンプレート: <strong>{isSmall ? '小規模版 (SMALLMODEL)' : '通常版 (MODEL)'}</strong></div>
+            <div>
+              テンプレート:
+              <strong>通常版 (MODEL){isSmall ? ' ※小規模建物もMODELで送信' : ''}</strong>
+            </div>
             <div>開口部: <strong>{windows.filter(w => w.name || w.window_type).length}件</strong></div>
             <div>断熱仕様: <strong>{insulations.filter(i => i.name || i.part_class).length}件</strong></div>
             <div>空調熱源: <strong>{heatSources.filter(h => h.type).length}件</strong></div>
@@ -1516,6 +1749,14 @@ export default function OfficialBEI() {
             <pre className="text-xs text-green-900 overflow-auto max-h-64 bg-white rounded p-3">
               {JSON.stringify(computeResult, null, 2)}
             </pre>
+            <ImprovementSimulator
+              currentBei={Number(computeResult?.BEI ?? computeResult?.bei ?? 0)}
+              zone={productFilterZone}
+              use={productFilterUse}
+              recommendations={aiRecommendations}
+              isRecalculating={isRecalculating}
+              onApplyChange={handleApplyRecommendation}
+            />
           </div>
         )}
       </div>
@@ -1525,23 +1766,51 @@ export default function OfficialBEI() {
   const renderCurrentStep = () => {
     switch (step) {
       case 1: return renderFormA();
-      case 2: return renderTableForm('様式B1: 開口部仕様', FaThermometerHalf, windows, setWindows, emptyWindow, [
-        { key: 'name', label: '建具仕様名称', type: 'text', placeholder: '窓-1' },
-        { key: 'width', label: '幅 W', type: 'number', unit: 'm' },
-        { key: 'height', label: '高さ H', type: 'number', unit: 'm' },
-        { key: 'area', label: '窓面積', type: 'number', unit: 'm2' },
-        { key: 'window_type', label: '建具の種類', type: 'select', options: WINDOW_TYPES },
-        { key: 'window_u_value', label: '窓 熱貫流率', type: 'number', unit: 'W/(m2K)' },
-        { key: 'window_shgc', label: '窓 日射熱取得率', type: 'number', unit: '-' },
-      ], 'windows');
-      case 3: return renderTableForm('様式B2: 断熱仕様', FaThermometerHalf, insulations, setInsulations, emptyInsulation, [
-        { key: 'name', label: '断熱仕様名称', type: 'text', placeholder: '断熱-1' },
-        { key: 'part_class', label: '部位種別', type: 'select', options: PART_CLASSES },
-        { key: 'input_method', label: '入力方法', type: 'select', options: INSULATION_INPUT_METHODS },
-        { key: 'material_category', label: '断熱材種類(大分類)', type: 'select', options: INSULATION_MATERIALS },
-        { key: 'thickness', label: '厚み', type: 'number', unit: 'mm' },
-        { key: 'u_value', label: '熱貫流率', type: 'number', unit: 'W/(m2K)' },
-      ], 'insulations');
+      case 2:
+        return (
+          <>
+            <FormSection title="推奨製品選択: 窓サッシ" icon={FaThermometerHalf}>
+              <ProductSelector
+                category="windows"
+                zone={productFilterZone}
+                use={productFilterUse}
+                selected={selectedProducts.windows}
+                onSelect={applyWindowProduct}
+              />
+            </FormSection>
+            {renderTableForm('様式B1: 開口部仕様', FaThermometerHalf, windows, setWindows, emptyWindow, [
+              { key: 'name', label: '建具仕様名称', type: 'text', placeholder: '窓-1' },
+              { key: 'width', label: '幅 W', type: 'number', unit: 'm' },
+              { key: 'height', label: '高さ H', type: 'number', unit: 'm' },
+              { key: 'area', label: '窓面積', type: 'number', unit: 'm2' },
+              { key: 'window_type', label: '建具の種類', type: 'select', options: WINDOW_TYPES },
+              { key: 'window_u_value', label: '窓 熱貫流率', type: 'number', unit: 'W/(m2K)' },
+              { key: 'window_shgc', label: '窓 日射熱取得率', type: 'number', unit: '-' },
+            ], 'windows')}
+          </>
+        );
+      case 3:
+        return (
+          <>
+            <FormSection title="推奨製品選択: 断熱材" icon={FaThermometerHalf}>
+              <ProductSelector
+                category="insulation"
+                zone={productFilterZone}
+                use={productFilterUse}
+                selected={selectedProducts.insulation}
+                onSelect={applyInsulationProduct}
+              />
+            </FormSection>
+            {renderTableForm('様式B2: 断熱仕様', FaThermometerHalf, insulations, setInsulations, emptyInsulation, [
+              { key: 'name', label: '断熱仕様名称', type: 'text', placeholder: '断熱-1' },
+              { key: 'part_class', label: '部位種別', type: 'select', options: PART_CLASSES },
+              { key: 'input_method', label: '入力方法', type: 'select', options: INSULATION_INPUT_METHODS },
+              { key: 'material_category', label: '断熱材種類(大分類)', type: 'select', options: INSULATION_MATERIALS },
+              { key: 'thickness', label: '厚み', type: 'number', unit: 'mm' },
+              { key: 'u_value', label: '熱貫流率', type: 'number', unit: 'W/(m2K)' },
+            ], 'insulations')}
+          </>
+        );
       case 4:
         if (isSmall) return (
           <FormSection title="様式B3: 外皮仕様" icon={FaBuilding}>
@@ -1565,6 +1834,15 @@ export default function OfficialBEI() {
         ], 'envelopes');
       case 5: return (
         <>
+          <FormSection title="推奨製品選択: 空調設備" icon={FaFan}>
+            <ProductSelector
+              category="hvac"
+              zone={productFilterZone}
+              use={productFilterUse}
+              selected={selectedProducts.hvac}
+              onSelect={applyHvacProduct}
+            />
+          </FormSection>
           {renderTableForm('様式C1: 空調熱源', FaFan, heatSources, setHeatSources, emptyHeatSource, [
             { key: 'name', label: '熱源機器名称', type: 'text', placeholder: 'PAC-1' },
             { key: 'type', label: '熱源機種', type: 'select', options: HEAT_SOURCE_TYPES },
@@ -1611,19 +1889,33 @@ export default function OfficialBEI() {
         { key: 'inverter', label: 'インバーター', type: 'select', options: BOOLEAN_LIST },
         { key: 'airflow_control', label: '送風量制御', type: 'select', options: BOOLEAN_LIST },
       ], 'ventilations');
-      case 7: return renderTableForm('様式E: 照明', FaLightbulb, lightings, setLightings, emptyLighting, [
-        { key: 'room_name', label: '室名称', type: 'text', placeholder: '事務室1' },
-        { key: 'room_type', label: '室用途', type: 'text', placeholder: '事務室' },
-        { key: 'floor_area', label: '床面積', type: 'number', unit: 'm2' },
-        { key: 'room_height', label: '室の高さ', type: 'number', unit: 'm' },
-        { key: 'fixture_name', label: '照明器具名称', type: 'text' },
-        { key: 'power_per_unit', label: '消費電力', type: 'number', unit: 'W/台' },
-        { key: 'count', label: '台数', type: 'number', placeholder: '1' },
-        { key: 'occupancy_sensor', label: '在室検知制御', type: 'select', options: BOOLEAN_LIST },
-        { key: 'daylight_control', label: '明るさ制御', type: 'select', options: BOOLEAN_LIST },
-        { key: 'schedule_control', label: 'タイムスケジュール', type: 'select', options: BOOLEAN_LIST },
-        { key: 'initial_illuminance', label: '初期照度補正', type: 'select', options: BOOLEAN_LIST },
-      ], 'lightings');
+      case 7:
+        return (
+          <>
+            <FormSection title="推奨製品選択: 照明設備" icon={FaLightbulb}>
+              <ProductSelector
+                category="lighting"
+                zone={productFilterZone}
+                use={productFilterUse}
+                selected={selectedProducts.lighting}
+                onSelect={applyLightingProduct}
+              />
+            </FormSection>
+            {renderTableForm('様式E: 照明', FaLightbulb, lightings, setLightings, emptyLighting, [
+              { key: 'room_name', label: '室名称', type: 'text', placeholder: '事務室1' },
+              { key: 'room_type', label: '室用途', type: 'text', placeholder: '事務室' },
+              { key: 'floor_area', label: '床面積', type: 'number', unit: 'm2' },
+              { key: 'room_height', label: '室の高さ', type: 'number', unit: 'm' },
+              { key: 'fixture_name', label: '照明器具名称', type: 'text' },
+              { key: 'power_per_unit', label: '消費電力', type: 'number', unit: 'W/台' },
+              { key: 'count', label: '台数', type: 'number', placeholder: '1' },
+              { key: 'occupancy_sensor', label: '在室検知制御', type: 'select', options: BOOLEAN_LIST },
+              { key: 'daylight_control', label: '明るさ制御', type: 'select', options: BOOLEAN_LIST },
+              { key: 'schedule_control', label: 'タイムスケジュール', type: 'select', options: BOOLEAN_LIST },
+              { key: 'initial_illuminance', label: '初期照度補正', type: 'select', options: BOOLEAN_LIST },
+            ], 'lightings')}
+          </>
+        );
       case 8: return renderTableForm('様式F: 給湯', FaShower, hotWaters, setHotWaters, emptyHotWater, [
         { key: 'system_name', label: '給湯系統名称', type: 'text', placeholder: '給湯-1' },
         { key: 'use_type', label: '給湯用途', type: 'select', options: HW_USE_TYPES },

@@ -31,6 +31,7 @@ from app.api.v1.bei_catalog import router as bei_catalog_router
 from app.api.v1.compliance import router as compliance_router
 
 router = APIRouter()
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB
 
 # Health endpoint under v1
 @router.get("/healthz", summary="API v1 health")
@@ -199,6 +200,11 @@ async def upload_excel_get_report(file: UploadFile = File(..., description="公�
         raise HTTPException(status_code=400, detail="Excelファイル (.xlsx または .xlsm) をアップロードしてください。")
     try:
         excel_bytes = await file.read()
+        if len(excel_bytes) > MAX_UPLOAD_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail=f"ファイルサイズが上限（10MB）を超えています。({len(excel_bytes) // 1024 // 1024}MB)",
+            )
         pdf_bytes = get_official_report_from_excel(excel_bytes)
         safe_name = file.filename.rsplit(".", 1)[0] + "_official_report.pdf"
         return StreamingResponse(
@@ -227,6 +233,11 @@ async def upload_excel_get_compute(file: UploadFile = File(..., description="公
         raise HTTPException(status_code=400, detail="Excelファイル (.xlsx または .xlsm) をアップロードしてください。")
     try:
         excel_bytes = await file.read()
+        if len(excel_bytes) > MAX_UPLOAD_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail=f"ファイルサイズが上限（10MB）を超えています。({len(excel_bytes) // 1024 // 1024}MB)",
+            )
         result = get_official_compute_from_excel(excel_bytes)
         return result
     except ValueError as e:

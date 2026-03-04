@@ -1,0 +1,131 @@
+# 照明設備製品データベース
+# 出典: 各メーカー技術資料（2025-2026年版）
+# partner: true はパートナー企業の製品
+
+- id: panasonic-id-higheff
+  manufacturer: "パナソニック"
+  series: "iDシリーズ"
+  name: "iDシリーズ 省エネタイプ"
+  fixture_type: "ベースライト"
+  lm_per_w: 193.9
+  wattage: 26.3
+  dimming: true
+  partner: true
+  recommended_uses: ["office", "school_small", "hospital"]
+  catalog_url: "https://www2.panasonic.biz/jp/lighting/"
+
+- id: panasonic-id-standard
+  manufacturer: "パナソニック"
+  series: "iDシリーズ"
+  name: "iDシリーズ 一般タイプ"
+  fixture_type: "ベースライト"
+  lm_per_w: 163.0
+  wattage: 31.9
+  dimming: true
+  partner: true
+  recommended_uses: ["office", "school_small", "factory"]
+  catalog_url: "https://www2.panasonic.biz/jp/lighting/"
+
+- id: panasonic-id-slim
+  manufacturer: "パナソニック"
+  series: "iDシリーズ"
+  name: "iDシリーズ スリムタイプ"
+  fixture_type: "ベースライト"
+  lm_per_w: 175.0
+  wattage: 24.0
+  dimming: true
+  partner: true
+  recommended_uses: ["office", "hotel", "school_small"]
+  catalog_url: "https://www2.panasonic.biz/jp/lighting/"
+
+- id: panasonic-integrated-base
+  manufacturer: "パナソニック"
+  series: "一体型LEDベースライト"
+  name: "一体型LEDベースライト"
+  fixture_type: "ベースライト"
+  lm_per_w: 158.0
+  wattage: 33.0
+  dimming: true
+  partner: true
+  recommended_uses: ["office", "shop_department", "school_small"]
+  catalog_url: "https://www2.panasonic.biz/jp/lighting/"
+
+- id: panasonic-downlight-led
+  manufacturer: "パナソニック"
+  series: "LEDダウンライト"
+  name: "LEDダウンライト 高効率"
+  fixture_type: "ダウンライト"
+  lm_per_w: 150.0
+  wattage: 10.5
+  dimming: true
+  partner: true
+  recommended_uses: ["hotel", "restaurant", "assembly"]
+  catalog_url: "https://www2.panasonic.biz/jp/lighting/"
+
+- id: panasonic-downlight-standard
+  manufacturer: "パナソニック"
+  series: "LEDダウンライト"
+  name: "LEDダウンライト 一般"
+  fixture_type: "ダウンライト"
+  lm_per_w: 120.0
+  wattage: 13.2
+  dimming: false
+  partner: true
+  recommended_uses: ["restaurant", "hotel", "assembly"]
+  catalog_url: "https://www2.panasonic.biz/jp/lighting/"
+
+- id: panasonic-highbay-led
+  manufacturer: "パナソニック"
+  series: "高天井用LED"
+  name: "高天井用LED照明"
+  fixture_type: "シーリング"
+  lm_per_w: 170.0
+  wattage: 105.0
+  dimming: true
+  partner: true
+  recommended_uses: ["factory", "assembly"]
+  catalog_url: "https://www2.panasonic.biz/jp/lighting/"
+
+- id: koizumi-baselight
+  manufacturer: "コイズミ照明"
+  series: "LEDベースライト"
+  name: "LEDベースライト 直管形"
+  fixture_type: "ベースライト"
+  lm_per_w: 170.0
+  wattage: 28.0
+  dimming: false
+  partner: false
+  recommended_uses: ["office", "school_small", "factory"]
+
+- id: odelic-led-highbay
+  manufacturer: "オーデリック"
+  series: "LED高天井用"
+  name: "LED高天井照明"
+  fixture_type: "シーリング"
+  lm_per_w: 140.0
+  wattage: 120.0
+  dimming: false
+  partner: false
+  recommended_uses: ["factory", "assembly"]
+
+- id: generic-led-standard
+  manufacturer: "一般"
+  series: "LED"
+  name: "一般LED照明 標準"
+  fixture_type: "ベースライト"
+  lm_per_w: 120.0
+  wattage: 40.0
+  dimming: false
+  partner: false
+  recommended_uses: ["office", "school_small", "factory", "restaurant", "assembly"]
+
+- id: generic-led-higheff
+  manufacturer: "一般"
+  series: "LED"
+  name: "一般LED照明 高効率"
+  fixture_type: "ベースライト"
+  lm_per_w: 150.0
+  wattage: 32.0
+  dimming: false
+  partner: false
+  recommended_uses: ["office", "school_small", "hospital"]

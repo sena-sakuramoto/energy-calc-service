@@ -26,6 +26,7 @@ exports.PUBLIC_PAGES = [
   '/setup-guide',
   '/system/status',
   '/guide/model-building-method',
+  '/residential',
 ];
 
 exports.PROTECTED_PAGES = [

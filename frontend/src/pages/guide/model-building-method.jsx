@@ -75,6 +75,35 @@ export default function ModelBuildingMethodGuide() {
     ]
   };
 
+  const BUILDING_TYPES = [
+    { code: '01', name: '事務所等' },
+    { code: '02', name: '大規模事務所（2,000m²以上）' },
+    { code: '03', name: 'ホテル等' },
+    { code: '04', name: '大規模ホテル（2,000m²以上）' },
+    { code: '05', name: '病院等' },
+    { code: '06', name: '大規模病院（2,000m²以上）' },
+    { code: '07', name: '物品販売業を営む店舗等' },
+    { code: '08', name: '大規模物品販売業（2,000m²以上）' },
+    { code: '09', name: '学校等' },
+    { code: '10', name: '大規模学校（2,000m²以上）' },
+    { code: '11', name: '飲食店等' },
+    { code: '12', name: '集会所等' },
+    { code: '13', name: '大規模集会所（2,000m²以上）' },
+    { code: '14', name: '工場等' },
+    { code: '15', name: '大規模工場（2,000m²以上）' },
+    { code: '16', name: '倉庫等（室内温度管理あり）' },
+    { code: '17', name: '住宅以外の複合建築物' },
+    { code: '18', name: '大規模複合（2,000m²以上）' },
+    { code: '19', name: '体育館等' },
+    { code: '20', name: '劇場等' },
+    { code: '21', name: '公衆浴場施設等' },
+    { code: '22', name: '老人ホーム等' },
+    { code: '23', name: '小規模事務所等（300m²未満）' },
+    { code: '24', name: '小規模ホテル等（300m²未満）' },
+    { code: '25', name: '小規模病院等（300m²未満）' },
+    { code: '26', name: '小規模その他（300m²未満）' },
+  ];
+
   return (
     <>
       <Head>
@@ -265,25 +294,11 @@ export default function ModelBuildingMethodGuide() {
             </div>
 
             {/* 対応建物用途 */}
-            <h3 className="text-xl font-semibold text-primary-900 mb-4">対応している建物用途（12用途）</h3>
+            <h3 className="text-xl font-semibold text-primary-900 mb-4">対応している建物用途（26用途）</h3>
             <div className="grid md:grid-cols-3 gap-4 mb-6">
-              {[
-                { name: '事務所等', desc: 'オフィスビル・庁舎' },
-                { name: 'ホテル等', desc: 'ホテル・旅館・民宿' },
-                { name: '病院等', desc: '病院・診療所・福祉施設' },
-                { name: '百貨店等', desc: '百貨店・大型商業施設' },
-                { name: 'スーパーマーケット', desc: '食品スーパー・量販店' },
-                { name: '学校等（小中学校）', desc: '小学校・中学校' },
-                { name: '学校等（高等学校）', desc: '高等学校・高専' },
-                { name: '学校等（大学）', desc: '大学・専門学校' },
-                { name: '飲食店等', desc: 'レストラン・居酒屋' },
-                { name: '集会所等', desc: '公民館・会議室' },
-                { name: '工場等', desc: '製造業・倉庫' },
-                { name: '共同住宅', desc: 'マンション・アパート' }
-              ].map((item, index) => (
-                <div key={index} className="bg-warm-50 border border-primary-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-primary-800">{item.name}</h4>
-                  <p className="text-sm text-primary-600">{item.desc}</p>
+              {BUILDING_TYPES.map((item) => (
+                <div key={item.code} className="bg-warm-50 border border-primary-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-primary-800">{item.code}. {item.name}</h4>
                 </div>
               ))}
             </div>

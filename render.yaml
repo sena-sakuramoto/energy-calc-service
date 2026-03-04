@@ -10,7 +10,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 4
     healthCheckPath: /healthz
     envVars:
       - key: ENV
@@ -23,3 +23,5 @@ services:
           property: connectionURI
       - key: PYTHON_VERSION
         value: "3.11.9"
+      - key: PRODUCTION_ENFORCE_READINESS
+        value: "true"
