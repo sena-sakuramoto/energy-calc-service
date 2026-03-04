@@ -1,0 +1,49 @@
+name: Production Readiness Guard
+
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - "scripts/check_production_readiness.py"
+      - "tests/test_readiness.py"
+      - "tests/test_report_upload.py"
+      - "requirements.txt"
+      - ".github/workflows/production-readiness.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "app/**"
+      - "scripts/check_production_readiness.py"
+      - "tests/test_readiness.py"
+      - "tests/test_report_upload.py"
+      - "requirements.txt"
+      - ".github/workflows/production-readiness.yml"
+  workflow_dispatch:
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run readiness tests
+        run: PYTHONPATH=. pytest tests/test_readiness.py tests/test_report_upload.py -q
+
+      - name: Run readiness CLI gate
+        env:
+          ENV: production
+          SECRET_KEY: ci-production-secret-key-not-default-2026
+          DATABASE_URL: postgresql://ci-user:ci-pass@db.example.com:5432/energy
+        run: PYTHONPATH=. python scripts/check_production_readiness.py --format text
