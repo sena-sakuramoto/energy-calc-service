@@ -304,7 +304,6 @@ export default function ResidentialCalc() {
                 stories: payload.stories,
                 a_a: payload.a_a,
               });
-              setActiveTab('walls');
             }}
           />
         )}

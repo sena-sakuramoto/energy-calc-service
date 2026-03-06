@@ -62,6 +62,11 @@ const BOOLEAN_LIST = ['無','有'];
 const HW_USE_TYPES = ['洗面・手洗い','浴室','厨房'];
 const INSULATION_LEVELS = ['裸管','保温仕様D','保温仕様C','保温仕様B','保温仕様A','保温仕様2または3','保温仕様1'];
 const WATER_SAVING = ['無','自動給湯栓','節湯B1'];
+const WATER_SAVING_BY_USE = {
+  '洗面・手洗い': ['無', '自動給湯栓'],
+  浴室: ['無', '節湯B1'],
+  厨房: ['無'],
+};
 const ELEVATOR_CONTROLS = ['交流帰還制御等','可変電圧可変周波数制御方式(回生なし)','可変電圧可変周波数制御方式(回生あり)'];
 const SOLAR_CELL_TYPES = ['結晶系太陽電池','結晶系以外の太陽電池'];
 const INSTALL_MODES = ['下記に掲げるもの以外','屋根置き形','架台設置形'];
@@ -100,7 +105,7 @@ const SMART_DEFAULTS = {
     outdoorAir: [{ name: '標準OA', count: 1, supply_airflow: '3000', exhaust_airflow: '2800', heat_exchange_eff_cooling: '60', heat_exchange_eff_heating: '60', auto_bypass: '有', preheat_stop: '無' }],
     ventilations: [{ room_name: '機械室', room_type: '機械室', floor_area: '25', method: '第一種換気', equipment_name: '標準換気', count: 1, airflow: '600', motor_power: '350', high_eff_motor: '有', inverter: '有', airflow_control: '有' }],
     lightings: [{ room_name: '事務室', room_type: '事務室', floor_area: '120', room_height: '2.8', fixture_name: '標準LED', power_per_unit: '34', count: 18, occupancy_sensor: '有', daylight_control: '無', schedule_control: '有', initial_illuminance: '有' }],
-    hotWaters: [{ system_name: '標準給湯', use_type: '洗面・手洗い', source_name: '標準HPWH', count: 1, heating_capacity: '18', power_consumption: '4.5', insulation_level: '保温仕様B', water_saving: '節湯B1' }],
+    hotWaters: [{ system_name: '標準給湯', use_type: '洗面・手洗い', source_name: '標準HPWH', count: 1, heating_capacity: '18', power_consumption: '4.5', fuel_consumption: '0', insulation_level: '保温仕様B', water_saving: '自動給湯栓' }],
     elevators: [{ name: '標準EV', control_type: '可変電圧可変周波数制御方式(回生あり)' }],
   },
 };
@@ -113,6 +118,8 @@ const QUICK_STANDARD_INTENSITY = {
   '講堂モデル': 200, '大規模物販モデル': 280, '小規模物販モデル': 260,
   '飲食店モデル': 310, '集会所モデル': 200, '工場モデル': 190,
 };
+
+const getWaterSavingOptions = (useType) => WATER_SAVING_BY_USE[useType] || WATER_SAVING;
 
 // BEIゲージコンポーネント
 function BEIGauge({ bei, isEstimate = false }) {
@@ -333,7 +340,7 @@ const SAMPLE_DATA = {
     region: '6地域',
     solar_region: 'A4区分',
     building_type: '事務所モデル',
-    room_type: '事務室',
+    room_type: '',
     calc_floor_area: '500',
     ac_floor_area: '420',
     total_area: '500',
@@ -407,7 +414,7 @@ const SAMPLE_DATA = {
     count: 1,
     flow_rate: '22',
     variable_flow: '有',
-    min_flow_input: '',
+    min_flow_input: '入力しない（規定値で計算）',
     min_flow_ratio: '',
   }],
   fans: [{
@@ -415,7 +422,7 @@ const SAMPLE_DATA = {
     count: 1,
     airflow: '2500',
     variable_airflow: '有',
-    min_airflow_input: '',
+    min_airflow_input: '入力しない（規定値で計算）',
     min_airflow_ratio: '',
   }],
   ventilations: [{
@@ -451,9 +458,9 @@ const SAMPLE_DATA = {
     count: 1,
     heating_capacity: '18',
     power_consumption: '4.5',
-    fuel_consumption: '',
+    fuel_consumption: '0',
     insulation_level: '保温仕様B',
-    water_saving: '節湯B1',
+    water_saving: '自動給湯栓',
   }],
   elevators: [{
     name: 'EV-1',
@@ -955,7 +962,6 @@ export default function OfficialBEI() {
         region: building.region,
         solar_region: str(building.solar_region),
         building_type: building.building_type,
-        room_type: str(building.room_type),
         calc_floor_area: num(building.calc_floor_area),
         ac_floor_area: num(building.ac_floor_area),
         total_area: num(building.total_area),
@@ -998,12 +1004,24 @@ export default function OfficialBEI() {
         auto_bypass: str(o.auto_bypass), preheat_stop: str(o.preheat_stop),
       })),
       pumps: isSmall ? [] : pumps.filter(p => p.name || p.flow_rate).map(p => ({
-        name: str(p.name), count: int(p.count) || 1, flow_rate: num(p.flow_rate),
-        variable_flow: str(p.variable_flow), min_flow_input: str(p.min_flow_input), min_flow_ratio: num(p.min_flow_ratio),
+        name: str(p.name),
+        count: int(p.count) || 1,
+        flow_rate: num(p.flow_rate),
+        variable_flow: str(p.variable_flow),
+        min_flow_input:
+          str(p.min_flow_input) ||
+          (str(p.variable_flow) === '有' ? '入力しない（規定値で計算）' : undefined),
+        min_flow_ratio: num(p.min_flow_ratio),
       })),
       fans: isSmall ? [] : fans.filter(f => f.name || f.airflow).map(f => ({
-        name: str(f.name), count: int(f.count) || 1, airflow: num(f.airflow),
-        variable_airflow: str(f.variable_airflow), min_airflow_input: str(f.min_airflow_input), min_airflow_ratio: num(f.min_airflow_ratio),
+        name: str(f.name),
+        count: int(f.count) || 1,
+        airflow: num(f.airflow),
+        variable_airflow: str(f.variable_airflow),
+        min_airflow_input:
+          str(f.min_airflow_input) ||
+          (str(f.variable_airflow) === '有' ? '入力しない（規定値で計算）' : undefined),
+        min_airflow_ratio: num(f.min_airflow_ratio),
       })),
       ventilations: ventilations.filter(v => v.room_name || v.room_type).map(v => ({
         room_name: str(v.room_name), room_type: v.room_type, floor_area: num(v.floor_area),
@@ -1018,12 +1036,25 @@ export default function OfficialBEI() {
         occupancy_sensor: str(l.occupancy_sensor), daylight_control: str(l.daylight_control),
         schedule_control: str(l.schedule_control), initial_illuminance: str(l.initial_illuminance),
       })),
-      hot_waters: hotWaters.filter(h => h.system_name || h.use_type).map(h => ({
-        system_name: str(h.system_name), use_type: h.use_type, source_name: str(h.source_name),
-        count: int(h.count) || 1, heating_capacity: num(h.heating_capacity),
-        power_consumption: num(h.power_consumption), fuel_consumption: num(h.fuel_consumption),
-        insulation_level: str(h.insulation_level), water_saving: str(h.water_saving),
-      })),
+      hot_waters: hotWaters.filter(h => h.system_name || h.use_type).map(h => {
+        const useType = str(h.use_type);
+        const waterSavingOptions = getWaterSavingOptions(useType);
+        const normalizedWaterSaving = waterSavingOptions.includes(str(h.water_saving))
+          ? str(h.water_saving)
+          : waterSavingOptions[0];
+        const fuelConsumption = num(h.fuel_consumption);
+        return {
+          system_name: str(h.system_name),
+          use_type: useType,
+          source_name: str(h.source_name),
+          count: int(h.count) || 1,
+          heating_capacity: num(h.heating_capacity),
+          power_consumption: num(h.power_consumption),
+          fuel_consumption: fuelConsumption ?? 0,
+          insulation_level: str(h.insulation_level),
+          water_saving: normalizedWaterSaving,
+        };
+      }),
       elevators: isSmall ? [] : elevators.filter(e => e.control_type).map(e => ({
         name: str(e.name), control_type: e.control_type,
       })),
@@ -1047,6 +1078,14 @@ export default function OfficialBEI() {
   };
 
   const normalizeOfficialError = (detail, status) => {
+    const timeoutMessage = '公式APIの応答がタイムアウトしました。時間をおいて再実行してください。';
+    const detailText = typeof detail === 'string' ? detail : String(detail || '');
+    if (status === 504) {
+      return timeoutMessage;
+    }
+    if (/timeout|timed out|exceeded|econnaborted/i.test(detailText)) {
+      return timeoutMessage;
+    }
     if (status === 404 || detail === 'Not Found' || String(detail || '').includes('Not Found')) {
       return OFFICIAL_ENDPOINT_MISSING_MESSAGE;
     }
@@ -1122,7 +1161,6 @@ export default function OfficialBEI() {
         setComputeResult(res.data);
         setFieldErrors({});
         const beiValue = res.data?.BEI ?? res.data?.bei ?? null;
-        triggerCompletionModal(beiValue);
         await fetchAiRecommendations(beiValue);
       } catch (e) {
         if (canceled) return;
@@ -1154,7 +1192,6 @@ export default function OfficialBEI() {
       setComputeResult(res.data);
       setFieldErrors({});
       const beiValue = res.data?.BEI ?? res.data?.bei ?? null;
-      triggerCompletionModal(beiValue);
       await fetchAiRecommendations(beiValue);
     } catch (e) {
       const status = e.response?.status;
@@ -1303,7 +1340,6 @@ export default function OfficialBEI() {
       };
       const res = await officialAPI.getCompute(payload);
       setQuickResult(res.data);
-      triggerCompletionModal(res.data?.BEI ?? res.data?.bei ?? quickEstimate);
     } catch (e) {
       const detail = e.response?.data?.detail || e.message;
       setQuickError(`計算エラー: ${detail}`);
@@ -1421,6 +1457,15 @@ export default function OfficialBEI() {
           <h4 className="font-bold text-green-800 flex items-center gap-2 text-lg">
             <FaCheckCircle /> 公式計算完了
           </h4>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => triggerCompletionModal(quickResult?.BEI ?? quickResult?.bei ?? quickEstimate)}
+              className="text-sm bg-white border border-primary-300 text-primary-700 py-2 px-3 rounded-lg hover:bg-primary-50 transition-colors"
+            >
+              評価・ご意見を送る
+            </button>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white rounded-lg p-4 text-center">
               <div className="text-xs text-primary-400 mb-1">ステータス</div>
@@ -1585,13 +1630,14 @@ export default function OfficialBEI() {
                 {(() => {
                   const path = `${errorPrefix}.${i}.${key}`;
                   const message = getFieldError(path);
+                  const resolvedOptions = typeof options === 'function' ? options(item) : options;
                   if (type === 'select') {
                     return (
                       <>
                         <Select
                           value={item[key]}
                           onChange={(v) => updateTableField(setter, errorPrefix, i, key, v)}
-                          options={options}
+                          options={resolvedOptions || []}
                           className={message ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : ''}
                         />
                         <FieldError message={message} />
@@ -1723,6 +1769,15 @@ export default function OfficialBEI() {
             <h4 className="font-semibold text-green-800 flex items-center gap-2">
               <FaCheckCircle /> 公式計算結果
             </h4>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => triggerCompletionModal(computeResult?.BEI ?? computeResult?.bei ?? null)}
+                className="text-sm bg-white border border-primary-300 text-primary-700 py-2 px-3 rounded-lg hover:bg-primary-50 transition-colors"
+              >
+                評価・ご意見を送る
+              </button>
+            </div>
             <div className="grid md:grid-cols-2 gap-2 text-sm text-green-900">
               <div>
                 総合ステータス:
@@ -1925,7 +1980,7 @@ export default function OfficialBEI() {
         { key: 'power_consumption', label: '定格消費電力', type: 'number', unit: 'kW/台' },
         { key: 'fuel_consumption', label: '定格燃料消費量', type: 'number', unit: 'kW/台' },
         { key: 'insulation_level', label: '配管保温仕様', type: 'select', options: INSULATION_LEVELS },
-        { key: 'water_saving', label: '節湯器具', type: 'select', options: WATER_SAVING },
+        { key: 'water_saving', label: '節湯器具', type: 'select', options: (row) => getWaterSavingOptions(row.use_type) },
       ], 'hot_waters');
       case 9: return (
         <>

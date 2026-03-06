@@ -32,6 +32,10 @@ LEGACY_OFFICIAL_UNSUPPORTED_USE_MESSAGE = (
     "公式BEI画面で用途を明示して入力してください。"
 )
 
+
+class OfficialAPITimeoutError(Exception):
+    """Raised when the upstream official API does not respond within timeout."""
+
 # Legacy BEI (office/hotel...) -> official template building type mapping.
 OFFICIAL_BUILDING_TYPE_BY_USE: Dict[str, str] = {
     "office": "事務所モデル",
@@ -505,7 +509,7 @@ def _build_excel_buffer(input_data: Dict[str, Any]) -> io.BytesIO:
 def _post_to_api(
     url: str,
     excel_buffer: io.BytesIO,
-    timeout: int = 30,
+    timeout: float | Tuple[float, float] = (10, 30),
     max_retries: int = 3,
 ) -> requests.Response:
     """POST an Excel buffer to a lowenergy.jp endpoint with retry."""
@@ -519,6 +523,16 @@ def _post_to_api(
             response = requests.post(url, data=payload, headers=headers, timeout=timeout)
             response.raise_for_status()
             return response
+        except requests.exceptions.Timeout as exc:
+            last_exc = exc
+            logger.warning(
+                "API call attempt %d/%d timed out (%s): %s",
+                attempt, max_retries, url, exc,
+            )
+            if attempt < max_retries:
+                import time
+
+                time.sleep(min(2 ** attempt, 10))
         except requests.exceptions.RequestException as exc:
             last_exc = exc
             detail = exc.response.text if getattr(exc, "response", None) is not None else ""
@@ -530,6 +544,10 @@ def _post_to_api(
                 import time
 
                 time.sleep(min(2 ** attempt, 10))
+
+    if isinstance(last_exc, requests.exceptions.Timeout):
+        logger.exception("API call timed out after %d retries (%s)", max_retries, url)
+        raise OfficialAPITimeoutError(f"Official API timeout after {max_retries} retries: {url}") from last_exc
 
     detail = last_exc.response.text if getattr(last_exc, "response", None) is not None else ""
     logger.exception("API call failed after %d retries (%s): %s", max_retries, url, detail)

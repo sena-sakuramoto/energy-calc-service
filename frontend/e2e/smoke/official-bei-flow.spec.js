@@ -69,6 +69,7 @@ test('official BEI flow: input -> compute -> pdf -> excel upload', async ({ page
   await page.waitForURL('**/dashboard');
 
   await page.goto('/tools/official-bei');
+  await page.getByRole('button', { name: '詳細入力モード', exact: true }).click();
   await expect(page.getByRole('heading', { name: '公式BEI計算 (様式入力)' })).toBeVisible();
 
   await page.locator('input[placeholder="例: ○○ビル"]').fill('E2Eテストビル');
@@ -85,6 +86,8 @@ test('official BEI flow: input -> compute -> pdf -> excel upload', async ({ page
   await page.getByRole('button', { name: '公式計算実行' }).click();
   await expect(page.getByText('公式計算結果')).toBeVisible();
   await expect(page.locator('pre')).toContainText('"Status": "OK"');
+  await expect(page.getByText('この計算ツールは役立ちましたか？')).toHaveCount(0);
+  await expect(page.getByText('サークルを見てみる')).toHaveCount(0);
 
   const [pdfDownload] = await Promise.all([
     page.waitForEvent('download'),
@@ -145,6 +148,7 @@ test('official BEI flow: blocks compute when required fields are missing', async
   await page.waitForURL('**/dashboard');
 
   await page.goto('/tools/official-bei');
+  await page.getByRole('button', { name: '詳細入力モード', exact: true }).click();
   await expect(page.getByRole('heading', { name: '公式BEI計算 (様式入力)' })).toBeVisible();
 
   for (let i = 0; i < 9; i += 1) {
@@ -177,6 +181,7 @@ test('official BEI flow: sample input button populates required fields', async (
   await page.waitForURL('**/dashboard');
 
   await page.goto('/tools/official-bei');
+  await page.getByRole('button', { name: '詳細入力モード', exact: true }).click();
   await expect(page.getByRole('button', { name: 'サンプル入力' })).toBeVisible();
 
   await page.getByRole('button', { name: 'サンプル入力' }).click();
@@ -185,6 +190,71 @@ test('official BEI flow: sample input button populates required fields', async (
   await expect(page.locator('select').nth(0)).toHaveValue('6地域');
   await expect(page.locator('select').nth(1)).toHaveValue('事務所モデル');
   await expect(page.locator('input[placeholder="1000"]')).toHaveValue('500');
+});
+
+test('official BEI flow: sample payload avoids known report-validation traps', async ({ page }) => {
+  let reportPayload = null;
+
+  await page.route('**/official/report', async (route) => {
+    const body = route.request().postData();
+    reportPayload = body ? JSON.parse(body) : null;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/pdf',
+      body: PDF_BYTES,
+    });
+  });
+
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+
+  await page.goto('/register');
+  await page.getByRole('button', { name: 'メール・パスワードで登録' }).click();
+  await page.locator('#fullName').fill(TEST_USER.fullName);
+  await page.locator('#email').fill(TEST_USER.email);
+  await page.locator('#password').fill(TEST_USER.password);
+  await page.getByRole('button', { name: 'アカウントを作成' }).click();
+  await page.waitForURL('**/login?registered=true');
+
+  await page.getByRole('button', { name: 'メール・パスワードでログイン' }).click();
+  await page.locator('#email').fill(TEST_USER.email);
+  await page.locator('#password').fill(TEST_USER.password);
+  await page.getByRole('button', { name: 'ログイン', exact: true }).click();
+  await page.waitForURL('**/dashboard');
+
+  await page.goto('/tools/official-bei');
+  await page.getByRole('button', { name: '詳細入力モード', exact: true }).click();
+  await page.getByRole('button', { name: 'サンプル入力' }).click();
+
+  for (let i = 0; i < 9; i += 1) {
+    await page.getByRole('button', { name: '次へ' }).click();
+  }
+
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: '公式PDF出力' }).click(),
+  ]);
+  expect(download.suggestedFilename()).toContain('.pdf');
+
+  expect(reportPayload).toBeTruthy();
+  const officialInput = reportPayload?.official_input || {};
+  expect(officialInput?.building?.room_type).toBeUndefined();
+
+  const sampleHotWater = officialInput?.hot_waters?.[0];
+  expect(sampleHotWater).toBeTruthy();
+  expect(sampleHotWater.use_type).toBe('洗面・手洗い');
+  expect(['無', '自動給湯栓']).toContain(sampleHotWater.water_saving);
+  expect(sampleHotWater.fuel_consumption).toBeDefined();
+
+  const samplePump = officialInput?.pumps?.[0];
+  if (samplePump?.variable_flow === '有') {
+    expect(samplePump.min_flow_input).toBeTruthy();
+  }
+
+  const sampleFan = officialInput?.fans?.[0];
+  if (sampleFan?.variable_airflow === '有') {
+    expect(sampleFan.min_airflow_input).toBeTruthy();
+  }
 });
 
 test('official BEI flow: template download links are available', async ({ page }) => {
@@ -206,6 +276,7 @@ test('official BEI flow: template download links are available', async ({ page }
   await page.waitForURL('**/dashboard');
 
   await page.goto('/tools/official-bei');
+  await page.getByRole('button', { name: '詳細入力モード', exact: true }).click();
 
   const modelTemplateLink = page.getByRole('link', { name: 'MODELテンプレートをダウンロード', exact: true });
   const smallTemplateLink = page.getByRole('link', { name: 'SMALLMODELテンプレートをダウンロード' });
@@ -243,6 +314,7 @@ test('official BEI flow: shows deployment hint when official endpoint is missing
   await page.waitForURL('**/dashboard');
 
   await page.goto('/tools/official-bei');
+  await page.getByRole('button', { name: '詳細入力モード', exact: true }).click();
   await page.getByRole('button', { name: 'サンプル入力' }).click();
 
   for (let i = 0; i < 9; i += 1) {

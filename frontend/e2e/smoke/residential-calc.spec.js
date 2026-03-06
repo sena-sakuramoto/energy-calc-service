@@ -25,27 +25,31 @@ test.describe('住宅版計算 /residential', () => {
     await expect(page.getByText('対応範囲')).toBeVisible();
   });
 
-  test('形状テンプレート適用で壁セグメントが生成される', async ({ page }) => {
-    await openResidential(page);
-    await applyRectTemplate(page);
+test('形状テンプレート適用で壁セグメントが生成される', async ({ page }) => {
+  await openResidential(page);
+  await applyRectTemplate(page);
 
-    await page.getByRole('button', { name: '壁セグメント', exact: true }).click();
-    await expect(page.getByText('北面合計')).toBeVisible();
-    await expect(page.getByText('NET')).toBeVisible();
-  });
+  await expect(page.getByText('間口 (m)')).toBeVisible();
+  await page.getByRole('button', { name: '壁セグメント', exact: true }).click();
+  await expect(page.getByText('外壁')).toBeVisible();
+  await expect(page.getByText('NET')).toBeVisible();
+  await expect(page.getByText(/\d+\sセグメント/)).toBeVisible();
+});
 
-  test('入力後にUA/ηACが表示される', async ({ page }) => {
-    await openResidential(page);
-    await applyRectTemplate(page);
+test('入力後にUA/ηACが表示される', async ({ page }) => {
+  await openResidential(page);
+  await applyRectTemplate(page);
 
-    const panel = resultPanel(page);
+  const panel = resultPanel(page);
     await expect(panel).toContainText('UA値');
     await expect(panel).toContainText('ηAC値');
 
-    const panelText = await panel.textContent();
-    expect(panelText).toMatch(/UA値[\s\S]*\d+\.\d{2}/);
-    expect(panelText).toMatch(/ηAC値[\s\S]*\d+\.\d/);
-  });
+  const panelText = await panel.textContent();
+  expect(panelText).toMatch(/UA値[\s\S]*\d+\.\d{2}/);
+  expect(panelText).toMatch(/ηAC値[\s\S]*\d+\.\d/);
+  expect(panelText).not.toMatch(/[✅⚠❌]/);
+  await expect(panel).toContainText('等級4');
+});
 
   test('建具追加で建具行が表示される', async ({ page }) => {
     await openResidential(page);
