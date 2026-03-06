@@ -64,7 +64,7 @@ module.exports = defineConfig({
   ],
 
   webServer: {
-    command: 'pnpm dev -p 3001',
+    command: 'npm run dev -- -p 3001',
     url: 'http://localhost:3001',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

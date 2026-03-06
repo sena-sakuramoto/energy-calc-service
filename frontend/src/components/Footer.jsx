@@ -40,6 +40,11 @@ export default function Footer() {
             <h4 className="text-lg font-semibold mb-4 text-accent-400">主要サービス</h4>
             <ul className="space-y-2">
               <li>
+                <Link href="/pricing" className="text-warm-300 hover:text-accent-400 transition-colors text-sm">
+                  譁咎≡繝励Λ繝ｳ
+                </Link>
+              </li>
+              <li>
                 <Link
                   href={isAuthenticated ? "/tools/official-bei" : "/register"}
                   className="text-warm-300 hover:text-accent-400 transition-colors text-sm"

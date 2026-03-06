@@ -10,6 +10,10 @@ const _envMock = process.env.NEXT_PUBLIC_USE_MOCK;
 const _mockExplicit = typeof _envMock === 'string' ? _envMock.toLowerCase() === 'true' : undefined;
 const _isGitHubPages = typeof window !== 'undefined' && window.location.hostname.includes('github.io');
 const isMockMode = () => (_mockExplicit !== undefined ? _mockExplicit : _isGitHubPages);
+const isBillingBypass = () =>
+  process.env.NEXT_PUBLIC_USE_MOCK === 'true' ||
+  process.env.NEXT_PUBLIC_E2E_AUTH === 'true' ||
+  process.env.NODE_ENV !== 'production';
 
 // API base URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
@@ -219,6 +223,85 @@ export const authAPI = {
 };
 
 // プロジェクト関連API (以前EもEをEースに)
+export const billingAPI = {
+  getConfig: async () => {
+    if (isBillingBypass()) {
+      return {
+        data: {
+          billing_enabled: false,
+          checkout_available: false,
+          bypass_enabled: true,
+          public_app_url: typeof window !== 'undefined' ? window.location.origin : '',
+          plans: {
+            energy_monthly: { available: false, mode: 'subscription' },
+            project_pass: { available: false, mode: 'payment', duration_days: 30 },
+          },
+        },
+        status: 200,
+      };
+    }
+    return apiClient.get('/billing/config');
+  },
+
+  getStatus: async (email) => {
+    if (isBillingBypass()) {
+        return {
+          data: {
+            active: true,
+            type: 'development_bypass',
+            reason: null,
+            customer_email: email || null,
+            billing_enabled: false,
+            checkout_available: false,
+            bypass_enabled: true,
+            public_app_url: typeof window !== 'undefined' ? window.location.origin : '',
+            plans: {
+              energy_monthly: { available: false, mode: 'subscription' },
+              project_pass: { available: false, mode: 'payment', duration_days: 30 },
+            },
+          },
+          status: 200,
+        };
+      }
+      return apiClient.get('/billing/status', { params: { email } });
+  },
+
+  createCheckout: async (payload) => {
+    if (isBillingBypass()) {
+        return {
+          data: {
+            checkout_url: payload?.success_url || (typeof window !== 'undefined' ? window.location.origin : ''),
+            session_id: 'billing-bypass',
+            mode: 'development_bypass',
+            plan: payload?.plan || 'energy_monthly',
+          },
+          status: 200,
+        };
+      }
+      return apiClient.post('/billing/checkout', payload);
+    },
+
+  confirmCheckout: async (payload) => {
+    if (isBillingBypass()) {
+      return {
+        data: {
+          confirmed: true,
+          active: true,
+          type: 'development_bypass',
+          reason: null,
+          session_id: payload?.session_id || 'billing-bypass',
+          plans: {
+            energy_monthly: { available: false, mode: 'subscription' },
+            project_pass: { available: false, mode: 'payment', duration_days: 30 },
+          },
+        },
+        status: 200,
+      };
+    }
+    return apiClient.post('/billing/confirm', payload);
+  },
+};
+
 export const projectsAPI = {
   getAll: async () => {
     if (isMockMode()) {

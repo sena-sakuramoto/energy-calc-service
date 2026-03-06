@@ -8,9 +8,11 @@ from sqlalchemy.orm import sessionmaker
 
 from app.api.v1.referral import (
     ReferralRequest,
+    ReferralUpdateRequest,
     create_referral,
     list_referrals,
     referral_stats,
+    update_referral,
 )
 from app.db.base import Base
 
@@ -75,6 +77,42 @@ def test_referral_stats() -> None:
         assert stats["by_status"]["pending"] == 2
         assert stats["by_manufacturer"]["YKK AP"] == 1
         assert stats["by_manufacturer"]["パナソニック"] == 1
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+
+def test_update_referral_status_and_notes() -> None:
+    engine, db = _make_db_session()
+    try:
+        req = ReferralRequest(
+            architect_name="山田 太郎",
+            architect_email="yamada@example.com",
+            architect_company="Yamada Architects",
+            product_category="windows",
+            product_id="ykk-apw430-sliding",
+            product_name="APW 430 引違い窓",
+            manufacturer="YKK AP",
+        )
+
+        with patch("app.api.v1.referral.send_referral_notification", return_value=True):
+            created = asyncio.run(create_referral(req=req, db=db))
+
+        updated = asyncio.run(
+            update_referral(
+                referral_id=created["referral_id"],
+                req=ReferralUpdateRequest(status="quoted", notes="一次見積を送付済み"),
+                db=db,
+            )
+        )
+
+        assert updated["status"] == "quoted"
+        assert updated["notes"] == "一次見積を送付済み"
+
+        listed = asyncio.run(list_referrals(db=db))
+        assert listed["referrals"][0]["status"] == "quoted"
+        assert listed["referrals"][0]["notes"] == "一次見積を送付済み"
     finally:
         db.close()
         Base.metadata.drop_all(bind=engine)

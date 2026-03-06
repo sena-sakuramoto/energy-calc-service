@@ -32,6 +32,8 @@ export default function PartnerAdminPage() {
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const [savingIds, setSavingIds] = useState({});
 
   useEffect(() => {
     let mounted = true;
@@ -101,6 +103,35 @@ export default function PartnerAdminPage() {
   const [localStatuses, setLocalStatuses] = useState({});
   const statusOf = (row) => localStatuses[row.id] || row.status;
 
+  const updateStatus = async (row, nextStatus) => {
+    const previousStatus = statusOf(row);
+    setSaveError('');
+    setLocalStatuses((prev) => ({ ...prev, [row.id]: nextStatus }));
+    setSavingIds((prev) => ({ ...prev, [row.id]: true }));
+
+    try {
+      const response = await apiClient.patch(`/referral/${row.id}`, {
+        status: nextStatus,
+      });
+      const updated = response.data;
+      setReferrals((prev) => prev.map((item) => (item.id === row.id ? { ...item, ...updated } : item)));
+      setLocalStatuses((prev) => {
+        const next = { ...prev };
+        delete next[row.id];
+        return next;
+      });
+    } catch {
+      setLocalStatuses((prev) => ({ ...prev, [row.id]: previousStatus }));
+      setSaveError('ステータスの保存に失敗しました。しばらくしてから再度お試しください。');
+    } finally {
+      setSavingIds((prev) => {
+        const next = { ...prev };
+        delete next[row.id];
+        return next;
+      });
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -112,6 +143,12 @@ export default function PartnerAdminPage() {
         {error && (
           <section className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
             {error}
+          </section>
+        )}
+
+        {saveError && (
+          <section className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+            {saveError}
           </section>
         )}
 
@@ -169,16 +206,17 @@ export default function PartnerAdminPage() {
                     <td className="py-2">
                       <select
                         value={statusOf(row)}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setLocalStatuses((prev) => ({ ...prev, [row.id]: value }));
-                        }}
+                        onChange={(e) => updateStatus(row, e.target.value)}
+                        disabled={Boolean(savingIds[row.id])}
                         className="border border-slate-300 rounded px-2 py-1 text-xs"
                       >
                         {STATUS_OPTIONS.map((option) => (
                           <option key={option} value={option}>{option}</option>
                         ))}
                       </select>
+                      {savingIds[row.id] && (
+                        <span className="ml-2 text-xs text-slate-500">保存中...</span>
+                      )}
                     </td>
                     <td className="py-2">{String(row.created_at || '').slice(0, 10)}</td>
                   </tr>

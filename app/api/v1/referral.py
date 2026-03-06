@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import extract, func as sql_func
 from sqlalchemy.orm import Session
@@ -12,6 +12,7 @@ from app.models.referral import Referral
 from app.services.referral import send_referral_notification
 
 router = APIRouter(prefix="/referral", tags=["Referral"])
+VALID_REFERRAL_STATUSES = {"pending", "contacted", "quoted", "closed"}
 
 
 class ReferralRequest(BaseModel):
@@ -27,6 +28,33 @@ class ReferralRequest(BaseModel):
     product_id: str
     product_name: str
     manufacturer: str
+
+
+class ReferralUpdateRequest(BaseModel):
+    status: str
+    notes: Optional[str] = None
+
+
+def _serialize_referral(referral: Referral) -> dict:
+    return {
+        "id": referral.id,
+        "architect_name": referral.architect_name,
+        "architect_email": referral.architect_email,
+        "architect_company": referral.architect_company,
+        "architect_phone": referral.architect_phone,
+        "project_name": referral.project_name,
+        "building_use": referral.building_use,
+        "building_zone": referral.building_zone,
+        "floor_area": referral.floor_area,
+        "product_category": referral.product_category,
+        "product_id": referral.product_id,
+        "product_name": referral.product_name,
+        "manufacturer": referral.manufacturer,
+        "status": referral.status,
+        "notes": referral.notes,
+        "created_at": str(referral.created_at),
+        "updated_at": str(referral.updated_at),
+    }
 
 
 @router.post("/request")
@@ -72,19 +100,34 @@ async def list_referrals(db: Session = Depends(get_db)) -> dict:
         .limit(100)
         .all()
     )
-    return {
-        "referrals": [
-            {
-                "id": r.id,
-                "architect_name": r.architect_name,
-                "product_name": r.product_name,
-                "manufacturer": r.manufacturer,
-                "status": r.status,
-                "created_at": str(r.created_at),
-            }
-            for r in referrals
-        ]
-    }
+    return {"referrals": [_serialize_referral(r) for r in referrals]}
+
+
+@router.patch("/{referral_id}")
+async def update_referral(
+    referral_id: int,
+    req: ReferralUpdateRequest,
+    db: Session = Depends(get_db),
+) -> dict:
+    """紹介ステータスを更新（管理用）。"""
+    status = req.status.strip().lower()
+    if status not in VALID_REFERRAL_STATUSES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"status must be one of: {', '.join(sorted(VALID_REFERRAL_STATUSES))}",
+        )
+
+    referral = db.get(Referral, referral_id)
+    if referral is None:
+        raise HTTPException(status_code=404, detail="referral not found")
+
+    referral.status = status
+    if req.notes is not None:
+        referral.notes = req.notes.strip() or None
+
+    db.commit()
+    db.refresh(referral)
+    return _serialize_referral(referral)
 
 
 @router.get("/stats")

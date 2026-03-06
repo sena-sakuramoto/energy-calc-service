@@ -20,6 +20,7 @@ exports.PUBLIC_PAGES = [
   '/about',
   '/contact',
   '/campaign',
+  '/pricing',
   '/demo-guide',
   '/legal',
   '/privacy',

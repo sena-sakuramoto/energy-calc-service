@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
 
-import { residentialAPI } from '../../utils/api';
+import { useAuth } from '../../contexts/FirebaseAuthContext';
+import { billingAPI, residentialAPI } from '../../utils/api';
 import { computeResidentialResult } from '../engine/buildEnvelope';
 import AreaTable from './AreaTable.jsx';
 import FloorInput from './FloorInput.jsx';
@@ -14,6 +16,10 @@ import { generateAreaTablePdf } from '../output/pdfAreaTable';
 import { generateResidentialCalcReportPdf } from '../output/pdfCalcReport';
 
 const STORAGE_KEY = 'raku_projects';
+const BILLING_BYPASS =
+  process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+  || process.env.NEXT_PUBLIC_E2E_AUTH === 'true'
+  || process.env.NODE_ENV !== 'production';
 
 const STRUCTURE_OPTIONS = [
   { value: 'wood_conventional', label: '木造(在来)' },
@@ -125,11 +131,16 @@ function getProductNameById(openings, id) {
 }
 
 export default function ResidentialCalc() {
+  const router = useRouter();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [project, setProject] = useState(createDefaultProject());
   const [debouncedProject, setDebouncedProject] = useState(project);
   const [activeTab, setActiveTab] = useState('template');
   const [comparison, setComparison] = useState(null);
   const [verifyState, setVerifyState] = useState({ loading: false, message: '' });
+  const [billingStatus, setBillingStatus] = useState(
+    BILLING_BYPASS ? { active: true, type: 'development_bypass' } : null,
+  );
 
   useEffect(() => {
     const stored = loadStoredProject();
@@ -148,7 +159,57 @@ export default function ResidentialCalc() {
     return () => clearTimeout(timer);
   }, [project]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    if (BILLING_BYPASS) {
+      setBillingStatus({ active: true, type: 'development_bypass' });
+      return () => {
+        mounted = false;
+      };
+    }
+
+    if (authLoading) {
+      return () => {
+        mounted = false;
+      };
+    }
+
+    if (!isAuthenticated || !user?.email) {
+      setBillingStatus(null);
+      return () => {
+        mounted = false;
+      };
+    }
+
+    const fetchBillingStatus = async () => {
+      try {
+        const response = await billingAPI.getStatus(user.email);
+        if (!mounted) return;
+        setBillingStatus(response.data || null);
+      } catch {
+        if (!mounted) return;
+        setBillingStatus({ active: false, reason: 'unavailable' });
+      }
+    };
+
+    fetchBillingStatus();
+    return () => {
+      mounted = false;
+    };
+  }, [authLoading, isAuthenticated, user?.email]);
+
   const result = useMemo(() => computeResidentialResult(debouncedProject), [debouncedProject]);
+  const premiumLocked = !BILLING_BYPASS && !billingStatus?.active;
+
+  const openPremiumFlow = () => {
+    const redirect = encodeURIComponent('/residential');
+    if (!isAuthenticated) {
+      router.push(`/login?redirect=${redirect}`);
+      return;
+    }
+    router.push(`/pricing?redirect=${redirect}`);
+  };
 
   const patchProject = (patch) => {
     setProject((prev) => ({ ...prev, ...patch }));
@@ -179,6 +240,10 @@ export default function ResidentialCalc() {
   };
 
   const handleVerify = async () => {
+    if (premiumLocked) {
+      openPremiumFlow();
+      return;
+    }
     setVerifyState({ loading: true, message: '公式API検証を実行中です...' });
 
     try {
@@ -242,10 +307,18 @@ export default function ResidentialCalc() {
   };
 
   const handleAreaPdf = async () => {
+    if (premiumLocked) {
+      openPremiumFlow();
+      return;
+    }
     await generateAreaTablePdf(project, result);
   };
 
   const handleCalcPdf = async () => {
+    if (premiumLocked) {
+      openPremiumFlow();
+      return;
+    }
     await generateResidentialCalcReportPdf(project, result, verifyState);
   };
 
@@ -352,10 +425,12 @@ export default function ResidentialCalc() {
       <ResultPanel
         result={result}
         comparison={comparison}
+        premiumLocked={premiumLocked}
         verifyState={verifyState}
         onVerify={handleVerify}
         onExportAreaPdf={handleAreaPdf}
         onExportCalcPdf={handleCalcPdf}
+        onUnlockPremium={openPremiumFlow}
       />
     </div>
   );

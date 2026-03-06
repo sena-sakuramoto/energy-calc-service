@@ -12,6 +12,7 @@ import CalculatorLayout from '../../components/CalculatorLayout';
 import FormSection from '../../components/FormSection';
 import ProductSelector from '../../components/ProductSelector';
 import ImprovementSimulator from '../../components/ImprovementSimulator';
+import SubscriptionGate from '../../components/SubscriptionGate';
 import { officialAPI, productsAPI } from '../../utils/api';
 
 // ── ドロップダウン選択肢 (Excelテンプレートのdataシートから抽出) ──────
@@ -2021,6 +2022,7 @@ export default function OfficialBEI() {
       backText="計算ツール一覧に戻る"
     >
       {mode === 'quick' ? renderQuickMode() : (
+      <SubscriptionGate toolName="Official BEI">
       <div className="max-w-5xl mx-auto">
         {/* エキスパートモード: モード切替 + ツールバー */}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -2102,6 +2104,7 @@ export default function OfficialBEI() {
           ) : null}
         </div>
       </div>
+      </SubscriptionGate>
       )}
 
       {/* 計算完了モーダル */}

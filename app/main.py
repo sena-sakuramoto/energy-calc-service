@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.api import api_router as management_router
 from app.api.v1.routes import router as public_router
+from app.api.v1.billing import router as billing_router
 from app.api.v1.products import router as products_router
 from app.api.v1.referral import router as referral_router
 from app.api.v1.analytics import router as analytics_router
@@ -22,6 +23,8 @@ load_dotenv()
 
 def _register_models() -> None:
     # Import model modules so SQLAlchemy metadata has all tables.
+    from app.models import billing_entitlement  # noqa: F401
+    from app.models import onboarding_registration  # noqa: F401
     from app.models import product  # noqa: F401
     from app.models import product_event  # noqa: F401
     from app.models import project  # noqa: F401
@@ -78,6 +81,7 @@ app.add_middleware(LoggingMiddleware)
 
 # Public calculator + compliance endpoints (legacy v1)
 app.include_router(public_router, prefix=settings.API_PREFIX)
+app.include_router(billing_router, prefix=settings.API_PREFIX)
 app.include_router(products_router, prefix=settings.API_PREFIX)
 app.include_router(referral_router, prefix=settings.API_PREFIX)
 app.include_router(analytics_router, prefix=settings.API_PREFIX)

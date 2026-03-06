@@ -19,10 +19,12 @@ function StatusBadge({ ok, label }) {
 export default function ResultPanel({
   result,
   comparison,
+  premiumLocked = false,
   verifyState,
   onVerify,
   onExportAreaPdf,
   onExportCalcPdf,
+  onUnlockPremium,
 }) {
   const ua = Number(result?.ua_value || 0);
   const etaAC = Number(result?.eta_a_c || 0);
@@ -57,16 +59,21 @@ export default function ResultPanel({
 
           <div className="space-y-2">
             <div className="flex flex-wrap gap-2">
-              <button type="button" className="btn-secondary text-xs md:text-sm py-2 px-3" onClick={onVerify}>
+              <button type="button" className="btn-secondary text-xs md:text-sm py-2 px-3" onClick={premiumLocked ? onUnlockPremium : onVerify}>
                 公式APIで検証
               </button>
-              <button type="button" className="btn-outline text-xs md:text-sm py-2 px-3" onClick={onExportAreaPdf}>
+              <button type="button" className="btn-outline text-xs md:text-sm py-2 px-3" onClick={premiumLocked ? onUnlockPremium : onExportAreaPdf}>
                 求積表PDF
               </button>
-              <button type="button" className="btn-outline text-xs md:text-sm py-2 px-3" onClick={onExportCalcPdf}>
+              <button type="button" className="btn-outline text-xs md:text-sm py-2 px-3" onClick={premiumLocked ? onUnlockPremium : onExportCalcPdf}>
                 計算書PDF
               </button>
             </div>
+            {premiumLocked && (
+              <div className="text-xs text-primary-500">
+                Residential preview is free. Official verification and PDF export are paid features.
+              </div>
+            )}
             <CostComparison comparison={comparison} />
           </div>
         </div>

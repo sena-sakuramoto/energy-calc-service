@@ -4,11 +4,12 @@ from pathlib import Path
 import subprocess
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+TSX_CLI = REPO_ROOT / "frontend" / "node_modules" / "tsx" / "dist" / "cli.mjs"
 
 
 def run_node(script: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["./frontend/node_modules/.bin/tsx", "--eval", script],
+        ["node", str(TSX_CLI), "--eval", script],
         text=True,
         capture_output=True,
         cwd=REPO_ROOT,

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/FirebaseAuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaUser, FaSignOutAlt, FaCalculator, FaChevronDown, FaBars, FaTimes, FaBook, FaGift } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt, FaCalculator, FaChevronDown, FaBars, FaTimes, FaBook, FaGift, FaCreditCard } from 'react-icons/fa';
 
 export default function Header() {
   const { isAuthenticated, logout } = useAuth();
@@ -47,6 +47,12 @@ export default function Header() {
                 </Link>
               </li>
             )}
+            <li className="list-none">
+              <Link href="/pricing" className="flex items-center hover:text-warm-300 transition-colors">
+                <FaCreditCard className="mr-2" />
+                譁咎≡
+              </Link>
+            </li>
 
             {/* 共同開発 */}
             <li className="list-none">
@@ -157,6 +163,15 @@ export default function Header() {
               )}
 
               {/* 共同開発 (モバイル) */}
+              <Link
+                href="/pricing"
+                className="flex items-center hover:text-warm-300 transition-colors"
+                onClick={closeMenus}
+              >
+                <FaCreditCard className="mr-2" />
+                譁咎≡
+              </Link>
+
               <Link
                 href="/campaign"
                 className="flex items-center hover:text-warm-300 transition-colors"
