@@ -89,6 +89,158 @@ def _coerce_utc(value: Optional[datetime]) -> Optional[datetime]:
     return value.astimezone(timezone.utc)
 
 
+def _clean_value(value: Any) -> Optional[str]:
+    text = str(value or "").strip()
+    return text or None
+
+
+def _plan_display_name(plan_code: str) -> str:
+    if plan_code == PLAN_PROJECT_PASS:
+        return f"{_project_pass_days()}日パス"
+    return "月額プラン"
+
+
+def _payment_description(plan_code: str) -> str:
+    return f"楽々省エネ計算 {_plan_display_name(plan_code)}"
+
+
+def _retrieve_stripe_resource(stripe_module: Any, resource_name: str, resource_id: Optional[str]) -> Optional[dict[str, Any]]:
+    resource_id = _clean_value(resource_id)
+    if not resource_id:
+        return None
+
+    resource = getattr(stripe_module, resource_name, None)
+    if resource is None or not hasattr(resource, "retrieve"):
+        return None
+
+    try:
+        return resource.retrieve(resource_id)
+    except Exception:  # pragma: no cover - defensive logging only
+        logger.exception("Failed to retrieve Stripe %s %s", resource_name, resource_id)
+        return None
+
+
+def _invoice_links(invoice: Optional[dict[str, Any]]) -> dict[str, Any]:
+    if not invoice:
+        return {}
+
+    payload: dict[str, Any] = {}
+    invoice_id = _clean_value(invoice.get("id"))
+    hosted_invoice_url = _clean_value(invoice.get("hosted_invoice_url"))
+    invoice_pdf_url = _clean_value(invoice.get("invoice_pdf"))
+
+    if invoice_id:
+        payload["invoice_id"] = invoice_id
+    if hosted_invoice_url:
+        payload["invoice_hosted_url"] = hosted_invoice_url
+    if invoice_pdf_url:
+        payload["invoice_pdf_url"] = invoice_pdf_url
+    return payload
+
+
+def _charge_receipt_link(stripe_module: Any, charge_ref: Any) -> dict[str, Any]:
+    charge = charge_ref if isinstance(charge_ref, dict) else _retrieve_stripe_resource(
+        stripe_module,
+        "Charge",
+        _clean_value(charge_ref),
+    )
+    if not charge:
+        return {}
+
+    receipt_url = _clean_value(charge.get("receipt_url"))
+    charge_id = _clean_value(charge.get("id"))
+    payload: dict[str, Any] = {}
+    if charge_id:
+        payload["charge_id"] = charge_id
+    if receipt_url:
+        payload["receipt_url"] = receipt_url
+    return payload
+
+
+def _payment_intent_links(stripe_module: Any, payment_intent_id: Optional[str]) -> dict[str, Any]:
+    payment_intent = _retrieve_stripe_resource(stripe_module, "PaymentIntent", payment_intent_id)
+    if not payment_intent:
+        return {}
+
+    payload: dict[str, Any] = {}
+    payment_intent_id = _clean_value(payment_intent.get("id")) or _clean_value(payment_intent_id)
+    if payment_intent_id:
+        payload["payment_intent_id"] = payment_intent_id
+
+    latest_charge = payment_intent.get("latest_charge")
+    if latest_charge:
+        payload.update(_charge_receipt_link(stripe_module, latest_charge))
+    return payload
+
+
+def _latest_paid_invoice_links(
+    stripe_module: Any,
+    *,
+    customer_id: Optional[str] = None,
+    subscription_id: Optional[str] = None,
+) -> dict[str, Any]:
+    invoice_resource = getattr(stripe_module, "Invoice", None)
+    if invoice_resource is None or not hasattr(invoice_resource, "list"):
+        return {}
+
+    list_kwargs: dict[str, Any] = {"status": "paid", "limit": 1}
+    customer_id = _clean_value(customer_id)
+    subscription_id = _clean_value(subscription_id)
+    if customer_id:
+        list_kwargs["customer"] = customer_id
+    if subscription_id:
+        list_kwargs["subscription"] = subscription_id
+
+    try:
+        invoices = invoice_resource.list(**list_kwargs)
+    except Exception:  # pragma: no cover - defensive logging only
+        logger.exception("Failed to list Stripe invoices for customer=%s subscription=%s", customer_id, subscription_id)
+        return {}
+
+    invoice_rows = list(getattr(invoices, "data", []) or [])
+    if not invoice_rows:
+        return {}
+
+    invoice = invoice_rows[0]
+    payload = _invoice_links(invoice)
+    payload.update(_charge_receipt_link(stripe_module, invoice.get("charge")))
+    return payload
+
+
+def _checkout_receipt_links(stripe_module: Any, session: dict[str, Any]) -> dict[str, Any]:
+    payload: dict[str, Any] = {}
+    payload.update(_invoice_links(_retrieve_stripe_resource(stripe_module, "Invoice", session.get("invoice"))))
+    payload.update(_payment_intent_links(stripe_module, session.get("payment_intent")))
+    if "receipt_url" not in payload and session.get("invoice"):
+        invoice = _retrieve_stripe_resource(stripe_module, "Invoice", session.get("invoice"))
+        payload.update(_charge_receipt_link(stripe_module, (invoice or {}).get("charge")))
+    return payload
+
+
+def _project_pass_receipt_links(
+    stripe_module: Any,
+    *,
+    stripe_session_id: Optional[str],
+    stripe_payment_intent_id: Optional[str],
+) -> dict[str, Any]:
+    payload: dict[str, Any] = {}
+    session = None
+    checkout_resource = getattr(getattr(stripe_module, "checkout", None), "Session", None)
+    if stripe_session_id and checkout_resource is not None and hasattr(checkout_resource, "retrieve"):
+        try:
+            session = checkout_resource.retrieve(stripe_session_id)
+        except Exception:  # pragma: no cover - defensive logging only
+            logger.exception("Failed to retrieve Stripe checkout session %s", stripe_session_id)
+
+    if session:
+        payload.update(_checkout_receipt_links(stripe_module, session))
+
+    if "receipt_url" not in payload and stripe_payment_intent_id:
+        payload.update(_payment_intent_links(stripe_module, stripe_payment_intent_id))
+
+    return payload
+
+
 def _plan_catalog() -> dict[str, dict[str, Any]]:
     return {
         PLAN_ENERGY_MONTHLY: {
@@ -341,12 +493,28 @@ def create_checkout_session(
         "cancel_url": cancel,
         "allow_promotion_codes": True,
         "metadata": metadata,
+        "locale": "ja",
     }
 
     if plan_info["mode"] == "subscription":
         create_kwargs["subscription_data"] = {"metadata": metadata}
     else:
-        create_kwargs["payment_intent_data"] = {"metadata": metadata}
+        create_kwargs["customer_creation"] = "always"
+        create_kwargs["invoice_creation"] = {
+            "enabled": True,
+            "invoice_data": {
+                "description": _payment_description(plan),
+                "metadata": metadata,
+                "custom_fields": [
+                    {"name": "プラン", "value": _plan_display_name(plan)},
+                ],
+            },
+        }
+        create_kwargs["payment_intent_data"] = {
+            "metadata": metadata,
+            "receipt_email": normalized_email,
+            "description": _payment_description(plan),
+        }
 
     session = stripe_module.checkout.Session.create(**create_kwargs)
     return {
@@ -378,6 +546,7 @@ def confirm_checkout_session(*, session_id: str, db: Session) -> dict[str, Any]:
     stripe_module = _load_stripe_module()
     _configure_stripe(stripe_module)
     session = stripe_module.checkout.Session.retrieve(session_id)
+    receipt_links = _checkout_receipt_links(stripe_module, session)
 
     metadata = session.get("metadata") or {}
     plan_code = str(metadata.get("plan_code") or "")
@@ -426,6 +595,7 @@ def confirm_checkout_session(*, session_id: str, db: Session) -> dict[str, Any]:
             "plan": plan_code,
             "session_id": session_id,
             **_serialize_entitlement(entitlement),
+            **receipt_links,
             **config,
         }
 
@@ -435,6 +605,7 @@ def confirm_checkout_session(*, session_id: str, db: Session) -> dict[str, Any]:
             "confirmed": bool(status_payload.get("active")),
             "plan": plan_code,
             "session_id": session_id,
+            **receipt_links,
         }
     )
     if not status_payload.get("active") and not status_payload.get("reason"):
@@ -534,6 +705,16 @@ def check_subscription(customer_email: str, db: Optional[Session] = None) -> dic
 
     entitlement = _get_active_entitlement(db, normalized_email)
     if entitlement is not None:
+        if _stripe_secret_key():
+            stripe_module = _load_stripe_module()
+            _configure_stripe(stripe_module)
+            payload.update(
+                _project_pass_receipt_links(
+                    stripe_module,
+                    stripe_session_id=entitlement.stripe_session_id,
+                    stripe_payment_intent_id=entitlement.stripe_payment_intent_id,
+                )
+            )
         payload.update(
             {
                 "active": True,
@@ -569,6 +750,11 @@ def check_subscription(customer_email: str, db: Optional[Session] = None) -> dic
             for item in subscription.get("items", {}).get("data", []) or []:
                 subscription_type = _classify_subscription_item(stripe_module, item)
                 if subscription_type:
+                    receipt_links = _latest_paid_invoice_links(
+                        stripe_module,
+                        customer_id=customer.get("id"),
+                        subscription_id=subscription.get("id"),
+                    )
                     payload.update(
                         {
                             "active": True,
@@ -576,6 +762,7 @@ def check_subscription(customer_email: str, db: Optional[Session] = None) -> dic
                             "reason": None,
                             "subscription_id": subscription.get("id"),
                             "customer_id": customer.get("id"),
+                            **receipt_links,
                         }
                     )
                     return payload

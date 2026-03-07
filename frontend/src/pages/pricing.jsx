@@ -36,11 +36,11 @@ const PLAN_DEFS = {
     badge: '単発',
     title: '30日パス',
     price: '4,980円 / 回',
-    subtitle: '単発案件だけ有料機能を開けたいとき向けです。',
+    subtitle: '1案件単位ではなく、購入日から30日間だけ有料機能を使いたいとき向けです。',
     cta: '30日パスを購入',
     points: [
-      '30日間だけ有料機能を開放',
-      '単発の公式出力案件に向いた設計',
+      '購入日から30日間だけ有料機能を開放',
+      '案件数ではなく利用期間で区切るプラン',
       '2回買うと月額とほぼ同水準',
     ],
   },
@@ -78,8 +78,8 @@ function statusMessage(status) {
   if (status.type === 'project_pass') {
     const expiry = formatExpiry(status.expires_at);
     return expiry
-      ? `30日パスが有効です。期限は ${expiry} です。`
-      : '30日パスが有効です。';
+      ? `30日パスが有効です。案件数ではなく、期限の ${expiry} まで有料機能を使えます。`
+      : '30日パスが有効です。案件数ではなく、購入日から30日間の利用権です。';
   }
   if (status.type === 'development_bypass') {
     return 'この開発環境では課金をバイパスしています。';
@@ -88,6 +88,20 @@ function statusMessage(status) {
     return 'この環境ではStripeがまだ設定されていません。';
   }
   return 'まだ有料利用権は付与されていません。';
+}
+
+function billingDocuments(status) {
+  const links = [];
+  if (status?.receipt_url) {
+    links.push({ href: status.receipt_url, label: '領収書を開く' });
+  }
+  if (status?.invoice_pdf_url) {
+    links.push({ href: status.invoice_pdf_url, label: '請求書PDF' });
+  }
+  if (status?.invoice_hosted_url) {
+    links.push({ href: status.invoice_hosted_url, label: '請求内容を見る' });
+  }
+  return links;
 }
 
 export default function PricingPage() {
@@ -100,6 +114,7 @@ export default function PricingPage() {
   const [submittingPlan, setSubmittingPlan] = useState('');
   const [confirmingCheckout, setConfirmingCheckout] = useState(false);
   const [error, setError] = useState('');
+  const receiptLinks = useMemo(() => billingDocuments(status), [status]);
 
   const redirectTarget = useMemo(() => {
     const raw = Array.isArray(router.query.redirect)
@@ -331,6 +346,12 @@ export default function PricingPage() {
                         {plan.price}
                       </div>
 
+                      {planCode === 'project_pass' && (
+                        <p className="mt-3 text-xs text-primary-500">
+                          1案件ごとの従量課金ではありません。購入日から30日間は、対象の有料機能を案件数に関係なく利用できます。
+                        </p>
+                      )}
+
                       <div className="mt-5 space-y-3">
                         {plan.points.map((point) => (
                           <div key={point} className="flex items-start gap-3">
@@ -380,6 +401,28 @@ export default function PricingPage() {
                         期限: {formatExpiry(status.expires_at)}
                       </p>
                     )}
+
+                    <div className="mt-4 rounded-xl border border-warm-200 bg-warm-50 p-4">
+                      <p className="text-xs font-semibold text-primary-700">領収書・請求書</p>
+                      <p className="mt-2 text-xs text-primary-500">
+                        決済完了後、Stripe から領収書メールを自動送信します。見当たらない場合は迷惑メールも確認してください。
+                      </p>
+                      {receiptLinks.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {receiptLinks.map((link) => (
+                            <a
+                              key={link.label}
+                              href={link.href}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center justify-center rounded-lg border border-primary-300 bg-white px-3 py-2 text-xs font-semibold text-primary-700 hover:bg-primary-50 transition-colors"
+                            >
+                              {link.label}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
                     <div className="mt-6 flex flex-col gap-3">
                       {status?.active ? (

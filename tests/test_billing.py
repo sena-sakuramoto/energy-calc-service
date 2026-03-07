@@ -80,6 +80,53 @@ class _FakeStripe:
                 return {"name": "AI circle monthly"}
             return {"name": "energy calc monthly"}
 
+    class Invoice:
+        @staticmethod
+        def retrieve(invoice_id):
+            if invoice_id == "in_project_pass":
+                return {
+                    "id": "in_project_pass",
+                    "hosted_invoice_url": "https://invoice.example.com/project-pass",
+                    "invoice_pdf": "https://invoice.example.com/project-pass.pdf",
+                    "charge": "ch_project_pass",
+                }
+            return None
+
+        @staticmethod
+        def list(customer=None, subscription=None, status="paid", limit=1):
+            if customer == "cus_active" or subscription == "sub_energy":
+                return type(
+                    "Obj",
+                    (),
+                    {
+                        "data": [
+                            {
+                                "id": "in_energy_monthly",
+                                "hosted_invoice_url": "https://invoice.example.com/energy-monthly",
+                                "invoice_pdf": "https://invoice.example.com/energy-monthly.pdf",
+                                "charge": "ch_energy_monthly",
+                            }
+                        ]
+                    },
+                )()
+            return type("Obj", (), {"data": []})()
+
+    class PaymentIntent:
+        @staticmethod
+        def retrieve(payment_intent_id):
+            if payment_intent_id == "pi_project_pass":
+                return {"id": "pi_project_pass", "latest_charge": "ch_project_pass"}
+            return None
+
+    class Charge:
+        @staticmethod
+        def retrieve(charge_id):
+            if charge_id == "ch_project_pass":
+                return {"id": charge_id, "receipt_url": "https://receipt.example.com/project-pass"}
+            if charge_id == "ch_energy_monthly":
+                return {"id": charge_id, "receipt_url": "https://receipt.example.com/energy-monthly"}
+            return None
+
     class Webhook:
         @staticmethod
         def construct_event(payload, signature, secret):
@@ -125,6 +172,7 @@ class _FakeStripe:
                         "mode": "payment",
                         "status": "complete",
                         "payment_status": "paid",
+                        "invoice": "in_project_pass",
                         "payment_intent": "pi_project_pass",
                         "metadata": {
                             "plan_code": "project_pass",
@@ -183,6 +231,8 @@ def test_subscription_status_detects_energy_subscription(monkeypatch) -> None:
         assert payload["active"] is True
         assert payload["type"] == "energy_subscriber"
         assert payload["subscription_id"] == "sub_energy"
+        assert payload["receipt_url"] == "https://receipt.example.com/energy-monthly"
+        assert payload["invoice_pdf_url"] == "https://invoice.example.com/energy-monthly.pdf"
     finally:
         db.close()
         Base.metadata.drop_all(bind=engine)
@@ -265,6 +315,9 @@ def test_create_project_pass_checkout_returns_payment_session(monkeypatch) -> No
     assert payload["mode"] == "payment"
     assert _FakeStripe.created_kwargs["line_items"][0]["price"] == "price_project_pass"
     assert _FakeStripe.created_kwargs["payment_intent_data"]["metadata"]["plan_code"] == "project_pass"
+    assert _FakeStripe.created_kwargs["payment_intent_data"]["receipt_email"] == "pass@example.com"
+    assert _FakeStripe.created_kwargs["invoice_creation"]["enabled"] is True
+    assert _FakeStripe.created_kwargs["customer_creation"] == "always"
 
 
 def test_confirm_project_pass_checkout_creates_entitlement(monkeypatch) -> None:
@@ -285,6 +338,8 @@ def test_confirm_project_pass_checkout_creates_entitlement(monkeypatch) -> None:
         assert payload["active"] is True
         assert payload["type"] == "project_pass"
         assert payload["expires_at"] is not None
+        assert payload["receipt_url"] == "https://receipt.example.com/project-pass"
+        assert payload["invoice_pdf_url"] == "https://invoice.example.com/project-pass.pdf"
 
         saved = db.query(BillingEntitlement).filter(BillingEntitlement.email == "pass@example.com").one()
         assert saved.entitlement_type == "project_pass"
@@ -293,6 +348,7 @@ def test_confirm_project_pass_checkout_creates_entitlement(monkeypatch) -> None:
         status = asyncio.run(subscription_status(email="pass@example.com", db=db))
         assert status["active"] is True
         assert status["type"] == "project_pass"
+        assert status["receipt_url"] == "https://receipt.example.com/project-pass"
     finally:
         db.close()
         Base.metadata.drop_all(bind=engine)

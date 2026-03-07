@@ -132,6 +132,9 @@ export default function SubscriptionGate({
         <p className="text-primary-300 mt-2">
           月額プランまたは30日パスを選ぶと、決済後にこの画面へ戻れます。
         </p>
+        <p className="text-primary-300 mt-2 text-sm">
+          30日パスは1案件単位ではなく、購入日から30日間の利用権です。領収書は決済後に自動送信されます。
+        </p>
       </div>
 
       <div className="p-8">
