@@ -1,6 +1,7 @@
 // frontend/src/pages/tools/official-bei.jsx
 // 公式入力シート (様式A〜I) に基づくBEI計算 + 国交省公式PDF出力
 import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import {
   FaCalculator, FaBuilding, FaThermometerHalf, FaFan,
   FaWind, FaLightbulb, FaShower, FaArrowsAltV, FaSolarPanel,
@@ -535,6 +536,10 @@ const HVAC_TYPE_MAP = {
 // ── メインコンポーネント ──────────────────────────────────────────
 
 export default function OfficialBEI() {
+  const router = useRouter();
+  const projectId = Array.isArray(router.query.project_id)
+    ? router.query.project_id[0]
+    : router.query.project_id;
   const [step, setStep] = useState(1);
   const [building, setBuilding] = useState({ ...emptyBuilding });
   const [windows, setWindows] = useState([emptyWindow()]);
@@ -1701,7 +1706,7 @@ export default function OfficialBEI() {
       backUrl="/tools"
       backText="計算ツール一覧に戻る"
     >
-      <SubscriptionGate toolName="公式BEI計算">
+      <SubscriptionGate toolName="公式BEI計算" projectId={projectId}>
       <div className="max-w-5xl mx-auto">
         <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
           <button type="button" onClick={applySampleInput}

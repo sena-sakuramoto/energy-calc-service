@@ -237,7 +237,7 @@ const ProjectDetail = () => {
               様式A〜Iの入力内容をもとに公式計算を実行し、申請用PDFまで作成できます。
             </p>
             <Link
-              href="/tools/official-bei"
+              href={`/tools/official-bei?project_id=${id}`}
               className="w-full bg-primary-600 text-white py-3 px-6 rounded-lg hover:bg-primary-700 transition-colors font-medium text-center block"
             >
               公式BEI計算を開く

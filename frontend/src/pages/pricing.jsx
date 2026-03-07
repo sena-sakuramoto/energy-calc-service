@@ -12,7 +12,7 @@ import {
 
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/FirebaseAuthContext';
-import { billingAPI } from '../utils/api';
+import { billingAPI, projectsAPI } from '../utils/api';
 
 const BILLING_BYPASS =
   process.env.NEXT_PUBLIC_USE_MOCK === 'true' ||
@@ -24,7 +24,7 @@ const PLAN_DEFS = {
     badge: '月額',
     title: '月額プラン',
     price: '9,800円 / 月',
-    subtitle: '月に複数案件を回す事務所向けです。',
+    subtitle: '月に複数案件を回す事務所向けです。すべての案件で使えます。',
     cta: '月額プランを開始',
     points: [
       '公式BEIワークフローとPDF出力',
@@ -34,21 +34,21 @@ const PLAN_DEFS = {
   },
   project_pass: {
     badge: '単発',
-    title: '30日パス',
+    title: '1案件パス',
     price: '4,980円 / 回',
-    subtitle: '1案件単位ではなく、購入日から30日間だけ有料機能を使いたいとき向けです。',
-    cta: '30日パスを購入',
+    subtitle: '1つのプロジェクトだけ、購入日から30日間有料機能を使いたいとき向けです。',
+    cta: '1案件パスを購入',
     points: [
-      '購入日から30日間だけ有料機能を開放',
-      '案件数ではなく利用期間で区切るプラン',
-      '2回買うと月額とほぼ同水準',
+      '選んだ1プロジェクトだけ30日間アンロック',
+      '自動更新なし。単発案件が終わればそのまま終了',
+      '2案件以上なら月額プランの方が割安',
     ],
   },
 };
 
 const DEFAULT_PLANS = {
   energy_monthly: { available: false, mode: 'subscription' },
-  project_pass: { available: false, mode: 'payment', duration_days: 30 },
+  project_pass: { available: false, mode: 'payment', duration_days: 30, requires_project: true },
 };
 
 function formatExpiry(expiresAt) {
@@ -77,12 +77,24 @@ function statusMessage(status) {
   }
   if (status.type === 'project_pass') {
     const expiry = formatExpiry(status.expires_at);
+    const projectLabel = status.project_name ? `「${status.project_name}」` : '選択中の案件';
     return expiry
-      ? `30日パスが有効です。案件数ではなく、期限の ${expiry} まで有料機能を使えます。`
-      : '30日パスが有効です。案件数ではなく、購入日から30日間の利用権です。';
+      ? `${projectLabel} に対する1案件パスが有効です。期限の ${expiry} まで使えます。`
+      : `${projectLabel} に対する1案件パスが有効です。購入日から30日間の利用権です。`;
+  }
+  if (status.type === 'project_pass_legacy') {
+    return '旧30日パスが有効です。現在の有効期限までは従来どおり利用できます。';
   }
   if (status.type === 'development_bypass') {
     return 'この開発環境では課金をバイパスしています。';
+  }
+  if (status.reason === 'project_selection_required') {
+    return '1案件パスを使うには、対象プロジェクトを選んでからツールへ戻ってください。';
+  }
+  if (status.reason === 'project_pass_other_project') {
+    return status.bound_project_name
+      ? `1案件パスは別案件「${status.bound_project_name}」に紐づいています。対象案件を選び直してください。`
+      : '1案件パスは別案件に紐づいています。対象案件を選び直してください。';
   }
   if (status.reason === 'stripe_not_configured') {
     return 'この環境ではStripeがまだ設定されていません。';
@@ -104,6 +116,29 @@ function billingDocuments(status) {
   return links;
 }
 
+function appendQueryParam(path, key, value) {
+  if (!value) return path;
+  try {
+    const url = new URL(path, 'https://rakuraku-energy.archi-prisma.co.jp');
+    if (!url.searchParams.has(key)) {
+      url.searchParams.set(key, String(value));
+    }
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return path;
+  }
+}
+
+function readProjectId(value) {
+  if (!value) return '';
+  try {
+    const url = new URL(value, 'https://rakuraku-energy.archi-prisma.co.jp');
+    return url.searchParams.get('project_id') || '';
+  } catch {
+    return '';
+  }
+}
+
 export default function PricingPage() {
   const { user, isAuthenticated, loading } = useAuth();
   const router = useRouter();
@@ -113,6 +148,8 @@ export default function PricingPage() {
   const [checking, setChecking] = useState(false);
   const [submittingPlan, setSubmittingPlan] = useState('');
   const [confirmingCheckout, setConfirmingCheckout] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
   const [error, setError] = useState('');
   const receiptLinks = useMemo(() => billingDocuments(status), [status]);
 
@@ -122,6 +159,34 @@ export default function PricingPage() {
       : router.query.redirect;
     return raw || '/tools/official-bei';
   }, [router.query.redirect]);
+
+  const queryProjectId = useMemo(() => {
+    const raw = Array.isArray(router.query.project_id)
+      ? router.query.project_id[0]
+      : router.query.project_id;
+    return raw || readProjectId(redirectTarget) || '';
+  }, [redirectTarget, router.query.project_id]);
+
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+
+  useEffect(() => {
+    if (queryProjectId) {
+      setSelectedProjectId(String(queryProjectId));
+    }
+  }, [queryProjectId]);
+
+  const effectiveProjectId = selectedProjectId || queryProjectId || '';
+  const resolvedRedirectTarget = useMemo(
+    () => (effectiveProjectId ? appendQueryParam(redirectTarget, 'project_id', effectiveProjectId) : redirectTarget),
+    [effectiveProjectId, redirectTarget],
+  );
+  const pricingReturnPath = useMemo(() => {
+    const params = new URLSearchParams({ redirect: redirectTarget });
+    if (effectiveProjectId) {
+      params.set('project_id', effectiveProjectId);
+    }
+    return `/pricing?${params.toString()}`;
+  }, [effectiveProjectId, redirectTarget]);
 
   const checkoutSucceeded = router.query.checkout === 'success';
   const checkoutSessionId = useMemo(() => {
@@ -156,6 +221,7 @@ export default function PricingPage() {
     if (!isAuthenticated || !user?.email) {
       setChecking(false);
       setStatus(null);
+      setProjects([]);
       return () => {
         mounted = false;
       };
@@ -165,7 +231,7 @@ export default function PricingPage() {
       setChecking(true);
       setError('');
       try {
-        const response = await billingAPI.getStatus(user.email);
+        const response = await billingAPI.getStatus(user.email, effectiveProjectId || null);
         if (!mounted) return;
         setStatus(response.data || null);
       } catch {
@@ -180,7 +246,43 @@ export default function PricingPage() {
     return () => {
       mounted = false;
     };
-  }, [isAuthenticated, loading, user?.email]);
+  }, [effectiveProjectId, isAuthenticated, loading, user?.email]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (!router.isReady || BILLING_BYPASS || loading || !isAuthenticated) {
+      return () => {
+        mounted = false;
+      };
+    }
+
+    const fetchProjects = async () => {
+      setLoadingProjects(true);
+      try {
+        const response = await projectsAPI.getAll();
+        if (!mounted) return;
+        const items = (response.data || []).map((project) => ({
+          id: String(project.id),
+          name: project.projectInfo?.name || project.name || `案件 ${project.id}`,
+        }));
+        setProjects(items);
+        if (!selectedProjectId && queryProjectId) {
+          setSelectedProjectId(String(queryProjectId));
+        }
+      } catch {
+        if (!mounted) return;
+        setProjects([]);
+      } finally {
+        if (mounted) setLoadingProjects(false);
+      }
+    };
+
+    fetchProjects();
+    return () => {
+      mounted = false;
+    };
+  }, [BILLING_BYPASS, isAuthenticated, loading, queryProjectId, router.isReady]);
 
   useEffect(() => {
     let mounted = true;
@@ -226,9 +328,12 @@ export default function PricingPage() {
 
   const handleCheckout = async (planCode) => {
     if (!user?.email) {
-      router.push(
-        `/login?redirect=${encodeURIComponent(`/pricing?redirect=${redirectTarget}`)}`,
-      );
+      router.push(`/login?redirect=${encodeURIComponent(pricingReturnPath)}`);
+      return;
+    }
+
+    if (planCode === 'project_pass' && !effectiveProjectId) {
+      setError('1案件パスは対象プロジェクトを選んでから購入してください。');
       return;
     }
 
@@ -236,20 +341,32 @@ export default function PricingPage() {
     setError('');
     try {
       const origin = window.location.origin;
+      const successParams = new URLSearchParams({
+        checkout: 'success',
+        redirect: resolvedRedirectTarget,
+      });
+      if (effectiveProjectId) {
+        successParams.set('project_id', effectiveProjectId);
+      }
+
+      const cancelParams = new URLSearchParams({ redirect: resolvedRedirectTarget });
+      if (effectiveProjectId) {
+        cancelParams.set('project_id', effectiveProjectId);
+      }
+
       const response = await billingAPI.createCheckout({
         email: user.email,
         plan: planCode,
-        success_url: `${origin}/pricing?checkout=success&redirect=${encodeURIComponent(
-          redirectTarget,
-        )}`,
-        cancel_url: `${origin}/pricing?redirect=${encodeURIComponent(redirectTarget)}`,
+        project_id: planCode === 'project_pass' ? Number(effectiveProjectId) : null,
+        success_url: `${origin}/pricing?${successParams.toString()}`,
+        cancel_url: `${origin}/pricing?${cancelParams.toString()}`,
       });
       const checkoutUrl = response.data?.checkout_url;
       if (checkoutUrl) {
         window.location.assign(checkoutUrl);
         return;
       }
-      router.push(redirectTarget);
+      router.push(resolvedRedirectTarget);
     } catch (err) {
       setError(err.response?.data?.detail || '決済ページの起動に失敗しました。');
     } finally {
@@ -258,12 +375,18 @@ export default function PricingPage() {
   };
 
   const plans = status?.plans || DEFAULT_PLANS;
+  const hasProjectPasses = Boolean(status?.project_passes?.length);
+  const currentProjectName =
+    projects.find((project) => project.id === String(effectiveProjectId))?.name ||
+    status?.project_name ||
+    '';
+  const statusHeading = status?.active ? '利用中' : hasProjectPasses ? '案件パス保有中' : '未契約';
 
   return (
     <Layout
       title="料金 | 楽々省エネ計算"
-      description="公式BEIワークフローと住宅の公式検証に対する料金ページです。月額プランと30日パスを選べます。"
-      keywords="省エネ計算 料金, BEI 計算 サブスク, 30日パス"
+      description="公式BEIワークフローと住宅の公式検証に対する料金ページです。月額プランと1案件パスを選べます。"
+      keywords="省エネ計算 料金, BEI 計算 サブスク, 1案件パス"
       url="/pricing"
     >
       <div className="max-w-6xl mx-auto">
@@ -347,9 +470,42 @@ export default function PricingPage() {
                       </div>
 
                       {planCode === 'project_pass' && (
-                        <p className="mt-3 text-xs text-primary-500">
-                          1案件ごとの従量課金ではありません。購入日から30日間は、対象の有料機能を案件数に関係なく利用できます。
-                        </p>
+                        <div className="mt-4 space-y-3">
+                          <p className="text-xs text-primary-500">
+                            このプランは 1プロジェクト専用です。購入後 30日間は、選んだ案件だけ公式出力と住宅公式検証を使えます。
+                          </p>
+                          <label className="block">
+                            <span className="text-xs font-semibold text-primary-700">対象プロジェクト</span>
+                            {isAuthenticated ? (
+                              loadingProjects ? (
+                                <div className="mt-2 rounded-lg border border-warm-200 bg-warm-50 px-3 py-3 text-sm text-primary-500">
+                                  プロジェクト一覧を読み込み中です...
+                                </div>
+                              ) : projects.length > 0 ? (
+                                <select
+                                  value={selectedProjectId}
+                                  onChange={(event) => setSelectedProjectId(event.target.value)}
+                                  className="mt-2 w-full rounded-lg border border-primary-300 bg-white px-3 py-3 text-sm text-primary-800 focus:border-accent-400 focus:outline-none focus:ring-2 focus:ring-accent-200"
+                                >
+                                  <option value="">対象プロジェクトを選択</option>
+                                  {projects.map((project) => (
+                                    <option key={project.id} value={project.id}>
+                                      {project.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <div className="mt-2 rounded-lg border border-warm-200 bg-warm-50 px-3 py-3 text-sm text-primary-600">
+                                  先にプロジェクトを作成してください。案件パスは作成済みプロジェクトに紐づけます。
+                                </div>
+                              )
+                            ) : (
+                              <div className="mt-2 rounded-lg border border-warm-200 bg-warm-50 px-3 py-3 text-sm text-primary-500">
+                                ログインすると対象プロジェクトを選べます。
+                              </div>
+                            )}
+                          </label>
+                        </div>
                       )}
 
                       <div className="mt-5 space-y-3">
@@ -392,14 +548,51 @@ export default function PricingPage() {
                 ) : isAuthenticated ? (
                   <>
                     <div className="mt-3 text-2xl font-bold text-primary-900">
-                      {status?.active ? '利用中' : '未契約'}
+                      {statusHeading}
                     </div>
                     <p className="text-sm text-primary-500 mt-2">{statusMessage(status)}</p>
 
-                    {status?.type === 'project_pass' && status?.expires_at && (
+                    {status?.type === 'project_pass' && (
+                      <div className="mt-3 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-xs text-primary-700">
+                        <div>対象案件: {status.project_name || currentProjectName || `案件 ${status.project_id}`}</div>
+                        {status?.expires_at && <div className="mt-1">期限: {formatExpiry(status.expires_at)}</div>}
+                      </div>
+                    )}
+
+                    {status?.type === 'project_pass_legacy' && status?.expires_at && (
                       <p className="mt-3 text-xs text-primary-500">
                         期限: {formatExpiry(status.expires_at)}
                       </p>
+                    )}
+
+                    {!status?.active && hasProjectPasses && (
+                      <div className="mt-4 rounded-xl border border-warm-200 bg-warm-50 p-4">
+                        <p className="text-xs font-semibold text-primary-700">保有中の案件パス</p>
+                        <div className="mt-3 space-y-2">
+                          {status.project_passes.map((projectPass) => {
+                            const isSelected = String(projectPass.project_id) === String(effectiveProjectId);
+                            return (
+                              <button
+                                key={projectPass.project_pass_id || `${projectPass.project_id}-${projectPass.expires_at}`}
+                                type="button"
+                                onClick={() => setSelectedProjectId(String(projectPass.project_id))}
+                                className={`w-full rounded-lg border px-3 py-3 text-left transition-colors ${
+                                  isSelected
+                                    ? 'border-accent-300 bg-accent-50'
+                                    : 'border-warm-200 bg-white hover:border-primary-300'
+                                }`}
+                              >
+                                <div className="text-sm font-semibold text-primary-800">
+                                  {projectPass.project_name || `案件 ${projectPass.project_id}`}
+                                </div>
+                                <div className="mt-1 text-xs text-primary-500">
+                                  期限: {formatExpiry(projectPass.expires_at)}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     )}
 
                     <div className="mt-4 rounded-xl border border-warm-200 bg-warm-50 p-4">
@@ -427,7 +620,7 @@ export default function PricingPage() {
                     <div className="mt-6 flex flex-col gap-3">
                       {status?.active ? (
                         <Link
-                          href={redirectTarget}
+                          href={resolvedRedirectTarget}
                           className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-5 py-3 rounded-lg transition-colors"
                         >
                           ツールへ戻る <FaArrowRight className="text-xs" />
@@ -454,7 +647,7 @@ export default function PricingPage() {
                             <button
                               type="button"
                               onClick={() => handleCheckout('project_pass')}
-                              disabled={Boolean(submittingPlan)}
+                              disabled={Boolean(submittingPlan) || (isAuthenticated && !effectiveProjectId)}
                               className="inline-flex items-center justify-center gap-2 border border-primary-300 text-primary-700 hover:bg-warm-50 disabled:opacity-60 font-semibold px-5 py-3 rounded-lg transition-colors"
                             >
                               {submittingPlan === 'project_pass' ? (
@@ -464,6 +657,12 @@ export default function PricingPage() {
                               )}
                               {PLAN_DEFS.project_pass.cta}
                             </button>
+                          )}
+
+                          {isAuthenticated && !effectiveProjectId && plans.project_pass?.available && (
+                            <p className="text-xs text-primary-500">
+                              1案件パスを買う前に、左側で対象プロジェクトを選んでください。
+                            </p>
                           )}
 
                           {!plans.energy_monthly?.available &&
@@ -496,13 +695,13 @@ export default function PricingPage() {
                     </p>
                     <div className="mt-6 flex flex-col gap-3">
                       <Link
-                        href={`/register?redirect=${encodeURIComponent(`/pricing?redirect=${redirectTarget}`)}`}
+                        href={`/register?redirect=${encodeURIComponent(pricingReturnPath)}`}
                         className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-5 py-3 rounded-lg transition-colors"
                       >
                         新規登録
                       </Link>
                       <Link
-                        href={`/login?redirect=${encodeURIComponent(`/pricing?redirect=${redirectTarget}`)}`}
+                        href={`/login?redirect=${encodeURIComponent(pricingReturnPath)}`}
                         className="inline-flex items-center justify-center gap-2 border border-primary-300 text-primary-700 hover:bg-warm-50 font-semibold px-5 py-3 rounded-lg transition-colors"
                       >
                         ログイン

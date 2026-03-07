@@ -84,7 +84,7 @@ export default function RegisterPage() {
 
             <div className="mt-4 bg-warm-100 border border-primary-200 text-primary-700 px-4 py-3 rounded">
               <p className="text-sm">
-                登録は無料です。必要になった時点で月額または30日パスを選べます。
+                登録は無料です。必要になった時点で月額または1案件パスを選べます。
               </p>
             </div>
           </div>

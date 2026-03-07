@@ -234,7 +234,7 @@ export const billingAPI = {
           public_app_url: typeof window !== 'undefined' ? window.location.origin : '',
           plans: {
             energy_monthly: { available: false, mode: 'subscription' },
-            project_pass: { available: false, mode: 'payment', duration_days: 30 },
+            project_pass: { available: false, mode: 'payment', duration_days: 30, requires_project: true },
           },
         },
         status: 200,
@@ -243,7 +243,7 @@ export const billingAPI = {
     return apiClient.get('/billing/config');
   },
 
-  getStatus: async (email) => {
+  getStatus: async (email, projectId = null) => {
     if (isBillingBypass()) {
         return {
           data: {
@@ -251,19 +251,26 @@ export const billingAPI = {
             type: 'development_bypass',
             reason: null,
             customer_email: email || null,
+            project_id: projectId || null,
+            project_passes: [],
             billing_enabled: false,
             checkout_available: false,
             bypass_enabled: true,
             public_app_url: typeof window !== 'undefined' ? window.location.origin : '',
             plans: {
               energy_monthly: { available: false, mode: 'subscription' },
-              project_pass: { available: false, mode: 'payment', duration_days: 30 },
+              project_pass: { available: false, mode: 'payment', duration_days: 30, requires_project: true },
             },
           },
           status: 200,
         };
       }
-      return apiClient.get('/billing/status', { params: { email } });
+      return apiClient.get('/billing/status', {
+        params: {
+          email,
+          ...(projectId ? { project_id: projectId } : {}),
+        },
+      });
   },
 
   createCheckout: async (payload) => {
@@ -274,6 +281,7 @@ export const billingAPI = {
             session_id: 'billing-bypass',
             mode: 'development_bypass',
             plan: payload?.plan || 'energy_monthly',
+            project_id: payload?.project_id || null,
           },
           status: 200,
         };
@@ -290,9 +298,10 @@ export const billingAPI = {
           type: 'development_bypass',
           reason: null,
           session_id: payload?.session_id || 'billing-bypass',
+          project_passes: [],
           plans: {
             energy_monthly: { available: false, mode: 'subscription' },
-            project_pass: { available: false, mode: 'payment', duration_days: 30 },
+            project_pass: { available: false, mode: 'payment', duration_days: 30, requires_project: true },
           },
         },
         status: 200,

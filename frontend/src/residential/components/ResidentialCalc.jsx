@@ -133,6 +133,9 @@ function getProductNameById(openings, id) {
 export default function ResidentialCalc() {
   const router = useRouter();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const projectId = Array.isArray(router.query.project_id)
+    ? router.query.project_id[0]
+    : router.query.project_id;
   const [project, setProject] = useState(createDefaultProject());
   const [debouncedProject, setDebouncedProject] = useState(project);
   const [activeTab, setActiveTab] = useState('template');
@@ -184,7 +187,7 @@ export default function ResidentialCalc() {
 
     const fetchBillingStatus = async () => {
       try {
-        const response = await billingAPI.getStatus(user.email);
+        const response = await billingAPI.getStatus(user.email, projectId || null);
         if (!mounted) return;
         setBillingStatus(response.data || null);
       } catch {
@@ -197,13 +200,13 @@ export default function ResidentialCalc() {
     return () => {
       mounted = false;
     };
-  }, [authLoading, isAuthenticated, user?.email]);
+  }, [authLoading, isAuthenticated, projectId, user?.email]);
 
   const result = useMemo(() => computeResidentialResult(debouncedProject), [debouncedProject]);
   const premiumLocked = !BILLING_BYPASS && !billingStatus?.active;
 
   const openPremiumFlow = () => {
-    const redirect = encodeURIComponent('/residential');
+    const redirect = encodeURIComponent(router.asPath || (projectId ? `/residential?project_id=${projectId}` : '/residential'));
     if (!isAuthenticated) {
       router.push(`/login?redirect=${redirect}`);
       return;

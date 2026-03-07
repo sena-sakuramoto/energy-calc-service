@@ -131,7 +131,7 @@ export default function About() {
               </h3>
               <p className="text-primary-600 text-sm leading-relaxed">
                 住宅プレビューや料金比較は無料のまま維持し、公式出力と提出前支援だけを
-                月額または30日パスで提供しています。
+                月額または1案件パスで提供しています。
               </p>
             </div>
           </div>

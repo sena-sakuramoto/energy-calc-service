@@ -27,6 +27,7 @@ class CheckoutRequest(BaseModel):
     plan: Literal["energy_monthly", "project_pass"] = "energy_monthly"
     success_url: Optional[str] = None
     cancel_url: Optional[str] = None
+    project_id: Optional[int] = None
 
 
 class ConfirmCheckoutRequest(BaseModel):
@@ -40,13 +41,17 @@ async def billing_config() -> dict:
 
 
 @router.get("/status")
-async def subscription_status(email: EmailStr, db: Session = Depends(get_db)) -> dict:
+async def subscription_status(
+    email: EmailStr,
+    project_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+) -> dict:
     """Return paid-access status for a given email."""
-    return check_subscription(str(email), db=db)
+    return check_subscription(str(email), db=db, project_id=project_id)
 
 
 @router.post("/checkout")
-async def create_checkout(req: CheckoutRequest) -> dict:
+async def create_checkout(req: CheckoutRequest, db: Session = Depends(get_db)) -> dict:
     """Create a Stripe Checkout session for a supported billing plan."""
     try:
         return create_checkout_session(
@@ -54,7 +59,11 @@ async def create_checkout(req: CheckoutRequest) -> dict:
             plan=req.plan,
             success_url=req.success_url,
             cancel_url=req.cancel_url,
+            project_id=req.project_id,
+            db=db,
         )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except BillingConfigurationError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -67,6 +76,8 @@ async def confirm_checkout(
     """Confirm a finished checkout session and grant one-off access if needed."""
     try:
         return confirm_checkout_session(session_id=req.session_id, db=db)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except BillingConfigurationError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -83,7 +94,7 @@ async def stripe_webhook(
     try:
         event = construct_webhook_event(payload=payload, signature=signature)
         return process_webhook_event(event=event, db=db)
-    except BillingConfigurationError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except BillingConfigurationError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc

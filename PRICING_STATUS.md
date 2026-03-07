@@ -55,9 +55,9 @@
 - Non-production environments keep the billing bypass so local development and Playwright smoke tests can run without Stripe.
 - Market positioning update: free calculators are necessary because official free tools and large incumbent packages already exist; the paid value must center on official workflow output, faster delivery, and submission-ready documents.
 - Launch recommendation: do not sell generic energy/tariff calculators. Sell official BEI workflow, residential verification/PDF export, and support for small design offices.
-- Billing model update on 2026-03-06: added `project_pass` as a one-off purchase alongside the monthly subscription. The pass is implemented as a 30-day entitlement stored in the application database after checkout confirmation.
-- Billing reliability update on 2026-03-06: Stripe webhook handling now activates or refunds `project_pass` entitlements on the backend, reducing dependence on the pricing return page.
-- Current code-level pricing structure: `energy_monthly` = 9,800 JPY/month, `project_pass` = 4,980 JPY/30 days. The monthly plan is for repeat users; the pass is for one-off projects and should upsell to monthly when two or more passes would be needed.
+- Billing model update on 2026-03-07: `project_pass` is now a project-scoped purchase instead of an account-wide 30-day pass. It unlocks one selected project for 30 days after checkout confirmation.
+- Billing reliability update on 2026-03-07: Stripe webhook handling now activates or refunds project-scoped `project_pass` grants on the backend, reducing dependence on the pricing return page.
+- Current code-level pricing structure: `energy_monthly` = 9,800 JPY/month across all projects, `project_pass` = 4,980 JPY for one selected project with a 30-day validity window. Two or more paid projects should upsell to monthly.
 
 ## Stripe Test Mode Products (2026-06-04)
 

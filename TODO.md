@@ -75,10 +75,10 @@
 - Completed in code: Windows-safe residential pytest harness, official/residential smoke stabilization, referral status update API, onboarding persistence, Stripe billing API, pricing page, and subscription gates on major tools.
 - Verified on this date: `PYTHONPATH=. pytest -q` -> `113 passed`, `frontend/npm run build` -> success, `npx playwright test e2e/smoke --project=smoke` -> `32 passed`.
 - Remaining release blockers: set production Stripe env vars and live prices, refresh pricing copy on public marketing pages, expand partner product catalog, and finish release/runbook docs.
-- Pricing strategy revision: free preview for quick BEI, residential live calc, and utility calculators; paid plan for official workflow outputs, residential verification/PDF, and proposal support.
-- Next billing implementation step: keep monthly subscription for repeat users, but add a one-off per-project purchase path before broad launch.
-- Completed on 2026-03-06: added a one-off `project_pass` billing path, local billing entitlement persistence, and checkout confirmation flow so paid access can be granted without relying only on recurring subscriptions.
-- Completed on 2026-03-06: added Stripe webhook handling for project pass activation/refund sync, so the local entitlement store can be updated even if the pricing return page is skipped.
-- Current paid model in code: `energy_monthly` at 9,800 JPY/month for repeat users, plus `project_pass` at 4,980 JPY for 30 days aimed at one-off projects.
+- Pricing strategy revision: residential live calc and utility calculators remain free; official BEI workflow outputs, residential verification/PDF, and proposal support are paid.
+- Billing strategy update on 2026-03-07: keep monthly subscription for repeat users, and treat `project_pass` as a true one-project purchase with 30-day validity.
+- Completed on 2026-03-07: switched `project_pass` from an account-wide 30-day entitlement to a project-scoped grant, and passed `project_id` through checkout, confirmation, webhook, pricing UI, and tool gating.
+- Completed on 2026-03-07: preserved legacy 30-day entitlements for compatibility while routing all new purchases to the project-scoped grant table.
+- Current paid model in code: `energy_monthly` at 9,800 JPY/month for repeat users across all projects, plus `project_pass` at 4,980 JPY for one selected project with 30-day validity.
 - Stripe test mode: Products and Prices created (see PRICING_STATUS.md for IDs).
 - Remaining production billing work: create live-mode equivalents, wire webhook endpoint in Stripe Dashboard, and deploy with live env vars.

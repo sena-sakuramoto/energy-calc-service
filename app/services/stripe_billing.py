@@ -12,11 +12,15 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from sqlalchemy.orm import Session
 
 from app.models.billing_entitlement import BillingEntitlement
+from app.models.billing_project_pass import BillingProjectPass
+from app.models.project import Project
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
 ACTIVE_SUBSCRIPTION_STATUSES = {"active", "trialing"}
 ACTIVE_ENTITLEMENT_STATUSES = {"active"}
+ACTIVE_PROJECT_PASS_STATUSES = {"active"}
 CIRCLE_KEYWORDS = ("circle", "Circle", "member")
 ENERGY_KEYWORDS = ("energy", "Energy")
 
@@ -96,7 +100,7 @@ def _clean_value(value: Any) -> Optional[str]:
 
 def _plan_display_name(plan_code: str) -> str:
     if plan_code == PLAN_PROJECT_PASS:
-        return f"{_project_pass_days()}日パス"
+        return f"1案件パス ({_project_pass_days()}日)"
     return "月額プラン"
 
 
@@ -302,6 +306,17 @@ def _classify_subscription_item(stripe_module: Any, item: dict[str, Any]) -> Opt
     return None
 
 
+def _normalize_project_id(project_id: Any) -> Optional[int]:
+    text = str(project_id or "").strip()
+    if not text:
+        return None
+    try:
+        normalized = int(text)
+    except (TypeError, ValueError):
+        return None
+    return normalized if normalized > 0 else None
+
+
 def _serialize_entitlement(entitlement: BillingEntitlement) -> dict[str, Any]:
     expires_at = _coerce_utc(entitlement.expires_at)
     return {
@@ -312,6 +327,39 @@ def _serialize_entitlement(entitlement: BillingEntitlement) -> dict[str, Any]:
         "stripe_session_id": entitlement.stripe_session_id,
         "stripe_payment_intent_id": entitlement.stripe_payment_intent_id,
     }
+
+
+def _serialize_project_pass(project_pass: BillingProjectPass) -> dict[str, Any]:
+    expires_at = _coerce_utc(project_pass.expires_at)
+    return {
+        "project_pass_id": project_pass.id,
+        "project_id": project_pass.project_id,
+        "project_name": project_pass.project_name,
+        "project_pass_status": project_pass.status,
+        "expires_at": expires_at.isoformat() if expires_at else None,
+        "stripe_session_id": project_pass.stripe_session_id,
+        "stripe_payment_intent_id": project_pass.stripe_payment_intent_id,
+    }
+
+
+def _find_owned_project(*, db: Optional[Session], customer_email: str, project_id: Any) -> Project:
+    if db is None:
+        raise ValueError("Database session is required to validate the selected project.")
+
+    normalized_email = _normalize_email(customer_email)
+    normalized_project_id = _normalize_project_id(project_id)
+    if normalized_project_id is None:
+        raise ValueError("project_id is required for the one-project pass.")
+
+    project = (
+        db.query(Project)
+        .join(User, User.id == Project.owner_id)
+        .filter(Project.id == normalized_project_id, User.email == normalized_email)
+        .first()
+    )
+    if project is None:
+        raise ValueError("Selected project was not found for this account.")
+    return project
 
 
 def _get_active_entitlement(db: Optional[Session], customer_email: str) -> Optional[BillingEntitlement]:
@@ -347,27 +395,79 @@ def _get_active_entitlement(db: Optional[Session], customer_email: str) -> Optio
     return None
 
 
-def _upsert_project_pass_entitlement(
+def _get_active_project_passes(db: Optional[Session], customer_email: str) -> list[BillingProjectPass]:
+    if db is None:
+        return []
+
+    normalized_email = _normalize_email(customer_email)
+    if not normalized_email:
+        return []
+
+    now = datetime.now(timezone.utc)
+    did_update = False
+    rows = (
+        db.query(BillingProjectPass)
+        .filter(
+            BillingProjectPass.email == normalized_email,
+            BillingProjectPass.status.in_(ACTIVE_PROJECT_PASS_STATUSES),
+        )
+        .order_by(BillingProjectPass.created_at.desc(), BillingProjectPass.id.desc())
+        .all()
+    )
+
+    active_rows: list[BillingProjectPass] = []
+    for row in rows:
+        expires_at = _coerce_utc(row.expires_at)
+        if expires_at and expires_at <= now:
+            row.status = "expired"
+            did_update = True
+            continue
+        active_rows.append(row)
+
+    if did_update:
+        db.commit()
+    return active_rows
+
+
+def _project_pass_summaries(project_passes: list[BillingProjectPass]) -> list[dict[str, Any]]:
+    return [_serialize_project_pass(project_pass) for project_pass in project_passes]
+
+
+def _match_project_pass(
+    project_passes: list[BillingProjectPass],
+    project_id: Optional[int],
+) -> Optional[BillingProjectPass]:
+    if project_id is None:
+        return None
+    for project_pass in project_passes:
+        if project_pass.project_id == project_id:
+            return project_pass
+    return None
+
+
+def _upsert_project_pass(
     *,
     db: Session,
     customer_email: str,
+    project: Project,
     stripe_session_id: str,
     stripe_payment_intent_id: Optional[str],
     notes: Optional[str] = None,
-) -> BillingEntitlement:
+) -> BillingProjectPass:
     normalized_email = _normalize_email(customer_email)
     expires_at = datetime.now(timezone.utc) + timedelta(days=_project_pass_days())
 
-    entitlement = (
-        db.query(BillingEntitlement)
-        .filter(BillingEntitlement.stripe_session_id == stripe_session_id)
+    project_pass = (
+        db.query(BillingProjectPass)
+        .filter(BillingProjectPass.stripe_session_id == stripe_session_id)
         .first()
     )
 
-    if entitlement is None:
-        entitlement = BillingEntitlement(
+    if project_pass is None:
+        project_pass = BillingProjectPass(
             email=normalized_email,
-            entitlement_type=PLAN_PROJECT_PASS,
+            project_id=project.id,
+            project_name=project.name,
             status="active",
             source="stripe_checkout",
             stripe_session_id=stripe_session_id,
@@ -375,19 +475,20 @@ def _upsert_project_pass_entitlement(
             expires_at=expires_at,
             notes=notes,
         )
-        db.add(entitlement)
+        db.add(project_pass)
     else:
-        entitlement.email = normalized_email
-        entitlement.entitlement_type = PLAN_PROJECT_PASS
-        entitlement.status = "active"
-        entitlement.stripe_payment_intent_id = stripe_payment_intent_id
-        entitlement.expires_at = expires_at
+        project_pass.email = normalized_email
+        project_pass.project_id = project.id
+        project_pass.project_name = project.name
+        project_pass.status = "active"
+        project_pass.stripe_payment_intent_id = stripe_payment_intent_id
+        project_pass.expires_at = expires_at
         if notes is not None:
-            entitlement.notes = notes
+            project_pass.notes = notes
 
     db.commit()
-    db.refresh(entitlement)
-    return entitlement
+    db.refresh(project_pass)
+    return project_pass
 
 
 def _set_entitlement_status(
@@ -419,6 +520,35 @@ def _set_entitlement_status(
     return entitlement
 
 
+def _set_project_pass_status(
+    *,
+    db: Session,
+    stripe_session_id: Optional[str] = None,
+    stripe_payment_intent_id: Optional[str] = None,
+    status: str,
+    notes: Optional[str] = None,
+) -> Optional[BillingProjectPass]:
+    query = db.query(BillingProjectPass)
+
+    if stripe_session_id:
+        query = query.filter(BillingProjectPass.stripe_session_id == stripe_session_id)
+    elif stripe_payment_intent_id:
+        query = query.filter(BillingProjectPass.stripe_payment_intent_id == stripe_payment_intent_id)
+    else:
+        return None
+
+    project_pass = query.first()
+    if project_pass is None:
+        return None
+
+    project_pass.status = status
+    if notes is not None:
+        project_pass.notes = notes
+    db.commit()
+    db.refresh(project_pass)
+    return project_pass
+
+
 def billing_public_config() -> dict[str, Any]:
     """Expose non-secret billing configuration to the frontend."""
     bypass_enabled = _billing_bypass_enabled()
@@ -437,6 +567,7 @@ def billing_public_config() -> dict[str, Any]:
                 "available": not bypass_enabled and plan_catalog[PLAN_PROJECT_PASS]["available"],
                 "mode": plan_catalog[PLAN_PROJECT_PASS]["mode"],
                 "duration_days": plan_catalog[PLAN_PROJECT_PASS]["duration_days"],
+                "requires_project": True,
             },
         },
     }
@@ -448,6 +579,8 @@ def create_checkout_session(
     plan: str = PLAN_ENERGY_MONTHLY,
     success_url: Optional[str] = None,
     cancel_url: Optional[str] = None,
+    project_id: Optional[int] = None,
+    db: Optional[Session] = None,
 ) -> dict[str, Any]:
     """Create a Stripe Checkout session for a supported billing plan."""
     if _billing_bypass_enabled():
@@ -456,6 +589,7 @@ def create_checkout_session(
             "session_id": "billing-bypass",
             "mode": "development_bypass",
             "plan": plan,
+            "project_id": project_id,
         }
 
     normalized_email = _normalize_email(customer_email)
@@ -483,6 +617,12 @@ def create_checkout_session(
         "customer_email": normalized_email,
     }
 
+    selected_project = None
+    if plan == PLAN_PROJECT_PASS:
+        selected_project = _find_owned_project(db=db, customer_email=normalized_email, project_id=project_id)
+        metadata["project_id"] = str(selected_project.id)
+        metadata["project_name"] = selected_project.name
+
     create_kwargs: dict[str, Any] = {
         "mode": plan_info["mode"],
         "payment_method_types": ["card"],
@@ -507,6 +647,7 @@ def create_checkout_session(
                 "metadata": metadata,
                 "custom_fields": [
                     {"name": "プラン", "value": _plan_display_name(plan)},
+                    {"name": "対象案件", "value": selected_project.name if selected_project else "未設定"},
                 ],
             },
         }
@@ -522,6 +663,7 @@ def create_checkout_session(
         "session_id": session.id,
         "mode": plan_info["mode"],
         "plan": plan,
+        "project_id": selected_project.id if selected_project else None,
     }
 
 
@@ -567,6 +709,8 @@ def confirm_checkout_session(*, session_id: str, db: Session) -> dict[str, Any]:
     if not customer_email:
         raise BillingConfigurationError("Unable to determine customer email from checkout session.")
 
+    project_id = _normalize_project_id(metadata.get("project_id"))
+
     if plan_code == PLAN_PROJECT_PASS:
         if session.get("payment_status") != "paid":
             return {
@@ -576,15 +720,18 @@ def confirm_checkout_session(*, session_id: str, db: Session) -> dict[str, Any]:
                 "reason": "payment_not_completed",
                 "customer_email": customer_email,
                 "session_id": session_id,
+                "project_id": project_id,
                 **config,
             }
 
-        entitlement = _upsert_project_pass_entitlement(
+        project = _find_owned_project(db=db, customer_email=customer_email, project_id=project_id)
+        project_pass = _upsert_project_pass(
             db=db,
             customer_email=customer_email,
+            project=project,
             stripe_session_id=session_id,
             stripe_payment_intent_id=str(session.get("payment_intent") or "") or None,
-            notes="Granted from Stripe Checkout project pass purchase.",
+            notes="Granted from Stripe Checkout one-project pass purchase.",
         )
         return {
             "confirmed": True,
@@ -594,12 +741,12 @@ def confirm_checkout_session(*, session_id: str, db: Session) -> dict[str, Any]:
             "customer_email": customer_email,
             "plan": plan_code,
             "session_id": session_id,
-            **_serialize_entitlement(entitlement),
+            **_serialize_project_pass(project_pass),
             **receipt_links,
             **config,
         }
 
-    status_payload = check_subscription(customer_email, db=db)
+    status_payload = check_subscription(customer_email, db=db, project_id=project_id)
     status_payload.update(
         {
             "confirmed": bool(status_payload.get("active")),
@@ -648,9 +795,15 @@ def process_webhook_event(*, event: dict[str, Any], db: Session) -> dict[str, An
                 )
             )
             if customer_email:
-                entitlement = _upsert_project_pass_entitlement(
+                project = _find_owned_project(
                     db=db,
                     customer_email=customer_email,
+                    project_id=metadata.get("project_id"),
+                )
+                project_pass = _upsert_project_pass(
+                    db=db,
+                    customer_email=customer_email,
+                    project=project,
                     stripe_session_id=str(payload.get("id") or ""),
                     stripe_payment_intent_id=str(payload.get("payment_intent") or "") or None,
                     notes=f"Granted from webhook event {event_type}.",
@@ -659,11 +812,17 @@ def process_webhook_event(*, event: dict[str, Any], db: Session) -> dict[str, An
                     "received": True,
                     "action": "project_pass_activated",
                     "event_type": event_type,
-                    **_serialize_entitlement(entitlement),
+                    **_serialize_project_pass(project_pass),
                 }
 
     if event_type == "charge.refunded":
         payment_intent_id = str(payload.get("payment_intent") or "")
+        project_pass = _set_project_pass_status(
+            db=db,
+            stripe_payment_intent_id=payment_intent_id or None,
+            status="refunded",
+            notes="Marked refunded from Stripe webhook.",
+        )
         entitlement = _set_entitlement_status(
             db=db,
             stripe_payment_intent_id=payment_intent_id or None,
@@ -672,7 +831,7 @@ def process_webhook_event(*, event: dict[str, Any], db: Session) -> dict[str, An
         )
         return {
             "received": True,
-            "action": "project_pass_refunded" if entitlement else "ignored",
+            "action": "project_pass_refunded" if project_pass or entitlement else "ignored",
             "event_type": event_type,
         }
 
@@ -683,15 +842,22 @@ def process_webhook_event(*, event: dict[str, Any], db: Session) -> dict[str, An
     }
 
 
-def check_subscription(customer_email: str, db: Optional[Session] = None) -> dict[str, Any]:
+def check_subscription(
+    customer_email: str,
+    db: Optional[Session] = None,
+    project_id: Optional[int] = None,
+) -> dict[str, Any]:
     """Check whether the given email has paid access via subscription or project pass."""
     normalized_email = _normalize_email(customer_email)
+    normalized_project_id = _normalize_project_id(project_id)
     config = billing_public_config()
     payload: dict[str, Any] = {
         "active": False,
         "type": None,
         "reason": None,
         "customer_email": normalized_email or customer_email,
+        "project_id": normalized_project_id,
+        "project_passes": [],
         **config,
     }
 
@@ -703,16 +869,18 @@ def check_subscription(customer_email: str, db: Optional[Session] = None) -> dic
         payload.update({"active": True, "type": "development_bypass", "reason": None})
         return payload
 
-    entitlement = _get_active_entitlement(db, normalized_email)
-    if entitlement is not None:
+    project_passes = _get_active_project_passes(db, normalized_email)
+    payload["project_passes"] = _project_pass_summaries(project_passes)
+    matched_project_pass = _match_project_pass(project_passes, normalized_project_id)
+    if matched_project_pass is not None:
         if _stripe_secret_key():
             stripe_module = _load_stripe_module()
             _configure_stripe(stripe_module)
             payload.update(
                 _project_pass_receipt_links(
                     stripe_module,
-                    stripe_session_id=entitlement.stripe_session_id,
-                    stripe_payment_intent_id=entitlement.stripe_payment_intent_id,
+                    stripe_session_id=matched_project_pass.stripe_session_id,
+                    stripe_payment_intent_id=matched_project_pass.stripe_payment_intent_id,
                 )
             )
         payload.update(
@@ -720,12 +888,42 @@ def check_subscription(customer_email: str, db: Optional[Session] = None) -> dic
                 "active": True,
                 "type": PLAN_PROJECT_PASS,
                 "reason": None,
-                **_serialize_entitlement(entitlement),
+                **_serialize_project_pass(matched_project_pass),
+            }
+        )
+        return payload
+
+    legacy_entitlement = _get_active_entitlement(db, normalized_email)
+    if legacy_entitlement is not None:
+        if _stripe_secret_key():
+            stripe_module = _load_stripe_module()
+            _configure_stripe(stripe_module)
+            payload.update(
+                _project_pass_receipt_links(
+                    stripe_module,
+                    stripe_session_id=legacy_entitlement.stripe_session_id,
+                    stripe_payment_intent_id=legacy_entitlement.stripe_payment_intent_id,
+                )
+            )
+        payload.update(
+            {
+                "active": True,
+                "type": "project_pass_legacy",
+                "reason": None,
+                **_serialize_entitlement(legacy_entitlement),
             }
         )
         return payload
 
     if not _stripe_secret_key():
+        if project_passes:
+            payload["reason"] = (
+                "project_pass_other_project" if normalized_project_id else "project_selection_required"
+            )
+            if project_passes:
+                payload["bound_project_id"] = project_passes[0].project_id
+                payload["bound_project_name"] = project_passes[0].project_name
+            return payload
         payload["reason"] = "stripe_not_configured"
         return payload
 
@@ -735,6 +933,20 @@ def check_subscription(customer_email: str, db: Optional[Session] = None) -> dic
     customers = stripe_module.Customer.list(email=normalized_email, limit=10)
     customer_rows = list(getattr(customers, "data", []) or [])
     if not customer_rows:
+        if project_passes:
+            payload["reason"] = (
+                "project_pass_other_project" if normalized_project_id else "project_selection_required"
+            )
+            payload["bound_project_id"] = project_passes[0].project_id
+            payload["bound_project_name"] = project_passes[0].project_name
+            payload.update(
+                _project_pass_receipt_links(
+                    stripe_module,
+                    stripe_session_id=project_passes[0].stripe_session_id,
+                    stripe_payment_intent_id=project_passes[0].stripe_payment_intent_id,
+                )
+            )
+            return payload
         payload["reason"] = "no_customer"
         return payload
 
@@ -766,6 +978,21 @@ def check_subscription(customer_email: str, db: Optional[Session] = None) -> dic
                         }
                     )
                     return payload
+
+    if project_passes:
+        payload["reason"] = (
+            "project_pass_other_project" if normalized_project_id else "project_selection_required"
+        )
+        payload["bound_project_id"] = project_passes[0].project_id
+        payload["bound_project_name"] = project_passes[0].project_name
+        payload.update(
+            _project_pass_receipt_links(
+                stripe_module,
+                stripe_session_id=project_passes[0].stripe_session_id,
+                stripe_payment_intent_id=project_passes[0].stripe_payment_intent_id,
+            )
+        )
+        return payload
 
     payload["reason"] = "no_active_subscription"
     return payload

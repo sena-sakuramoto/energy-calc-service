@@ -65,9 +65,9 @@ const faqs = [
       '住宅のライブプレビュー、エネルギー計算、料金比較は無料です。公式BEIワークフローとPDF出力、住宅の公式検証は有料です。',
   },
   {
-    q: '月額と30日パスはどう使い分けますか？',
+    q: '月額と1案件パスはどう使い分けますか？',
     a:
-      '継続的に案件を回すなら月額、短期間だけ使うなら30日パスが向いています。30日パスは1案件分ではなく、購入日から30日間は案件数に関係なく使えます。迷ったら月額から始める方が運用しやすいです。',
+      '継続的に案件を回すなら月額、単発案件だけ進めたいなら1案件パスが向いています。1案件パスは選んだ1プロジェクトだけを30日間アンロックします。2案件以上なら月額の方が運用しやすいです。',
   },
   {
     q: '決済後はどこに戻りますか？',
@@ -146,7 +146,7 @@ export default function Campaign() {
             </div>
 
             <p className="text-primary-400 text-xs">
-              アカウント登録は無料です。月額 9,800円、30日パス 4,980円で使えます。
+              アカウント登録は無料です。月額 9,800円、1案件パス 4,980円で使えます。
             </p>
           </div>
         </section>
@@ -283,14 +283,14 @@ export default function Campaign() {
 
             <div className="bg-warm-50 border-2 border-accent-300 rounded-xl p-8">
               <span className="bg-accent-100 text-accent-600 text-sm font-semibold px-4 py-1 rounded-full">
-                30日パス
+                1案件パス
               </span>
               <div className="mt-6 flex items-center gap-3">
                 <FaCheckCircle className="text-accent-500 text-2xl" />
                 <span className="text-3xl font-bold text-accent-600">4,980円 / 回</span>
               </div>
               <p className="text-primary-700 text-sm mt-4">
-                単発案件だけ有料範囲を開きたいとき向けです。短い有料期間で運用できます。
+                単発案件だけ進めたいとき向けです。選んだ1プロジェクトだけ30日間使えます。
               </p>
             </div>
           </div>
@@ -345,7 +345,7 @@ export default function Campaign() {
               </div>
               <div className="flex items-center">
                 <FaCheckCircle className="mr-1.5" />
-                <span>月額または30日パス</span>
+                <span>月額または1案件パス</span>
               </div>
               <div className="flex items-center">
                 <FaCheckCircle className="mr-1.5" />

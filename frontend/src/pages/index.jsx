@@ -308,8 +308,8 @@ export default function Home() {
                 <li className="flex items-start gap-3">
                   <FaYenSign className="text-accent-400 mt-1 flex-shrink-0" />
                   <div>
-                    <span className="block font-semibold">月額または30日パス</span>
-                    <span className="text-sm text-primary-300">必要な期間だけ有料化</span>
+                    <span className="block font-semibold">月額または1案件パス</span>
+                    <span className="text-sm text-primary-300">月額か、1案件だけの単発売り</span>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">

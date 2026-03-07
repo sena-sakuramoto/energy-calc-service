@@ -24,6 +24,7 @@ load_dotenv()
 def _register_models() -> None:
     # Import model modules so SQLAlchemy metadata has all tables.
     from app.models import billing_entitlement  # noqa: F401
+    from app.models import billing_project_pass  # noqa: F401
     from app.models import onboarding_registration  # noqa: F401
     from app.models import product  # noqa: F401
     from app.models import product_event  # noqa: F401
