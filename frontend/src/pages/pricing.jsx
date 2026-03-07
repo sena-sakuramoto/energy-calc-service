@@ -21,27 +21,27 @@ const BILLING_BYPASS =
 
 const PLAN_DEFS = {
   energy_monthly: {
-    badge: 'STANDARD',
-    title: 'Monthly Plan',
-    price: 'JPY 9,800 / month',
-    subtitle: 'Best for firms running multiple projects every month.',
-    cta: 'Start monthly plan',
+    badge: '月額',
+    title: '月額プラン',
+    price: '9,800円 / 月',
+    subtitle: '月に複数案件を回す事務所向けです。',
+    cta: '月額プランを開始',
     points: [
-      'Official BEI workflow and PDF output',
-      'Residential official verification and PDF export',
-      'Ongoing proposal support and pre-submission checks',
+      '公式BEIワークフローとPDF出力',
+      '住宅の公式検証とPDF出力',
+      '提案前の見直しや提出前チェック',
     ],
   },
   project_pass: {
-    badge: 'ONE-OFF',
-    title: '30-Day Pass',
-    price: 'JPY 4,980 / pass',
-    subtitle: 'Best for one-off jobs that need a short paid window.',
-    cta: 'Buy 30-day pass',
+    badge: '単発',
+    title: '30日パス',
+    price: '4,980円 / 回',
+    subtitle: '単発案件だけ有料機能を開けたいとき向けです。',
+    cta: '30日パスを購入',
     points: [
-      'Unlock paid tools for 30 days',
-      'Designed for single-project official output work',
-      'Two passes cost about the same as the monthly plan',
+      '30日間だけ有料機能を開放',
+      '単発の公式出力案件に向いた設計',
+      '2回買うと月額とほぼ同水準',
     ],
   },
 };
@@ -68,16 +68,26 @@ function formatExpiry(expiresAt) {
 }
 
 function statusMessage(status) {
-  if (!status) return 'Log in to check your billing status.';
-  if (status.type === 'circle_member') return 'This account has paid access through AI circle membership.';
-  if (status.type === 'energy_subscriber') return 'The monthly subscription is active.';
+  if (!status) return 'ログインすると現在の利用状態を確認できます。';
+  if (status.type === 'circle_member') {
+    return 'AI建築サークル会員として有料機能を利用できます。';
+  }
+  if (status.type === 'energy_subscriber') {
+    return '月額プランが有効です。';
+  }
   if (status.type === 'project_pass') {
     const expiry = formatExpiry(status.expires_at);
-    return expiry ? `The 30-day pass is active until ${expiry}.` : 'The 30-day pass is active.';
+    return expiry
+      ? `30日パスが有効です。期限は ${expiry} です。`
+      : '30日パスが有効です。';
   }
-  if (status.type === 'development_bypass') return 'Billing is bypassed in the current development environment.';
-  if (status.reason === 'stripe_not_configured') return 'Stripe is not configured in this environment.';
-  return 'This account does not have paid access yet.';
+  if (status.type === 'development_bypass') {
+    return 'この開発環境では課金をバイパスしています。';
+  }
+  if (status.reason === 'stripe_not_configured') {
+    return 'この環境ではStripeがまだ設定されていません。';
+  }
+  return 'まだ有料利用権は付与されていません。';
 }
 
 export default function PricingPage() {
@@ -92,13 +102,17 @@ export default function PricingPage() {
   const [error, setError] = useState('');
 
   const redirectTarget = useMemo(() => {
-    const raw = Array.isArray(router.query.redirect) ? router.query.redirect[0] : router.query.redirect;
+    const raw = Array.isArray(router.query.redirect)
+      ? router.query.redirect[0]
+      : router.query.redirect;
     return raw || '/tools/official-bei';
   }, [router.query.redirect]);
 
   const checkoutSucceeded = router.query.checkout === 'success';
   const checkoutSessionId = useMemo(() => {
-    const raw = Array.isArray(router.query.session_id) ? router.query.session_id[0] : router.query.session_id;
+    const raw = Array.isArray(router.query.session_id)
+      ? router.query.session_id[0]
+      : router.query.session_id;
     return raw || '';
   }, [router.query.session_id]);
 
@@ -141,7 +155,7 @@ export default function PricingPage() {
         setStatus(response.data || null);
       } catch {
         if (!mounted) return;
-        setError('Failed to check billing status. Please retry.');
+        setError('課金状態の確認に失敗しました。時間をおいて再度お試しください。');
       } finally {
         if (mounted) setChecking(false);
       }
@@ -173,12 +187,17 @@ export default function PricingPage() {
       setConfirmingCheckout(true);
       setError('');
       try {
-        const response = await billingAPI.confirmCheckout({ session_id: checkoutSessionId });
+        const response = await billingAPI.confirmCheckout({
+          session_id: checkoutSessionId,
+        });
         if (!mounted) return;
         setStatus((current) => ({ ...(current || {}), ...(response.data || {}) }));
       } catch (err) {
         if (!mounted) return;
-        setError(err.response?.data?.detail || 'Failed to activate the completed checkout session.');
+        setError(
+          err.response?.data?.detail ||
+            '決済完了後の有効化に失敗しました。少し置いてから再度お試しください。',
+        );
       } finally {
         if (mounted) setConfirmingCheckout(false);
       }
@@ -192,7 +211,9 @@ export default function PricingPage() {
 
   const handleCheckout = async (planCode) => {
     if (!user?.email) {
-      router.push(`/login?redirect=${encodeURIComponent(`/pricing?redirect=${redirectTarget}`)}`);
+      router.push(
+        `/login?redirect=${encodeURIComponent(`/pricing?redirect=${redirectTarget}`)}`,
+      );
       return;
     }
 
@@ -203,7 +224,9 @@ export default function PricingPage() {
       const response = await billingAPI.createCheckout({
         email: user.email,
         plan: planCode,
-        success_url: `${origin}/pricing?checkout=success&redirect=${encodeURIComponent(redirectTarget)}`,
+        success_url: `${origin}/pricing?checkout=success&redirect=${encodeURIComponent(
+          redirectTarget,
+        )}`,
         cancel_url: `${origin}/pricing?redirect=${encodeURIComponent(redirectTarget)}`,
       });
       const checkoutUrl = response.data?.checkout_url;
@@ -213,7 +236,7 @@ export default function PricingPage() {
       }
       router.push(redirectTarget);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to start checkout.');
+      setError(err.response?.data?.detail || '決済ページの起動に失敗しました。');
     } finally {
       setSubmittingPlan('');
     }
@@ -223,33 +246,33 @@ export default function PricingPage() {
 
   return (
     <Layout
-      title="Pricing | Energy Calc"
-      description="Pricing for official BEI workflow and residential official verification. Choose between a monthly plan and a one-off 30-day pass."
-      keywords="energy calc pricing, Stripe subscription, project pass"
+      title="料金 | 楽々省エネ計算"
+      description="公式BEIワークフローと住宅の公式検証に対する料金ページです。月額プランと30日パスを選べます。"
+      keywords="省エネ計算 料金, BEI 計算 サブスク, 30日パス"
       url="/pricing"
     >
       <div className="max-w-6xl mx-auto">
         <section className="bg-white border border-warm-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="bg-primary-900 px-8 py-10 text-white">
-            <p className="text-primary-300 text-xs font-semibold tracking-widest">PRICING</p>
-            <h1 className="text-4xl font-bold mt-2">Charge only for official workflow output</h1>
+            <p className="text-primary-300 text-xs font-semibold tracking-widest">料金</p>
+            <h1 className="text-4xl font-bold mt-2">公式出力が必要なときだけ課金</h1>
             <p className="text-primary-300 mt-4 max-w-3xl">
-              Quick preview, residential live preview, and utility calculators remain free.
-              Paid access is limited to official calculations, PDF export, residential verification,
-              and submission-ready improvement support.
+              住宅のライブプレビューと料金比較は無料のままです。
+              有料にしているのは、公式BEIワークフロー、PDF出力、住宅の公式検証、
+              提出前の改善支援だけです。
             </p>
           </div>
 
           <div className="p-8">
             {checkoutSucceeded && confirmingCheckout && (
               <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-                Finalizing your purchase. This usually takes a few seconds.
+                購入内容を反映しています。通常は数秒で完了します。
               </div>
             )}
 
             {checkoutSucceeded && !confirmingCheckout && status?.active && (
               <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">
-                Your purchase is active. You can return to the tool now.
+                購入が反映されました。ツールへ戻って利用を再開できます。
               </div>
             )}
 
@@ -261,21 +284,20 @@ export default function PricingPage() {
 
             <div className="mb-6 grid lg:grid-cols-2 gap-4">
               <div className="rounded-2xl border border-warm-200 bg-white p-5">
-                <p className="text-xs font-semibold tracking-widest text-primary-500">FREE</p>
-                <h2 className="text-lg font-bold text-primary-900 mt-2">Try before you pay</h2>
+                <p className="text-xs font-semibold tracking-widest text-primary-500">無料</p>
+                <h2 className="text-lg font-bold text-primary-900 mt-2">無料で使える範囲</h2>
                 <ul className="mt-3 space-y-2 text-sm text-primary-600">
-                  <li>Quick BEI preview</li>
-                  <li>Residential live calculation preview</li>
-                  <li>Energy and tariff calculators</li>
+                  <li>住宅のライブ計算プレビュー</li>
+                  <li>エネルギー計算と料金比較</li>
                 </ul>
               </div>
               <div className="rounded-2xl border border-accent-200 bg-accent-50/50 p-5">
-                <p className="text-xs font-semibold tracking-widest text-accent-700">PAID</p>
-                <h2 className="text-lg font-bold text-primary-900 mt-2">Pay for official output</h2>
+                <p className="text-xs font-semibold tracking-widest text-accent-700">有料</p>
+                <h2 className="text-lg font-bold text-primary-900 mt-2">有料でできること</h2>
                 <ul className="mt-3 space-y-2 text-sm text-primary-700">
-                  <li>Official BEI workflow and PDF export</li>
-                  <li>Residential official verification and PDF export</li>
-                  <li>Proposal-ready recommendations and support</li>
+                  <li>公式BEIワークフローとPDF出力</li>
+                  <li>住宅の公式検証とPDF出力</li>
+                  <li>提出前の改善提案と見直し</li>
                 </ul>
               </div>
             </div>
@@ -295,7 +317,9 @@ export default function PricingPage() {
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <p className="text-sm font-semibold text-accent-600">{plan.badge}</p>
-                          <h2 className="text-2xl font-bold text-primary-900 mt-1">{plan.title}</h2>
+                          <h2 className="text-2xl font-bold text-primary-900 mt-1">
+                            {plan.title}
+                          </h2>
                           <p className="text-sm text-primary-500 mt-2">{plan.subtitle}</p>
                         </div>
                         <div className="hidden sm:flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-900 text-white">
@@ -303,7 +327,9 @@ export default function PricingPage() {
                         </div>
                       </div>
 
-                      <div className="mt-4 text-3xl font-bold text-primary-900">{plan.price}</div>
+                      <div className="mt-4 text-3xl font-bold text-primary-900">
+                        {plan.price}
+                      </div>
 
                       <div className="mt-5 space-y-3">
                         {plan.points.map((point) => (
@@ -323,10 +349,12 @@ export default function PricingPage() {
                       <FaUsers />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-primary-900">AI circle members stay included</h3>
+                      <h3 className="text-lg font-bold text-primary-900">
+                        AI建築サークル会員はそのまま利用可能
+                      </h3>
                       <p className="text-sm text-primary-500 mt-2">
-                        Existing AI circle members keep access to paid workflow features.
-                        This pricing work adds a standalone revenue path for non-members.
+                        既存のAI建築サークル会員は有料ワークフロー機能を継続利用できます。
+                        今回の料金設定は、非会員向けの単独導線を追加したものです。
                       </p>
                     </div>
                   </div>
@@ -334,22 +362,22 @@ export default function PricingPage() {
               </div>
 
               <div className="border border-warm-200 rounded-2xl p-6 bg-white">
-                <p className="text-sm text-primary-500">Billing status</p>
+                <p className="text-sm text-primary-500">利用状況</p>
                 {loading || checking ? (
                   <div className="mt-4 flex items-center gap-3 text-primary-500">
                     <FaSpinner className="animate-spin" />
-                    <span>Checking...</span>
+                    <span>確認中...</span>
                   </div>
                 ) : isAuthenticated ? (
                   <>
                     <div className="mt-3 text-2xl font-bold text-primary-900">
-                      {status?.active ? 'Active' : 'Not active'}
+                      {status?.active ? '利用中' : '未契約'}
                     </div>
                     <p className="text-sm text-primary-500 mt-2">{statusMessage(status)}</p>
 
                     {status?.type === 'project_pass' && status?.expires_at && (
                       <p className="mt-3 text-xs text-primary-500">
-                        Expiry: {formatExpiry(status.expires_at)}
+                        期限: {formatExpiry(status.expires_at)}
                       </p>
                     )}
 
@@ -359,7 +387,7 @@ export default function PricingPage() {
                           href={redirectTarget}
                           className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-5 py-3 rounded-lg transition-colors"
                         >
-                          Open tool <FaArrowRight className="text-xs" />
+                          ツールへ戻る <FaArrowRight className="text-xs" />
                         </Link>
                       ) : (
                         <>
@@ -395,14 +423,15 @@ export default function PricingPage() {
                             </button>
                           )}
 
-                          {!plans.energy_monthly?.available && !plans.project_pass?.available && (
-                            <Link
-                              href="/contact"
-                              className="inline-flex items-center justify-center gap-2 bg-primary-800 hover:bg-primary-900 text-white font-semibold px-5 py-3 rounded-lg transition-colors"
-                            >
-                              Contact sales
-                            </Link>
-                          )}
+                          {!plans.energy_monthly?.available &&
+                            !plans.project_pass?.available && (
+                              <Link
+                                href="/contact"
+                                className="inline-flex items-center justify-center gap-2 bg-primary-800 hover:bg-primary-900 text-white font-semibold px-5 py-3 rounded-lg transition-colors"
+                              >
+                                お問い合わせ
+                              </Link>
+                            )}
                         </>
                       )}
 
@@ -410,28 +439,30 @@ export default function PricingPage() {
                         href="/campaign"
                         className="inline-flex items-center justify-center gap-2 border border-primary-300 text-primary-700 hover:bg-warm-50 font-semibold px-5 py-3 rounded-lg transition-colors"
                       >
-                        View campaign
+                        導入案内を見る
                       </Link>
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="mt-3 text-2xl font-bold text-primary-900">Log in to purchase</div>
+                    <div className="mt-3 text-2xl font-bold text-primary-900">
+                      ログインして購入
+                    </div>
                     <p className="text-sm text-primary-500 mt-2">
-                      Create an account first. After checkout you will be sent back to the tool.
+                      先にアカウントを作成してください。購入後は元のツールへ戻れます。
                     </p>
                     <div className="mt-6 flex flex-col gap-3">
                       <Link
                         href={`/register?redirect=${encodeURIComponent(`/pricing?redirect=${redirectTarget}`)}`}
                         className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-5 py-3 rounded-lg transition-colors"
                       >
-                        Create account
+                        新規登録
                       </Link>
                       <Link
                         href={`/login?redirect=${encodeURIComponent(`/pricing?redirect=${redirectTarget}`)}`}
                         className="inline-flex items-center justify-center gap-2 border border-primary-300 text-primary-700 hover:bg-warm-50 font-semibold px-5 py-3 rounded-lg transition-colors"
                       >
-                        Log in
+                        ログイン
                       </Link>
                     </div>
                   </>

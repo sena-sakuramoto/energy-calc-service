@@ -1,13 +1,16 @@
-// frontend/src/contexts/FirebaseAuthContext.js
-// Firebase完全対応のAuthContext
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
-// E2Eモード判定
 const IS_E2E = process.env.NEXT_PUBLIC_E2E_AUTH === 'true';
 
-// Firebase依存は通常モードでのみインポート
-let registerWithEmail, signInWithEmail, signInWithGoogle, signOutUser, onAuthStateChange, createUserProfile, getUserProfile;
+let registerWithEmail;
+let signInWithEmail;
+let signInWithGoogle;
+let signOutUser;
+let onAuthStateChange;
+let createUserProfile;
+let getUserProfile;
+
 if (!IS_E2E) {
   const firebaseAuth = require('../utils/firebaseAuth');
   registerWithEmail = firebaseAuth.registerWithEmail;
@@ -19,8 +22,8 @@ if (!IS_E2E) {
   getUserProfile = firebaseAuth.getUserProfile;
 }
 
-// E2Eモード用: bcrypt / CryptoJS は遅延ロード
-let bcrypt, CryptoJS;
+let bcrypt;
+let CryptoJS;
 if (IS_E2E) {
   bcrypt = require('bcryptjs');
   CryptoJS = require('crypto-js');
@@ -46,7 +49,6 @@ export const FirebaseAuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // ── E2Eモード: localStorage ベース認証 ──
   useEffect(() => {
     if (IS_E2E) {
       const initE2EAuth = () => {
@@ -54,23 +56,28 @@ export const FirebaseAuthProvider = ({ children }) => {
           setLoading(false);
           return;
         }
+
         const sessionToken = localStorage.getItem('sessionToken');
         const sessionExpiry = localStorage.getItem('sessionExpiry');
 
         if (sessionToken && sessionExpiry) {
-          const now = new Date().getTime();
-          if (now < parseInt(sessionExpiry)) {
+          const now = Date.now();
+          if (now < parseInt(sessionExpiry, 10)) {
             try {
-              const decrypted = CryptoJS.AES.decrypt(sessionToken, E2E_SECRET).toString(CryptoJS.enc.Utf8);
-              if (decrypted) {
-                const userData = JSON.parse(decrypted);
-                setUser(userData);
-                console.log('[E2E] Session restored:', userData.email);
-              } else {
+              const decrypted = CryptoJS.AES.decrypt(
+                sessionToken,
+                E2E_SECRET,
+              ).toString(CryptoJS.enc.Utf8);
+
+              if (!decrypted) {
                 throw new Error('Invalid session token');
               }
-            } catch (err) {
-              console.error('[E2E] Invalid session:', err);
+
+              const userData = JSON.parse(decrypted);
+              setUser(userData);
+              console.log('[E2E] Session restored:', userData.email);
+            } catch (error) {
+              console.error('[E2E] Invalid session:', error);
               localStorage.removeItem('sessionToken');
               localStorage.removeItem('sessionExpiry');
               setUser(null);
@@ -84,17 +91,18 @@ export const FirebaseAuthProvider = ({ children }) => {
         } else {
           setUser(null);
         }
+
         setLoading(false);
       };
+
       initE2EAuth();
-      return; // E2Eモードではunsubscribe不要
+      return undefined;
     }
 
-    // ── 通常モード: Firebase onAuthStateChange ──
     const unsubscribe = onAuthStateChange(async (fbUser) => {
       console.log('Auth state changed:', fbUser ? 'User logged in' : 'User logged out');
+
       if (fbUser) {
-        // Firebase認証済みユーザーの場合、Firestoreから詳細情報取得
         try {
           const userProfile = await getUserProfile(fbUser.uid);
 
@@ -106,18 +114,18 @@ export const FirebaseAuthProvider = ({ children }) => {
             photoURL: userProfile?.photoURL || fbUser.photoURL,
             company: userProfile?.company || '',
             authType: userProfile?.authType || 'google',
-            isActive: userProfile?.isActive !== false, // デフォルトtrue
+            isActive: userProfile?.isActive !== false,
             isAdmin: userProfile?.isAdmin || false,
             createdAt: userProfile?.createdAt,
             lastLoginAt: userProfile?.lastLoginAt,
-            emailVerified: fbUser.emailVerified
+            emailVerified: fbUser.emailVerified,
           };
 
           setUser(userData);
           setFirebaseUser(fbUser);
         } catch (error) {
           console.error('Error loading user profile:', error);
-          // Firebase接続エラー時のフォールバック処理
+
           const fallbackUser = {
             id: fbUser.uid,
             email: fbUser.email,
@@ -125,32 +133,35 @@ export const FirebaseAuthProvider = ({ children }) => {
             displayName: fbUser.displayName,
             authType: 'google',
             isActive: true,
-            isAdmin: fbUser.email === 's.sakuramoto@archi-prisma.co.jp' || fbUser.email === 'admin@archi-prisma.co.jp',
-            offline: true // オフライン状態を示すフラグ
+            isAdmin:
+              fbUser.email === 's.sakuramoto@archi-prisma.co.jp' ||
+              fbUser.email === 'admin@archi-prisma.co.jp',
+            offline: true,
           };
 
           setUser(fallbackUser);
           setFirebaseUser(fbUser);
 
-          // バックグラウンドでFirestoreプロフィール作成を試行（エラー無視）
           try {
             await createUserProfile(fbUser);
           } catch (retryError) {
-            console.warn('Could not create user profile, continuing in offline mode:', retryError);
+            console.warn(
+              'Could not create user profile, continuing in offline mode:',
+              retryError,
+            );
           }
         }
       } else {
-        // ログアウト状態
         setUser(null);
         setFirebaseUser(null);
       }
+
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  // ── ログイン ──
   const login = async (credentials = null) => {
     if (IS_E2E) {
       return e2eLogin(credentials);
@@ -160,23 +171,19 @@ export const FirebaseAuthProvider = ({ children }) => {
       let fbUser;
 
       if (credentials?.email && credentials?.password) {
-        // メールログイン
         fbUser = await signInWithEmail(credentials.email, credentials.password);
       } else {
-        // Googleログイン
         fbUser = await signInWithGoogle();
       }
 
       console.log('Login successful:', fbUser.email);
 
-      // ログイン後のリダイレクト先を確認
       const redirectUrl = router.query.redirect || '/dashboard';
       router.push(redirectUrl);
       return true;
     } catch (error) {
       console.error('Login failed:', error);
 
-      // Firebase固有のエラーメッセージを日本語化
       let errorMessage = 'ログインに失敗しました。';
 
       switch (error.code) {
@@ -184,10 +191,10 @@ export const FirebaseAuthProvider = ({ children }) => {
           errorMessage = 'このメールアドレスは登録されていません。';
           break;
         case 'auth/wrong-password':
-          errorMessage = 'パスワードが間違っています。';
+          errorMessage = 'パスワードが正しくありません。';
           break;
         case 'auth/invalid-credential':
-          errorMessage = 'メールアドレスまたはパスワードが間違っています。';
+          errorMessage = 'メールアドレスまたはパスワードが正しくありません。';
           break;
         case 'auth/invalid-email':
           errorMessage = 'メールアドレスの形式が正しくありません。';
@@ -196,10 +203,10 @@ export const FirebaseAuthProvider = ({ children }) => {
           errorMessage = 'このアカウントは無効化されています。';
           break;
         case 'auth/too-many-requests':
-          errorMessage = 'ログイン試行回数が多すぎます。しばらく待ってからお試しください。';
+          errorMessage = '試行回数が多すぎます。しばらく待ってから再度お試しください。';
           break;
         case 'auth/popup-closed-by-user':
-          errorMessage = 'Googleログインがキャンセルされました。';
+          errorMessage = 'Googleログインの画面が途中で閉じられました。';
           break;
         default:
           errorMessage = error.message || 'ログインに失敗しました。';
@@ -209,17 +216,16 @@ export const FirebaseAuthProvider = ({ children }) => {
     }
   };
 
-  // ── E2Eログイン ──
   const e2eLogin = async (credentials) => {
     if (!credentials?.email || !credentials?.password) {
-      throw new Error('メールアドレスとパスワードは必須です。');
+      throw new Error('メールアドレスとパスワードを入力してください。');
     }
 
     const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const found = registeredUsers.find(u => u.email === credentials.email);
+    const found = registeredUsers.find((entry) => entry.email === credentials.email);
 
     if (!found || !(await bcrypt.compare(credentials.password, found.hashedPassword))) {
-      throw new Error('メールアドレスまたはパスワードが正しくありません');
+      throw new Error('メールアドレスまたはパスワードが正しくありません。');
     }
 
     const loginUser = {
@@ -234,9 +240,11 @@ export const FirebaseAuthProvider = ({ children }) => {
       loginTime: new Date().toISOString(),
     };
 
-    // セッショントークン生成（24時間有効）
-    const sessionToken = CryptoJS.AES.encrypt(JSON.stringify(loginUser), E2E_SECRET).toString();
-    const sessionExpiry = new Date().getTime() + 24 * 60 * 60 * 1000;
+    const sessionToken = CryptoJS.AES.encrypt(
+      JSON.stringify(loginUser),
+      E2E_SECRET,
+    ).toString();
+    const sessionExpiry = Date.now() + 24 * 60 * 60 * 1000;
 
     localStorage.setItem('sessionToken', sessionToken);
     localStorage.setItem('sessionExpiry', sessionExpiry.toString());
@@ -249,7 +257,6 @@ export const FirebaseAuthProvider = ({ children }) => {
     return true;
   };
 
-  // ── ユーザー登録 ──
   const register = async (userData) => {
     if (IS_E2E) {
       return e2eRegister(userData);
@@ -259,37 +266,35 @@ export const FirebaseAuthProvider = ({ children }) => {
       const { email, password, full_name, company } = userData;
 
       if (!email || !password) {
-        throw new Error('メールアドレスとパスワードは必須です。');
+        throw new Error('メールアドレスとパスワードを入力してください。');
       }
 
       if (password.length < 6) {
-        throw new Error('パスワードは6文字以上である必要があります。');
+        throw new Error('パスワードは6文字以上で入力してください。');
       }
 
       const fbUser = await registerWithEmail(email, password, {
         full_name,
-        company
+        company,
       });
 
       console.log('Registration successful:', fbUser.email);
       router.push('/login?registered=true');
-      return { message: '登録が完了しました' };
-
+      return { message: '登録が完了しました。' };
     } catch (error) {
       console.error('Registration failed:', error);
 
-      // Firebase固有のエラーメッセージを日本語化
       let errorMessage = '登録に失敗しました。';
 
       switch (error.code) {
         case 'auth/email-already-in-use':
-          errorMessage = 'このメールアドレスは既に使用されています。';
+          errorMessage = 'このメールアドレスはすでに使用されています。';
           break;
         case 'auth/invalid-email':
           errorMessage = 'メールアドレスの形式が正しくありません。';
           break;
         case 'auth/weak-password':
-          errorMessage = 'パスワードが弱すぎます。より強力なパスワードを使用してください。';
+          errorMessage = 'パスワードが弱すぎます。より長く安全なものを設定してください。';
           break;
         default:
           errorMessage = error.message || '登録に失敗しました。';
@@ -299,21 +304,20 @@ export const FirebaseAuthProvider = ({ children }) => {
     }
   };
 
-  // ── E2E登録 ──
   const e2eRegister = async (userData) => {
     const { email, password, full_name, company } = userData;
 
     if (!email || !password) {
-      throw new Error('メールアドレスとパスワードは必須です。');
+      throw new Error('メールアドレスとパスワードを入力してください。');
     }
     if (password.length < 6) {
-      throw new Error('パスワードは6文字以上である必要があります。');
+      throw new Error('パスワードは6文字以上で入力してください。');
     }
 
     const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
 
-    if (registeredUsers.find(u => u.email === email)) {
-      throw new Error('このメールアドレスは既に登録されています');
+    if (registeredUsers.find((entry) => entry.email === email)) {
+      throw new Error('このメールアドレスはすでに登録されています。');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -333,10 +337,9 @@ export const FirebaseAuthProvider = ({ children }) => {
 
     console.log('[E2E] User registered:', email);
     router.push('/login?registered=true');
-    return { message: '登録が完了しました' };
+    return { message: '登録が完了しました。' };
   };
 
-  // ── ログアウト ──
   const logout = async () => {
     if (IS_E2E) {
       localStorage.removeItem('sessionToken');

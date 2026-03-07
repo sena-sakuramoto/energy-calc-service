@@ -71,7 +71,7 @@ export default function ResultPanel({
             </div>
             {premiumLocked && (
               <div className="text-xs text-primary-500">
-                Residential preview is free. Official verification and PDF export are paid features.
+                住宅版のプレビューは無料です。公式検証とPDF出力は有料機能です。
               </div>
             )}
             <CostComparison comparison={comparison} />

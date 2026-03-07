@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { FaArrowRight, FaCheckCircle, FaLock, FaSpinner } from 'react-icons/fa';
+import {
+  FaArrowRight,
+  FaCheckCircle,
+  FaLock,
+  FaSpinner,
+} from 'react-icons/fa';
 
 import { useAuth } from '../contexts/FirebaseAuthContext';
 import { billingAPI } from '../utils/api';
@@ -13,7 +18,7 @@ const BILLING_BYPASS =
 
 export default function SubscriptionGate({
   children,
-  toolName = 'this tool',
+  toolName = 'このツール',
   redirectPath,
 }) {
   const { user, isAuthenticated, loading } = useAuth();
@@ -58,7 +63,7 @@ export default function SubscriptionGate({
         setStatus(response.data || null);
       } catch {
         if (!mounted) return;
-        setError('Failed to check billing status. Please retry.');
+        setError('課金状態の確認に失敗しました。少し置いてから再度お試しください。');
       } finally {
         if (mounted) setChecking(false);
       }
@@ -78,8 +83,10 @@ export default function SubscriptionGate({
     return (
       <div className="max-w-3xl mx-auto bg-white border border-warm-200 rounded-2xl shadow-sm p-8 text-center">
         <FaSpinner className="mx-auto text-2xl text-accent-500 animate-spin mb-4" />
-        <h2 className="text-xl font-bold text-primary-800">Checking paid access</h2>
-        <p className="text-primary-500 mt-2">We are verifying billing status before opening {toolName}.</p>
+        <h2 className="text-xl font-bold text-primary-800">利用権限を確認しています</h2>
+        <p className="text-primary-500 mt-2">
+          {toolName}を開く前に、課金状態を確認しています。
+        </p>
       </div>
     );
   }
@@ -89,22 +96,22 @@ export default function SubscriptionGate({
     return (
       <div className="max-w-3xl mx-auto bg-white border border-warm-200 rounded-2xl shadow-sm p-8 text-center">
         <FaLock className="mx-auto text-3xl text-primary-400 mb-4" />
-        <h2 className="text-2xl font-bold text-primary-800">Log in to continue</h2>
+        <h2 className="text-2xl font-bold text-primary-800">ログインして続ける</h2>
         <p className="text-primary-500 mt-2">
-          {toolName} requires an account before a paid plan can be used.
+          {toolName}の有料機能を使うには、先にアカウント登録が必要です。
         </p>
         <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href={`/login?redirect=${redirect}`}
             className="bg-primary-800 hover:bg-primary-900 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
           >
-            Log in
+            ログイン
           </Link>
           <Link
             href={`/register?redirect=${redirect}`}
             className="border border-primary-300 text-primary-700 hover:bg-warm-50 font-semibold px-6 py-3 rounded-lg transition-colors"
           >
-            Create account
+            新規登録
           </Link>
         </div>
       </div>
@@ -118,10 +125,12 @@ export default function SubscriptionGate({
   return (
     <div className="max-w-4xl mx-auto bg-white border border-warm-200 rounded-2xl shadow-sm overflow-hidden">
       <div className="bg-primary-900 px-8 py-6 text-white">
-        <p className="text-primary-300 text-xs font-semibold tracking-widest">PAID ACCESS REQUIRED</p>
-        <h2 className="text-2xl font-bold mt-2">{toolName} is available on a paid plan</h2>
+        <p className="text-primary-300 text-xs font-semibold tracking-widest">有料</p>
+        <h2 className="text-2xl font-bold mt-2">
+          {toolName}の公式出力は有料プランで利用できます
+        </h2>
         <p className="text-primary-300 mt-2">
-          Choose either the monthly subscription or the one-off 30-day pass.
+          月額プランまたは30日パスを選ぶと、決済後にこの画面へ戻れます。
         </p>
       </div>
 
@@ -137,35 +146,49 @@ export default function SubscriptionGate({
             <div className="flex items-start gap-3">
               <FaCheckCircle className="text-green-600 mt-1" />
               <div>
-                <div className="font-semibold text-primary-800">Official BEI workflow and PDF export</div>
-                <div className="text-sm text-primary-500">Generate submission-ready output through the official workflow path.</div>
+                <div className="font-semibold text-primary-800">
+                  公式BEIワークフローとPDF出力
+                </div>
+                <div className="text-sm text-primary-500">
+                  提出を前提にした公式ルートの計算と、帳票出力に対応します。
+                </div>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <FaCheckCircle className="text-green-600 mt-1" />
               <div>
-                <div className="font-semibold text-primary-800">Residential official verification and PDF export</div>
-                <div className="text-sm text-primary-500">Compare UA and eta values and produce a verification artifact.</div>
+                <div className="font-semibold text-primary-800">
+                  住宅の公式検証とPDF出力
+                </div>
+                <div className="text-sm text-primary-500">
+                  UA値やηAC値の確認と、説明しやすい形での出力に対応します。
+                </div>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <FaCheckCircle className="text-green-600 mt-1" />
               <div>
-                <div className="font-semibold text-primary-800">Proposal-ready improvement support</div>
-                <div className="text-sm text-primary-500">Keep the paid value focused on real submission work, not generic calculators.</div>
+                <div className="font-semibold text-primary-800">
+                  提案前の改善支援
+                </div>
+                <div className="text-sm text-primary-500">
+                  汎用計算ではなく、提出前後の実務に価値を寄せています。
+                </div>
               </div>
             </div>
           </div>
 
           <div className="bg-warm-50 border border-warm-200 rounded-xl p-6">
-            <div className="text-sm text-primary-500">Current status</div>
+            <div className="text-sm text-primary-500">現在の状態</div>
             <div className="text-lg font-bold text-primary-800 mt-1">
-              {status?.reason === 'stripe_not_configured' ? 'Stripe not configured' : 'No paid access'}
+              {status?.reason === 'stripe_not_configured'
+                ? 'Stripe未設定'
+                : '有料利用権がありません'}
             </div>
             <p className="text-sm text-primary-500 mt-2">
               {status?.reason === 'stripe_not_configured'
-                ? 'Stripe is not configured in this environment yet.'
-                : 'Open the pricing page, choose a monthly plan or 30-day pass, and then return here.'}
+                ? 'この環境ではまだStripe設定が完了していません。'
+                : '料金ページで月額プランまたは30日パスを選択してから、この画面へ戻ってください。'}
             </p>
 
             <div className="mt-5 flex flex-col gap-3">
@@ -173,13 +196,13 @@ export default function SubscriptionGate({
                 href={`/pricing?redirect=${encodeURIComponent(currentPath)}`}
                 className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-5 py-3 rounded-lg transition-colors"
               >
-                Open pricing <FaArrowRight className="text-xs" />
+                料金を見る <FaArrowRight className="text-xs" />
               </Link>
               <Link
                 href="/contact"
                 className="inline-flex items-center justify-center gap-2 border border-primary-300 text-primary-700 hover:bg-warm-50 font-semibold px-5 py-3 rounded-lg transition-colors"
               >
-                Contact sales
+                お問い合わせ
               </Link>
             </div>
           </div>

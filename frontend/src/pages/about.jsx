@@ -1,233 +1,159 @@
-// frontend/src/pages/about.jsx
-import Layout from '../components/Layout';
 import Link from 'next/link';
-import { FaBuilding, FaUsers, FaLightbulb, FaHeart, FaShieldAlt, FaLeaf, FaChartLine, FaCheckCircle } from 'react-icons/fa';
-import { useAuth } from '../contexts/FirebaseAuthContext';
+import {
+  FaBuilding,
+  FaChartLine,
+  FaCheckCircle,
+  FaHeart,
+  FaLightbulb,
+  FaShieldAlt,
+} from 'react-icons/fa';
+
+import Layout from '../components/Layout';
+
+const principles = [
+  {
+    icon: FaLightbulb,
+    title: '雑に使っても前へ進める',
+    body:
+      '操作のたびに不安にならず、入力不足があっても戻って埋め直せる体験を優先しています。',
+  },
+  {
+    icon: FaShieldAlt,
+    title: '公式出力に価値を寄せる',
+    body:
+      '無料の試算と、有料の公式ワークフローを分けて、料金の納得感を作る方針です。',
+  },
+  {
+    icon: FaHeart,
+    title: '設計実務の速度を落とさない',
+    body:
+      '制度理解のためのツールではなく、案件を前へ進めるための実務ツールとして磨いています。',
+  },
+];
+
+const capabilities = [
+  '公式BEIワークフロー',
+  '住宅省エネのライブ確認',
+  '住宅の公式検証とPDF出力',
+  'エネルギー計算と料金比較',
+  '提出前の見直し',
+  '案件単位の運用',
+];
 
 export default function About() {
-  const { isAuthenticated } = useAuth();
-
   return (
-    <Layout title="私たちについて - 楽々省エネ計算">
+    <Layout
+      title="このサービスについて | 楽々省エネ計算"
+      description="楽々省エネ計算の考え方と提供方針をまとめたページです。"
+      keywords="省エネ計算, about, 公式BEI"
+      url="/about"
+    >
       <div className="max-w-4xl mx-auto">
-        {/* ヒーローセクション */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold mb-4 text-primary-900">
-            設計者の声から生まれた、<br />設計者のためのツール
+            設計実務を前に進めるための
+            <br />
+            省エネ計算ツール
           </h1>
           <p className="text-xl text-primary-600 max-w-3xl mx-auto leading-relaxed">
-            複雑化する省エネ法を、シンプルに。建築設計者の負担を軽減し、<br />
-            本来の創造的な設計業務に集中できる環境を提供します。
+            楽々省エネ計算は、公式BEIや住宅省エネの実務を、
+            社内で回しやすい形へ寄せるためのサービスです。
           </p>
         </div>
 
-        {/* 会社情報 */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <div className="flex items-center mb-6">
             <div className="bg-warm-100 p-3 rounded-full mr-4">
               <FaBuilding className="text-accent-500 text-2xl" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-primary-900">Archi-Prisma Design works 株式会社</h2>
-              <p className="text-primary-600">建築設計業務の効率化とデジタル化を推進</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center">
-                <FaLightbulb className="mr-2 text-accent-400" />
-                私たちのミッション
-              </h3>
-              <p className="text-primary-600 leading-relaxed">
-                建築設計者が本来の創造的な業務に集中できるよう、複雑で時間のかかる計算作業を簡単・迅速・正確に処理できるツールを提供します。
-                省エネ法の複雑化により増大する設計者の負担を軽減し、より良い建築設計の実現を支援します。
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center">
-                <FaHeart className="mr-2 text-accent-400" />
-                私たちの想い
-              </h3>
-              <p className="text-primary-600 leading-relaxed">
-                建築設計の現場で働く設計者の声を直接聞き、本当に必要な機能だけを厳選して開発しています。
-                使いやすさと計算精度を両立し、設計者の皆様に信頼される製品づくりを心がけています。
+              <h2 className="text-2xl font-bold text-primary-900">
+                Archi-Prisma Design works 株式会社
+              </h2>
+              <p className="text-primary-600">
+                建築設計とデジタル支援の両方からプロダクトを整えています。
               </p>
             </div>
           </div>
+
+          <p className="text-primary-600 leading-relaxed">
+            制度対応そのものを目的化するのではなく、案件を止めないための運用設計として、
+            入力、確認、出力の流れを作っています。
+          </p>
         </div>
 
-        {/* 特徴・強み */}
         <div className="bg-warm-50 rounded-lg p-8 mb-8">
-          <h2 className="text-2xl font-bold text-primary-900 mb-6 text-center">楽々省エネ計算の特徴</h2>
+          <h2 className="text-2xl font-bold text-primary-900 mb-6 text-center">
+            つくるときに大事にしていること
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="bg-accent-50 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <FaCheckCircle className="text-accent-500 text-2xl" />
-              </div>
-              <h3 className="text-lg font-semibold text-primary-900 mb-2">簡単操作</h3>
-              <p className="text-primary-600 text-sm">
-                直感的なUI/UXで、複雑な省エネ計算を誰でも簡単に実行できます
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-accent-50 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <FaShieldAlt className="text-accent-500 text-2xl" />
-              </div>
-              <h3 className="text-lg font-semibold text-primary-900 mb-2">正確性</h3>
-              <p className="text-primary-600 text-sm">
-                建築物省エネ法に完全準拠。最新の基準値と計算式で正確な結果を提供
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-warm-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <FaLeaf className="text-primary-600 text-2xl" />
-              </div>
-              <h3 className="text-lg font-semibold text-primary-900 mb-2">信頼性</h3>
-              <p className="text-primary-600 text-sm">
-                設計実務経験豊富な建築士が監修。現場で本当に使える機能を厳選
-              </p>
-            </div>
+            {principles.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.title} className="text-center">
+                  <div className="bg-accent-50 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <Icon className="text-accent-500 text-2xl" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-primary-900 mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-primary-600 text-sm">{item.body}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* 技術情報 */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-bold text-primary-900 mb-6">技術仕様・対応範囲</h2>
+          <h2 className="text-2xl font-bold text-primary-900 mb-6">現在できること</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center">
                 <FaChartLine className="mr-2 text-accent-400" />
-                対応計算項目
+                主な機能
               </h3>
               <ul className="space-y-2 text-sm text-primary-600">
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                  BEI（Building Energy Index）計算
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                  外皮性能計算（UA値・ηA値）
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                  一次エネルギー消費量計算
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                  用途別エネルギー消費量分析
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                  再生可能エネルギー控除計算
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                  地域区分別基準値対応
-                </li>
+                {capabilities.map((item) => (
+                  <li key={item} className="flex items-center">
+                    <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
+                    {item}
+                  </li>
+                ))}
               </ul>
             </div>
 
             <div>
               <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center">
-                <FaBuilding className="mr-2 text-accent-400" />
-                対応建物用途
-              </h3>
-              <ul className="space-y-2 text-sm text-primary-600">
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                  事務所建築物
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                  学校建築物
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                  病院建築物
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                  ホテル・旅館
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                  共同住宅
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                  複合用途建築物
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* セキュリティ・品質保証 */}
-        <div className="bg-warm-50 rounded-lg p-8 mb-8">
-          <h2 className="text-2xl font-bold text-primary-900 mb-6 text-center">セキュリティ・品質への取り組み</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center">
-                <FaShieldAlt className="mr-2 text-accent-400" />
-                データセキュリティ
-              </h3>
-              <ul className="space-y-2 text-sm text-primary-600">
-                <li>・ Google OAuth 2.0による安全な認証</li>
-                <li>・ HTTPS暗号化通信</li>
-                <li>・ Cloud Firestore暗号化保存</li>
-                <li>・ 個人情報保護法完全準拠</li>
-                <li>・ 定期的なセキュリティ監査</li>
-              </ul>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center">
                 <FaCheckCircle className="mr-2 text-accent-400" />
-                品質保証
+                今の料金方針
               </h3>
-              <ul className="space-y-2 text-sm text-primary-600">
-                <li>・ 建築士による計算ロジック監修</li>
-                <li>・ 継続的な精度検証</li>
-                <li>・ ユーザーフィードバック反映</li>
-                <li>・ 24時間システム監視</li>
-                <li>・ 定期的なバックアップ実施</li>
-              </ul>
+              <p className="text-primary-600 text-sm leading-relaxed">
+                住宅プレビューや料金比較は無料のまま維持し、公式出力と提出前支援だけを
+                月額または30日パスで提供しています。
+              </p>
             </div>
           </div>
         </div>
 
-        {/* お問い合わせ・サポート */}
         <div className="bg-primary-800 text-white rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">お問い合わせ・サポート</h2>
+          <h2 className="text-2xl font-bold mb-4">詳しく見たい方へ</h2>
           <p className="mb-6">
-            ご質問・ご要望・不具合報告など、お気軽にお問い合わせください。<br />
-            設計業務でお困りの際は、いつでもサポートいたします。
+            料金と導入フローを確認したうえで、必要なところだけ導入できます。
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/contact"
+              href="/pricing"
               className="bg-accent-500 hover:bg-accent-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 inline-block"
             >
-              お問い合わせフォーム
-            </Link>
-            <Link
-              href={isAuthenticated ? "/tools/official-bei" : "/register"}
-              className="border-2 border-white text-white hover:bg-white hover:text-primary-800 font-bold py-3 px-6 rounded-lg transition-all duration-300 inline-block"
-            >
-              公式BEI計算を使う
+              料金を見る
             </Link>
             <Link
               href="/campaign"
-              className="bg-primary-700 hover:bg-primary-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 inline-block"
+              className="border border-white hover:bg-white hover:text-primary-800 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 inline-block"
             >
-              共同開発企画に参加
+              導入案内を見る
             </Link>
           </div>
         </div>
