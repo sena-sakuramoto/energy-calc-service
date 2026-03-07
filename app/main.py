@@ -13,6 +13,7 @@ from app.api.v1.referral import router as referral_router
 from app.api.v1.analytics import router as analytics_router
 from app.api.v1.onboarding import router as onboarding_router
 from app.api.v1.residential import router as residential_router
+from app.api.v1.contact import router as contact_router
 from app.db.base import Base
 from app.db.session import engine
 from app.middleware.security import SecurityMiddleware, RateLimitMiddleware, LoggingMiddleware
@@ -25,6 +26,7 @@ def _register_models() -> None:
     # Import model modules so SQLAlchemy metadata has all tables.
     from app.models import billing_entitlement  # noqa: F401
     from app.models import billing_project_pass  # noqa: F401
+    from app.models import contact_inquiry  # noqa: F401
     from app.models import onboarding_registration  # noqa: F401
     from app.models import product  # noqa: F401
     from app.models import product_event  # noqa: F401
@@ -88,6 +90,7 @@ app.include_router(referral_router, prefix=settings.API_PREFIX)
 app.include_router(analytics_router, prefix=settings.API_PREFIX)
 app.include_router(onboarding_router, prefix=settings.API_PREFIX)
 app.include_router(residential_router, prefix=settings.API_PREFIX)
+app.include_router(contact_router, prefix=settings.API_PREFIX)
 
 # Authenticated project-management endpoints (production backend)
 app.include_router(management_router, prefix=settings.API_PREFIX)

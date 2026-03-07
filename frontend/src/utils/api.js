@@ -230,6 +230,7 @@ export const billingAPI = {
         data: {
           billing_enabled: false,
           checkout_available: false,
+          customer_portal_available: false,
           bypass_enabled: true,
           public_app_url: typeof window !== 'undefined' ? window.location.origin : '',
           plans: {
@@ -255,6 +256,7 @@ export const billingAPI = {
             project_passes: [],
             billing_enabled: false,
             checkout_available: false,
+            customer_portal_available: false,
             bypass_enabled: true,
             public_app_url: typeof window !== 'undefined' ? window.location.origin : '',
             plans: {
@@ -308,6 +310,52 @@ export const billingAPI = {
       };
     }
     return apiClient.post('/billing/confirm', payload);
+  },
+
+  openPortal: async (payload) => {
+    if (isBillingBypass()) {
+      return {
+        data: {
+          portal_url: payload?.return_url || (typeof window !== 'undefined' ? `${window.location.origin}/pricing` : ''),
+          mode: 'development_bypass',
+        },
+        status: 200,
+      };
+    }
+    return apiClient.post('/billing/portal', payload);
+  },
+};
+
+export const contactAPI = {
+  getConfig: async () => {
+    if (isMockMode()) {
+      return {
+        data: {
+          support_email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'rse-support@archi-prisma.co.jp',
+          response_window: '2営業日以内',
+        },
+        status: 200,
+      };
+    }
+    return apiClient.get('/contact/config');
+  },
+
+  submit: async (payload) => {
+    if (isMockMode()) {
+      return {
+        data: {
+          status: 'received',
+          message: 'お問い合わせを受け付けました。',
+          inquiry_id: Date.now(),
+          stored: true,
+          notification_sent: true,
+          auto_reply_sent: true,
+          support_email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'rse-support@archi-prisma.co.jp',
+        },
+        status: 200,
+      };
+    }
+    return apiClient.post('/contact/submit', payload);
   },
 };
 

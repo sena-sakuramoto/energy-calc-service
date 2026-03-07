@@ -1,13 +1,10 @@
 // frontend/src/pages/contact.jsx
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Layout from '../components/Layout';
 import { FaEnvelope, FaPhone, FaBuilding, FaQuestionCircle, FaBug, FaLightbulb, FaPaperPlane, FaCheckCircle } from 'react-icons/fa';
 
-// Google Apps Script endpoint (use /macros/s/.../exec URL if possible)
-const GAS_ENDPOINT = 'https://script.google.com/a/macros/archi-prisma.co.jp/s/AKfycbzlnLWsQqgN8Vt79i_T4BlWKCxp22ByDprQGtbYMbnL04WOxH64QryZwRmdBQcoo1su/exec';
-// /a/macros を /macros に変換した安定URL（匿名公開向け）
-const ALT_GAS_ENDPOINT = GAS_ENDPOINT.replace(/\/a\/macros\/[\w.-]+/, '/macros');
-const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+import { contactConfig } from '../config/contact';
+import { contactAPI } from '../utils/api';
 
 const categoryLabels = {
   general: '一般的なお問い合わせ',
@@ -29,23 +26,7 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-
-  // reCAPTCHA スクリプトを必要時のみ読み込み
-  useEffect(() => {
-    if (!RECAPTCHA_SITE_KEY) return;
-    if (typeof window === 'undefined') return;
-    const id = 'recaptcha-v3';
-    if (document.getElementById(id)) return;
-    const s = document.createElement('script');
-    s.id = id;
-    s.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
-    s.async = true;
-    document.head.appendChild(s);
-    return () => {
-      // そのまま残しても問題ありませんが、ページ離脱時に消すなら以下
-      // const el = document.getElementById(id); if (el) el.remove();
-    };
-  }, []);
+  const [deliveryWarning, setDeliveryWarning] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -57,70 +38,35 @@ export default function Contact() {
     setSending(true);
     setError('');
 
-    // Build payload once (used for normal fetch and no-cors fallback)
-    const label = categoryLabels[formData.category] || formData.category || '';
-    const topic = [label, formData.subject].filter(Boolean).join(' - ');
-    const bodyParts = [
-      formData.company ? `会社名/事務所名: ${formData.company}` : null,
-      formData.category ? `種別: ${label}` : null,
-      formData.subject ? `件名: ${formData.subject}` : null,
-      '',
-      formData.message || ''
-    ].filter((v) => v !== null);
-
-    const fd = new FormData();
-    fd.append('name', formData.name || '');
-    fd.append('email', formData.email || '');
-    if (topic) fd.append('topic', topic);
-    fd.append('message', bodyParts.join('\n'));
-    // 個別フィールドも送信（GAS側での整形用）
-    if (formData.company) fd.append('company', formData.company);
-    if (formData.category) fd.append('category', formData.category);
-    if (formData.subject) fd.append('subject', formData.subject);
-
-    // reCAPTCHA トークンを付与（設定がある場合のみ）
-    async function withRecaptcha(formData) {
-      if (!RECAPTCHA_SITE_KEY || typeof window === 'undefined' || !window.grecaptcha) return formData;
-      try {
-        await window.grecaptcha.ready(async () => {});
-        const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'contact' });
-        if (token) formData.append('token', token);
-      } catch (_) {}
-      return formData;
-    }
-
-    await withRecaptcha(fd);
-
     try {
-      // まず /macros/s/.../exec を試す（CORS/認可が安定しやすい）
-      let res = await fetch(ALT_GAS_ENDPOINT, { method: 'POST', body: fd });
-      if (!res.ok) {
-        // ドメインURLが必要な場合に備えて元の /a/macros も試す
-        res = await fetch(GAS_ENDPOINT, { method: 'POST', body: fd });
+      const response = await contactAPI.submit({
+        ...formData,
+        category: formData.category || null,
+        company: formData.company || null,
+        page_url: typeof window !== 'undefined' ? window.location.href : null,
+        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+      });
+
+      if (response.data?.notification_sent === false) {
+        setDeliveryWarning(
+          `受付は完了しましたが、通知送信に問題がありました。${response.data?.support_email || contactConfig.supportEmail} へ直接ご連絡ください。`,
+        );
+      } else {
+        setDeliveryWarning('');
       }
-      const text = await res.text();
-      const json = JSON.parse(text);
-      if (!json.ok) throw new Error(json.error || '送信に失敗しました');
 
       setSubmitted(true);
       setTimeout(() => {
         setFormData({ name: '', email: '', company: '', category: '', subject: '', message: '' });
         setSubmitted(false);
+        setDeliveryWarning('');
       }, 3000);
     } catch (err) {
-      // CORS などで応答を読めない場合は no-cors でフォールバック送信
-      try {
-        // no-cors フォールバック（応答は読めないが送信はされる）
-        await fetch(ALT_GAS_ENDPOINT, { method: 'POST', body: fd, mode: 'no-cors' });
-        setSubmitted(true);
-        setTimeout(() => {
-          setFormData({ name: '', email: '', company: '', category: '', subject: '', message: '' });
-          setSubmitted(false);
-        }, 3000);
-      } catch (err2) {
-        console.error('Contact submit error:', err, err2);
-        setError('メール送信に失敗しました。しばらく時間をおいてから再度お試しください。');
-      }
+      console.error('Contact submit error:', err);
+      setError(
+        err.response?.data?.detail ||
+          'お問い合わせの送信に失敗しました。しばらく時間をおいてから再度お試しください。',
+      );
     } finally {
       setSending(false);
     }
@@ -142,7 +88,14 @@ export default function Contact() {
             <FaCheckCircle className="text-accent-600 text-4xl" />
           </div>
           <h1 className="text-3xl font-bold text-primary-900 mb-4">お問い合わせありがとうございました</h1>
-          <p className="text-primary-600 mb-8">お問い合わせを受け付けました。内容を確認の上、2営業日以内にご連絡いたします。</p>
+          <p className="text-primary-600 mb-4">
+            お問い合わせを受け付けました。内容を確認の上、{contactConfig.responseWindowText}にご連絡いたします。
+          </p>
+          {deliveryWarning && (
+            <div className="mb-8 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              {deliveryWarning}
+            </div>
+          )}
           <button onClick={() => setSubmitted(false)} className="bg-accent-600 text-white px-6 py-3 rounded-lg hover:bg-accent-700 transition-colors">
             新しいお問い合わせを送信
           </button>
@@ -219,6 +172,10 @@ export default function Contact() {
                 {/* ハニーポット（視覚的に隠す） */}
                 <input name="website" autoComplete="off" tabIndex="-1" style={{ position: 'absolute', left: '-9999px' }} aria-hidden="true" />
 
+                <p className="text-xs text-primary-500">
+                  送信内容はサーバーに保存され、担当に通知されます。返信先は {contactConfig.supportEmail} です。
+                </p>
+
                 <button type="submit" disabled={sending} className={`w-full py-3 px-6 rounded-lg transition-colors font-medium flex items-center justify-center ${sending ? 'bg-primary-400 cursor-not-allowed' : 'bg-accent-600 hover:bg-accent-700 text-white'}`}>
                   <FaPaperPlane className="mr-2" />
                   {sending ? '送信中…' : 'お問い合わせを送信'}
@@ -243,7 +200,9 @@ export default function Contact() {
                 <div className="flex items-start">
                   <FaEnvelope className="text-primary-400 mt-1 mr-3" />
                   <div>
-                    <p className="text-sm text-primary-600">rse-support@archi-prisma.co.jp</p>
+                    <a href={`mailto:${contactConfig.supportEmail}`} className="text-sm text-primary-600 underline">
+                      {contactConfig.supportEmail}
+                    </a>
                     <p className="text-xs text-primary-500">※ お問い合わせ専用</p>
                   </div>
                 </div>

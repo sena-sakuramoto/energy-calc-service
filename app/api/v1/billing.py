@@ -15,6 +15,7 @@ from app.services.stripe_billing import (
     check_subscription,
     confirm_checkout_session,
     construct_webhook_event,
+    create_customer_portal_session,
     create_checkout_session,
     process_webhook_event,
 )
@@ -32,6 +33,11 @@ class CheckoutRequest(BaseModel):
 
 class ConfirmCheckoutRequest(BaseModel):
     session_id: str
+
+
+class PortalRequest(BaseModel):
+    email: EmailStr
+    return_url: Optional[str] = None
 
 
 @router.get("/config")
@@ -76,6 +82,20 @@ async def confirm_checkout(
     """Confirm a finished checkout session and grant one-off access if needed."""
     try:
         return confirm_checkout_session(session_id=req.session_id, db=db)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except BillingConfigurationError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.post("/portal")
+async def open_customer_portal(req: PortalRequest) -> dict:
+    """Create a Stripe customer portal session for billing management."""
+    try:
+        return create_customer_portal_session(
+            customer_email=str(req.email),
+            return_url=req.return_url,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except BillingConfigurationError as exc:

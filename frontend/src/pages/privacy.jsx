@@ -1,5 +1,6 @@
 // frontend/src/pages/privacy.jsx
 import Layout from '../components/Layout';
+import { contactConfig } from '../config/contact';
 
 export default function Privacy() {
   return (
@@ -59,7 +60,7 @@ export default function Privacy() {
           <div className="text-primary-700">
             <p>Archi-Prisma Design works 株式会社</p>
             <p>所在地：東京都品川区上大崎2-6-7 SMA白金長者丸301</p>
-            <p>メール：<a href="mailto:rse-support@archi-prisma.co.jp" className="text-accent-600">rse-support@archi-prisma.co.jp</a></p>
+            <p>メール：<a href={`mailto:${contactConfig.supportEmail}`} className="text-accent-600">{contactConfig.supportEmail}</a></p>
           </div>
         </section>
       </div>

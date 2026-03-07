@@ -12,9 +12,11 @@ import app.models.user  # noqa: F401
 from app.api.v1.billing import (
     CheckoutRequest,
     ConfirmCheckoutRequest,
+    PortalRequest,
     billing_config,
     confirm_checkout,
     create_checkout,
+    open_customer_portal,
     subscription_status,
 )
 from app.db.base import Base
@@ -58,6 +60,7 @@ def _seed_project(db, *, email="pass@example.com", project_id=101, project_name=
 class _FakeStripe:
     api_key = None
     created_kwargs = None
+    portal_kwargs = None
 
     class Customer:
         @staticmethod
@@ -236,6 +239,19 @@ class _FakeStripe:
                     "customer_details": {"email": "pending@example.com"},
                 }
 
+    class billing_portal:
+        class Session:
+            @staticmethod
+            def create(**kwargs):
+                _FakeStripe.portal_kwargs = kwargs
+                return type(
+                    "Obj",
+                    (),
+                    {
+                        "url": f"https://portal.example.com/{kwargs['customer']}",
+                    },
+                )()
+
 
 def test_billing_config_default(monkeypatch) -> None:
     monkeypatch.delenv("STRIPE_SECRET_KEY", raising=False)
@@ -246,6 +262,7 @@ def test_billing_config_default(monkeypatch) -> None:
     payload = asyncio.run(billing_config())
     assert payload["billing_enabled"] is False
     assert payload["checkout_available"] is False
+    assert payload["customer_portal_available"] is False
     assert payload["bypass_enabled"] is False
     assert payload["plans"]["energy_monthly"]["available"] is False
     assert payload["plans"]["project_pass"]["available"] is False
@@ -299,6 +316,42 @@ def test_subscription_status_uses_billing_bypass(monkeypatch) -> None:
         db.close()
         Base.metadata.drop_all(bind=engine)
         engine.dispose()
+
+
+def test_open_customer_portal_returns_session(monkeypatch) -> None:
+    monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test")
+    monkeypatch.setenv("STRIPE_CUSTOMER_PORTAL_ENABLED", "true")
+    monkeypatch.setenv("BILLING_BYPASS", "false")
+    monkeypatch.setattr(stripe_billing, "_load_stripe_module", lambda: _FakeStripe)
+
+    payload = asyncio.run(
+        open_customer_portal(
+            req=PortalRequest(
+                email="active@example.com",
+                return_url="https://rakuraku-energy.archi-prisma.co.jp/pricing",
+            )
+        )
+    )
+
+    assert payload["portal_url"] == "https://portal.example.com/cus_active"
+    assert payload["customer_id"] == "cus_active"
+    assert payload["subscription_id"] == "sub_energy"
+    assert _FakeStripe.portal_kwargs["return_url"] == "https://rakuraku-energy.archi-prisma.co.jp/pricing"
+
+
+def test_open_customer_portal_rejects_non_subscriber(monkeypatch) -> None:
+    monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test")
+    monkeypatch.setenv("STRIPE_CUSTOMER_PORTAL_ENABLED", "true")
+    monkeypatch.setenv("BILLING_BYPASS", "false")
+    monkeypatch.setattr(stripe_billing, "_load_stripe_module", lambda: _FakeStripe)
+
+    try:
+        asyncio.run(open_customer_portal(req=PortalRequest(email="unknown@example.com")))
+    except Exception as exc:
+        assert getattr(exc, "status_code", None) == 400
+        assert "No Stripe customer" in str(exc.detail)
+    else:  # pragma: no cover - defensive
+        raise AssertionError("Expected portal opening to reject non-subscribers")
 
 
 def test_create_monthly_checkout_returns_session(monkeypatch) -> None:

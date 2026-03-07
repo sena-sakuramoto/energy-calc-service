@@ -52,6 +52,10 @@ def _stripe_webhook_secret() -> str:
     return _get_env("STRIPE_WEBHOOK_SECRET")
 
 
+def _customer_portal_enabled() -> bool:
+    return _get_env("STRIPE_CUSTOMER_PORTAL_ENABLED", "false").lower() in {"1", "true", "yes", "on"}
+
+
 def _energy_price_id() -> str:
     return _get_env("STRIPE_PRICE_ID_ENERGY")
 
@@ -556,6 +560,7 @@ def billing_public_config() -> dict[str, Any]:
     return {
         "billing_enabled": not bypass_enabled and bool(_stripe_secret_key()),
         "checkout_available": not bypass_enabled and any(plan["available"] for plan in plan_catalog.values()),
+        "customer_portal_available": not bypass_enabled and bool(_stripe_secret_key()) and _customer_portal_enabled(),
         "bypass_enabled": bypass_enabled,
         "public_app_url": _public_app_url(),
         "plans": {
@@ -570,6 +575,65 @@ def billing_public_config() -> dict[str, Any]:
                 "requires_project": True,
             },
         },
+    }
+
+
+def create_customer_portal_session(
+    *,
+    customer_email: str,
+    return_url: Optional[str] = None,
+) -> dict[str, Any]:
+    """Create a Stripe Customer Portal session for an existing subscriber."""
+    if _billing_bypass_enabled():
+        return {
+            "portal_url": return_url or f"{_public_app_url()}/pricing",
+            "mode": "development_bypass",
+        }
+
+    normalized_email = _normalize_email(customer_email)
+    if not normalized_email:
+        raise BillingConfigurationError("customer_email is required")
+    if not _stripe_secret_key():
+        raise BillingConfigurationError("Stripe is not configured.")
+    if not _customer_portal_enabled():
+        raise BillingConfigurationError("Stripe customer portal is not configured.")
+
+    stripe_module = _load_stripe_module()
+    _configure_stripe(stripe_module)
+
+    customers = stripe_module.Customer.list(email=normalized_email, limit=10)
+    customer_rows = list(getattr(customers, "data", []) or [])
+    if not customer_rows:
+        raise ValueError("No Stripe customer was found for this account.")
+
+    selected_customer_id: Optional[str] = None
+    subscription_id: Optional[str] = None
+    for customer in customer_rows:
+        subscriptions = stripe_module.Subscription.list(
+            customer=customer.get("id"),
+            status="all",
+            limit=50,
+        )
+        for subscription in getattr(subscriptions, "data", []) or []:
+            if subscription.get("status") not in ACTIVE_SUBSCRIPTION_STATUSES:
+                continue
+            selected_customer_id = str(customer.get("id") or "")
+            subscription_id = str(subscription.get("id") or "")
+            break
+        if selected_customer_id:
+            break
+
+    if not selected_customer_id:
+        raise ValueError("No active Stripe subscription was found for this account.")
+
+    session = stripe_module.billing_portal.Session.create(
+        customer=selected_customer_id,
+        return_url=return_url or f"{_public_app_url()}/pricing",
+    )
+    return {
+        "portal_url": session.url,
+        "customer_id": selected_customer_id,
+        "subscription_id": subscription_id,
     }
 
 

@@ -148,6 +148,7 @@ export default function PricingPage() {
   const [checking, setChecking] = useState(false);
   const [submittingPlan, setSubmittingPlan] = useState('');
   const [confirmingCheckout, setConfirmingCheckout] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [error, setError] = useState('');
@@ -374,8 +375,40 @@ export default function PricingPage() {
     }
   };
 
+  const handleOpenPortal = async () => {
+    if (!user?.email) {
+      router.push(`/login?redirect=${encodeURIComponent(pricingReturnPath)}`);
+      return;
+    }
+
+    setOpeningPortal(true);
+    setError('');
+    try {
+      const origin = window.location.origin;
+      const response = await billingAPI.openPortal({
+        email: user.email,
+        return_url: `${origin}/pricing?redirect=${encodeURIComponent(resolvedRedirectTarget)}`,
+      });
+      const portalUrl = response.data?.portal_url;
+      if (portalUrl) {
+        window.location.assign(portalUrl);
+        return;
+      }
+      setError('請求・契約管理ページを開けませんでした。');
+    } catch (err) {
+      setError(err.response?.data?.detail || '請求・契約管理ページの起動に失敗しました。');
+    } finally {
+      setOpeningPortal(false);
+    }
+  };
+
   const plans = status?.plans || DEFAULT_PLANS;
   const hasProjectPasses = Boolean(status?.project_passes?.length);
+  const canManageBilling = Boolean(
+    status?.customer_portal_available &&
+      user?.email &&
+      ['energy_subscriber', 'circle_member'].includes(status?.type),
+  );
   const currentProjectName =
     projects.find((project) => project.id === String(effectiveProjectId))?.name ||
     status?.project_name ||
@@ -600,6 +633,11 @@ export default function PricingPage() {
                       <p className="mt-2 text-xs text-primary-500">
                         決済完了後、Stripe から領収書メールを自動送信します。見当たらない場合は迷惑メールも確認してください。
                       </p>
+                      {canManageBilling && (
+                        <div className="mt-3 rounded-lg border border-primary-200 bg-white px-3 py-3 text-xs text-primary-700">
+                          月額プランのカード変更、請求確認、停止手続きは「請求・契約管理」から行えます。
+                        </div>
+                      )}
                       {receiptLinks.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-2">
                           {receiptLinks.map((link) => (
@@ -619,12 +657,25 @@ export default function PricingPage() {
 
                     <div className="mt-6 flex flex-col gap-3">
                       {status?.active ? (
-                        <Link
-                          href={resolvedRedirectTarget}
-                          className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-5 py-3 rounded-lg transition-colors"
-                        >
-                          ツールへ戻る <FaArrowRight className="text-xs" />
-                        </Link>
+                        <>
+                          <Link
+                            href={resolvedRedirectTarget}
+                            className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-5 py-3 rounded-lg transition-colors"
+                          >
+                            ツールへ戻る <FaArrowRight className="text-xs" />
+                          </Link>
+                          {canManageBilling && (
+                            <button
+                              type="button"
+                              onClick={handleOpenPortal}
+                              disabled={openingPortal}
+                              className="inline-flex items-center justify-center gap-2 border border-primary-300 text-primary-700 hover:bg-warm-50 disabled:opacity-60 font-semibold px-5 py-3 rounded-lg transition-colors"
+                            >
+                              {openingPortal ? <FaSpinner className="animate-spin" /> : <FaCreditCard className="text-xs" />}
+                              請求・契約管理
+                            </button>
+                          )}
+                        </>
                       ) : (
                         <>
                           {plans.energy_monthly?.available && (
