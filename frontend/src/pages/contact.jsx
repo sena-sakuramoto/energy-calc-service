@@ -6,6 +6,9 @@ import { FaEnvelope, FaPhone, FaBuilding, FaQuestionCircle, FaBug, FaLightbulb, 
 import { contactConfig } from '../config/contact';
 import { contactAPI } from '../utils/api';
 
+const GAS_ENDPOINT = 'https://script.google.com/a/macros/archi-prisma.co.jp/s/AKfycbzlnLWsQqgN8Vt79i_T4BlWKCxp22ByDprQGtbYMbnL04WOxH64QryZwRmdBQcoo1su/exec';
+const ALT_GAS_ENDPOINT = GAS_ENDPOINT.replace(/\/a\/macros\/[\w.-]+/, '/macros');
+
 const categoryLabels = {
   general: '一般的なお問い合わせ',
   bug: '不具合・バグ報告',
@@ -31,6 +34,37 @@ export default function Contact() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const submitViaGasFallback = async () => {
+    const label = categoryLabels[formData.category] || formData.category || '';
+    const topic = [label, formData.subject].filter(Boolean).join(' - ');
+    const bodyParts = [
+      formData.company ? `会社名/事務所名: ${formData.company}` : null,
+      formData.category ? `種別: ${label}` : null,
+      formData.subject ? `件名: ${formData.subject}` : null,
+      '',
+      formData.message || '',
+    ].filter((value) => value !== null);
+
+    const fd = new FormData();
+    fd.append('name', formData.name || '');
+    fd.append('email', formData.email || '');
+    if (topic) fd.append('topic', topic);
+    fd.append('message', bodyParts.join('\n'));
+    if (formData.company) fd.append('company', formData.company);
+    if (formData.category) fd.append('category', formData.category);
+    if (formData.subject) fd.append('subject', formData.subject);
+
+    let res = await fetch(ALT_GAS_ENDPOINT, { method: 'POST', body: fd });
+    if (!res.ok) {
+      res = await fetch(GAS_ENDPOINT, { method: 'POST', body: fd });
+    }
+    const text = await res.text();
+    const json = JSON.parse(text);
+    if (!json.ok) {
+      throw new Error(json.error || '旧送信経路でも受付できませんでした。');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -62,6 +96,24 @@ export default function Contact() {
         setDeliveryWarning('');
       }, 3000);
     } catch (err) {
+      try {
+        if (err?.response?.status === 404 || !err?.response) {
+          await submitViaGasFallback();
+          setDeliveryWarning(
+            '新しい受付APIがまだ反映中のため、旧送信経路で受け付けました。返信が遅い場合はサポート窓口へ直接ご連絡ください。',
+          );
+          setSubmitted(true);
+          setTimeout(() => {
+            setFormData({ name: '', email: '', company: '', category: '', subject: '', message: '' });
+            setSubmitted(false);
+            setDeliveryWarning('');
+          }, 3000);
+          return;
+        }
+      } catch (fallbackError) {
+        console.error('Contact fallback error:', fallbackError);
+      }
+
       console.error('Contact submit error:', err);
       setError(
         err.response?.data?.detail ||
