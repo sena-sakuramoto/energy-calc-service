@@ -119,7 +119,7 @@ export default function Footer() {
             <span className="text-accent-400 font-bold">楽々省エネ計算</span>
           </p>
           <p className="text-xs text-warm-500 mt-2">
-            Powered by Next.js | Built for practical energy-calculation work
+            Next.jsで構築 | 省エネ計算の実務で使いやすい形へ改善を続けています
           </p>
           <div className="text-xs text-warm-400 mt-3 space-x-4">
             <Link href="/privacy" className="hover:text-warm-200 underline">
