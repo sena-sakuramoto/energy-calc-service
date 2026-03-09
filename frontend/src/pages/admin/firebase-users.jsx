@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/FirebaseAuthContext';
 import Layout from '../../components/Layout';
 import { getAllUsers, updateUserStatus, deleteUser } from '../../utils/firebaseAuth';
+import { isAdminEmail } from '../../utils/adminAccess';
 import { FaUsers, FaUserCheck, FaUserTimes, FaTrash, FaToggleOn, FaToggleOff, FaGoogle, FaEnvelope, FaSync } from 'react-icons/fa';
 
 export default function FirebaseUserManagement() {
@@ -94,6 +95,7 @@ export default function FirebaseUserManagement() {
 
   const activeUsers = users.filter(u => u.isActive === true);
   const inactiveUsers = users.filter(u => u.isActive === false);
+  const isProtectedAdmin = (userData) => isAdminEmail(userData.email);
 
   return (
     <Layout>
@@ -182,7 +184,7 @@ export default function FirebaseUserManagement() {
                       <div>
                         <div className="text-sm font-medium text-primary-900 flex items-center">
                           {userData.displayName || userData.full_name || '名前未設定'}
-                          {userData.isAdmin && (
+                          {(userData.isAdmin || isProtectedAdmin(userData)) && (
                             <span className="ml-2 px-2 py-1 text-xs bg-primary-100 text-primary-800 rounded-full">
                               管理者
                             </span>
@@ -229,7 +231,7 @@ export default function FirebaseUserManagement() {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleUpdateStatus(userData.id, userData.isActive)}
-                        disabled={actionLoading[userData.id]}
+                        disabled={actionLoading[userData.id] || isProtectedAdmin(userData)}
                         className={`flex items-center px-3 py-1 rounded text-xs disabled:opacity-50 ${
                           userData.isActive !== false
                             ? 'bg-accent-100 text-accent-700 hover:bg-accent-200'
@@ -247,7 +249,7 @@ export default function FirebaseUserManagement() {
                       </button>
                       <button
                         onClick={() => handleDeleteUser(userData.id, userData.email)}
-                        disabled={actionLoading[userData.id]}
+                        disabled={actionLoading[userData.id] || isProtectedAdmin(userData)}
                         className="flex items-center px-3 py-1 rounded text-xs bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50"
                       >
                         <FaTrash className="mr-1" />

@@ -12,6 +12,7 @@ import {
   Tooltip,
 } from 'chart.js';
 
+import AdminPageGuard from '../../components/AdminPageGuard';
 import apiClient from '../../utils/api';
 
 ChartJS.register(
@@ -133,8 +134,9 @@ export default function PartnerAdminPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <AdminPageGuard title="パートナー管理">
+      <div className="min-h-screen bg-slate-50 py-8 px-4">
+        <div className="max-w-6xl mx-auto space-y-6">
         <section className="bg-white rounded-2xl border border-slate-200 p-6">
           <h1 className="text-2xl font-bold text-slate-900">パートナー管理ダッシュボード</h1>
           <p className="text-sm text-slate-500 mt-1">紹介実績・月次推移・手数料試算を確認できます。</p>
@@ -231,6 +233,7 @@ export default function PartnerAdminPage() {
           </div>
         </section>
       </div>
-    </main>
+      </div>
+    </AdminPageGuard>
   );
 }

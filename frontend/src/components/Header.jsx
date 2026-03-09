@@ -7,6 +7,7 @@ import {
   FaChevronDown,
   FaCreditCard,
   FaGift,
+  FaShieldAlt,
   FaSignOutAlt,
   FaTimes,
 } from 'react-icons/fa';
@@ -21,7 +22,7 @@ const TOOL_LINKS = [
 ];
 
 export default function Header() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isGitHubPages =
@@ -98,6 +99,18 @@ export default function Header() {
                 導入案内
               </Link>
             </li>
+
+            {isAuthenticated && isAdmin && (
+              <li className="list-none">
+                <Link
+                  href="/admin"
+                  className="flex items-center hover:text-warm-300 transition-colors"
+                >
+                  <FaShieldAlt className="mr-2" />
+                  管理
+                </Link>
+              </li>
+            )}
 
             {isAuthenticated && (
               <li className="relative list-none">
@@ -191,6 +204,17 @@ export default function Header() {
                 <FaGift className="mr-2 text-accent-300" />
                 導入案内
               </Link>
+
+              {isAuthenticated && isAdmin && (
+                <Link
+                  href="/admin"
+                  className="flex items-center hover:text-warm-300 transition-colors"
+                  onClick={closeMenus}
+                >
+                  <FaShieldAlt className="mr-2" />
+                  管理
+                </Link>
+              )}
 
               {isAuthenticated && (
                 <div className="border-l-4 border-accent-400 pl-4">

@@ -17,6 +17,7 @@ import {
   Tooltip,
 } from 'chart.js';
 
+import AdminPageGuard from '../../components/AdminPageGuard';
 import apiClient from '../../utils/api';
 
 ChartJS.register(
@@ -125,8 +126,9 @@ export default function ManufacturerDashboard() {
   const estimatedFee = (report?.total_leads || 0) * 15000;
 
   return (
-    <main className="min-h-screen bg-slate-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <AdminPageGuard title="メーカー分析">
+      <div className="min-h-screen bg-slate-50 py-8 px-4">
+        <div className="max-w-6xl mx-auto space-y-6">
         <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -226,6 +228,7 @@ export default function ManufacturerDashboard() {
           </article>
         </section>
       </div>
-    </main>
+      </div>
+    </AdminPageGuard>
   );
 }

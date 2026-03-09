@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { isAdminEmail } from '../utils/adminAccess';
 
 const IS_E2E = process.env.NEXT_PUBLIC_E2E_AUTH === 'true';
 
@@ -105,6 +106,9 @@ export const FirebaseAuthProvider = ({ children }) => {
       if (fbUser) {
         try {
           const userProfile = await getUserProfile(fbUser.uid);
+          if (isAdminEmail(fbUser.email) && !userProfile?.isAdmin) {
+            await createUserProfile(fbUser);
+          }
 
           const userData = {
             id: fbUser.uid,
@@ -115,7 +119,7 @@ export const FirebaseAuthProvider = ({ children }) => {
             company: userProfile?.company || '',
             authType: userProfile?.authType || 'google',
             isActive: userProfile?.isActive !== false,
-            isAdmin: userProfile?.isAdmin || false,
+            isAdmin: Boolean(userProfile?.isAdmin) || isAdminEmail(fbUser.email),
             createdAt: userProfile?.createdAt,
             lastLoginAt: userProfile?.lastLoginAt,
             emailVerified: fbUser.emailVerified,
@@ -133,9 +137,7 @@ export const FirebaseAuthProvider = ({ children }) => {
             displayName: fbUser.displayName,
             authType: 'google',
             isActive: true,
-            isAdmin:
-              fbUser.email === 's.sakuramoto@archi-prisma.co.jp' ||
-              fbUser.email === 'admin@archi-prisma.co.jp',
+            isAdmin: isAdminEmail(fbUser.email),
             offline: true,
           };
 
@@ -235,6 +237,7 @@ export const FirebaseAuthProvider = ({ children }) => {
       company: found.company,
       is_active: true,
       isActive: true,
+      isAdmin: Boolean(found.isAdmin) || isAdminEmail(found.email),
       authType: 'email',
       registrationDate: found.registrationDate,
       loginTime: new Date().toISOString(),
@@ -330,6 +333,7 @@ export const FirebaseAuthProvider = ({ children }) => {
       company: company || '',
       registrationDate: new Date().toISOString(),
       is_active: true,
+      isAdmin: isAdminEmail(email),
     };
 
     registeredUsers.push(newUser);

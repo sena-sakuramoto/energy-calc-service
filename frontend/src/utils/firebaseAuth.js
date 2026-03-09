@@ -21,6 +21,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { auth, googleProvider, db } from './firebase';
+import { isAdminEmail } from './adminAccess';
 
 // ユーザープロフィール取得・作成
 export const createUserProfile = async (userAuth, additionalData = {}) => {
@@ -28,9 +29,10 @@ export const createUserProfile = async (userAuth, additionalData = {}) => {
 
   const userRef = doc(db, 'users', userAuth.uid);
   const snapShot = await getDoc(userRef);
+  const { displayName, email, photoURL } = userAuth;
+  const isAllowedAdmin = isAdminEmail(email);
 
   if (!snapShot.exists()) {
-    const { displayName, email, photoURL } = userAuth;
     const createdAt = serverTimestamp();
     const authType = additionalData.authType || 'google';
 
@@ -42,7 +44,7 @@ export const createUserProfile = async (userAuth, additionalData = {}) => {
         createdAt,
         authType,
         isActive: true,
-        isAdmin: email === 's.sakuramoto@archi-prisma.co.jp' || email === 'admin@archi-prisma.co.jp',
+        isAdmin: isAllowedAdmin,
         company: additionalData.company || '',
         lastLoginAt: serverTimestamp(),
         ...additionalData
@@ -53,8 +55,10 @@ export const createUserProfile = async (userAuth, additionalData = {}) => {
     }
   } else {
     // 既存ユーザーのログイン時間更新
+    const existingData = snapShot.data() || {};
     await updateDoc(userRef, {
-      lastLoginAt: serverTimestamp()
+      lastLoginAt: serverTimestamp(),
+      isAdmin: Boolean(existingData.isAdmin) || isAllowedAdmin,
     });
   }
 
