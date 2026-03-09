@@ -69,6 +69,9 @@ function formatExpiry(expiresAt) {
 
 function statusMessage(status) {
   if (!status) return 'ログインすると現在の利用状態を確認できます。';
+  if (status.type === 'admin_access') {
+    return '管理者アカウントとして有料機能を利用できます。';
+  }
   if (status.type === 'circle_member') {
     return 'AI建築サークル会員として有料機能を利用できます。';
   }
@@ -140,7 +143,7 @@ function readProjectId(value) {
 }
 
 export default function PricingPage() {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, isAdmin, loading } = useAuth();
   const router = useRouter();
   const confirmedSessionRef = useRef('');
 
@@ -219,6 +222,20 @@ export default function PricingPage() {
       };
     }
 
+    if (isAuthenticated && isAdmin) {
+      setChecking(false);
+      setStatus({
+        active: true,
+        type: 'admin_access',
+        checkout_available: false,
+        bypass_enabled: false,
+        plans: DEFAULT_PLANS,
+      });
+      return () => {
+        mounted = false;
+      };
+    }
+
     if (!isAuthenticated || !user?.email) {
       setChecking(false);
       setStatus(null);
@@ -247,7 +264,7 @@ export default function PricingPage() {
     return () => {
       mounted = false;
     };
-  }, [effectiveProjectId, isAuthenticated, loading, user?.email]);
+  }, [effectiveProjectId, isAdmin, isAuthenticated, loading, user?.email]);
 
   useEffect(() => {
     let mounted = true;

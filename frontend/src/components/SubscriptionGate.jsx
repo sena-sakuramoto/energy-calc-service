@@ -32,7 +32,7 @@ export default function SubscriptionGate({
   redirectPath,
   projectId,
 }) {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, isAdmin, loading } = useAuth();
   const router = useRouter();
   const [status, setStatus] = useState(null);
   const [checking, setChecking] = useState(!BILLING_BYPASS);
@@ -53,6 +53,14 @@ export default function SubscriptionGate({
     }
 
     if (loading) {
+      return () => {
+        mounted = false;
+      };
+    }
+
+    if (isAuthenticated && isAdmin) {
+      setChecking(false);
+      setStatus({ active: true, type: 'admin_access' });
       return () => {
         mounted = false;
       };
@@ -85,9 +93,13 @@ export default function SubscriptionGate({
     return () => {
       mounted = false;
     };
-  }, [effectiveProjectId, isAuthenticated, loading, user?.email]);
+  }, [effectiveProjectId, isAdmin, isAuthenticated, loading, user?.email]);
 
   if (BILLING_BYPASS) {
+    return children;
+  }
+
+  if (!loading && isAuthenticated && isAdmin) {
     return children;
   }
 

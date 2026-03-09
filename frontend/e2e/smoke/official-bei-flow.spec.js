@@ -15,14 +15,18 @@ async function registerAndLogin(page) {
   await page.evaluate(() => localStorage.clear());
 
   await page.goto('/register');
-  await page.getByRole('button', { name: 'メールアドレスで登録' }).click();
+  if (await page.locator('#fullName').count() === 0) {
+    await page.getByRole('button', { name: 'メールアドレスで登録' }).click();
+  }
   await page.locator('#fullName').fill(TEST_USER.fullName);
   await page.locator('#email').fill(TEST_USER.email);
   await page.locator('#password').fill(TEST_USER.password);
   await page.getByRole('button', { name: 'アカウントを作成' }).click();
   await page.waitForURL('**/login?registered=true');
 
-  await page.getByRole('button', { name: 'メールアドレスでログイン' }).click();
+  if (await page.locator('#email').count() === 0) {
+    await page.getByRole('button', { name: 'メールアドレスでログイン' }).click();
+  }
   await page.locator('#email').fill(TEST_USER.email);
   await page.locator('#password').fill(TEST_USER.password);
   await page.getByRole('button', { name: 'ログイン', exact: true }).click();

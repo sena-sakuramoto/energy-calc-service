@@ -132,7 +132,7 @@ function getProductNameById(openings, id) {
 
 export default function ResidentialCalc() {
   const router = useRouter();
-  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { user, isAuthenticated, isAdmin, loading: authLoading } = useAuth();
   const projectId = Array.isArray(router.query.project_id)
     ? router.query.project_id[0]
     : router.query.project_id;
@@ -178,6 +178,13 @@ export default function ResidentialCalc() {
       };
     }
 
+    if (isAuthenticated && isAdmin) {
+      setBillingStatus({ active: true, type: 'admin_access' });
+      return () => {
+        mounted = false;
+      };
+    }
+
     if (!isAuthenticated || !user?.email) {
       setBillingStatus(null);
       return () => {
@@ -200,10 +207,10 @@ export default function ResidentialCalc() {
     return () => {
       mounted = false;
     };
-  }, [authLoading, isAuthenticated, projectId, user?.email]);
+  }, [authLoading, isAdmin, isAuthenticated, projectId, user?.email]);
 
   const result = useMemo(() => computeResidentialResult(debouncedProject), [debouncedProject]);
-  const premiumLocked = !BILLING_BYPASS && !billingStatus?.active;
+  const premiumLocked = !BILLING_BYPASS && !isAdmin && !billingStatus?.active;
 
   const openPremiumFlow = () => {
     const redirect = encodeURIComponent(router.asPath || (projectId ? `/residential?project_id=${projectId}` : '/residential'));
