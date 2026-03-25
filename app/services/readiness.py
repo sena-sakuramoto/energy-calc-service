@@ -34,6 +34,10 @@ def evaluate_production_readiness(
         "database_url": not database_url.lower().startswith("sqlite"),
         "official_api_https": _is_https_url(api_base_url),
         "official_template_exists": target_template.exists(),
+        "stripe_secret_key": bool(config.STRIPE_SECRET_KEY) and config.STRIPE_SECRET_KEY.startswith(("sk_live_", "sk_test_")),
+        "stripe_webhook_secret": bool(config.STRIPE_WEBHOOK_SECRET),
+        "stripe_price_energy": bool(config.STRIPE_PRICE_ID_ENERGY),
+        "stripe_price_project_pass": bool(config.STRIPE_PRICE_ID_PROJECT_PASS),
     }
     failed_checks = [name for name, ok in checks.items() if not ok]
 

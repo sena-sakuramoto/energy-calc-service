@@ -89,6 +89,7 @@ security_rules_design:
           - "または 管理者"
         admin_emails:
           - "s.sakuramoto@archi-prisma.co.jp"
+          - "k.suzuki@archi-prisma.co.jp"
           - "admin@archi-prisma.co.jp"
 
 # ユーザー管理システム

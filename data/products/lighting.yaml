@@ -129,3 +129,36 @@
   dimming: false
   partner: false
   recommended_uses: ["office", "school_small", "hospital"]
+
+- id: toshiba-tenqoo-baselight
+  manufacturer: "東芝ライテック"
+  series: "TENQOO"
+  name: "TENQOO LEDベースライト"
+  fixture_type: "ベースライト"
+  lm_per_w: 185.0
+  wattage: 27.5
+  dimming: true
+  partner: false
+  recommended_uses: ["office", "school_small", "hospital"]
+
+- id: toshiba-highbay-ceiling
+  manufacturer: "東芝ライテック"
+  series: "LED高天井用"
+  name: "LED高天井用"
+  fixture_type: "シーリング"
+  lm_per_w: 165.0
+  wattage: 110.0
+  dimming: true
+  partner: false
+  recommended_uses: ["factory", "assembly"]
+
+- id: panasonic-spotlight-led
+  manufacturer: "パナソニック"
+  series: "スポットライト"
+  name: "スポットライト LED"
+  fixture_type: "スポットライト"
+  lm_per_w: 100.0
+  wattage: 7.5
+  dimming: true
+  partner: true
+  recommended_uses: ["hotel", "restaurant", "shop_department"]

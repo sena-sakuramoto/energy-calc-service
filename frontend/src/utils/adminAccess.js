@@ -1,6 +1,7 @@
 const ADMIN_EMAILS = Object.freeze([
     'k.suzuki@archi-prisma.co.jp',
   's.sakuramoto@archi-prisma.co.jp',
+  'k.suzuki@archi-prisma.co.jp',
   'admin@archi-prisma.co.jp',
 ]);
 

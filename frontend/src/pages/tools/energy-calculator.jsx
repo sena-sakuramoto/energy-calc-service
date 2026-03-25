@@ -197,21 +197,6 @@ export default function EnergyCalculator() {
       <div className="min-h-screen bg-warm-50 py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            {/* ヘッダー */}
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-4">
-                <div className="bg-primary-100 p-4 rounded-full">
-                  <FaBolt className="text-3xl text-primary-700" />
-                </div>
-              </div>
-              <h1 className="text-4xl font-bold mb-4 text-primary-800">
-                エネルギー計算ツール
-              </h1>
-              <p className="text-lg text-primary-500 max-w-2xl mx-auto">
-                電力、エネルギー消費量、コストの計算と機器使用量の集計が行えます
-              </p>
-            </div>
-
             {/* タブナビゲーション */}
             <div className="bg-white rounded-xl shadow-lg mb-8">
               <div className="flex border-b border-primary-200">

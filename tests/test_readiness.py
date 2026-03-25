@@ -18,6 +18,10 @@ def _prod_settings(**overrides) -> Settings:
         "ENV": "production",
         "SECRET_KEY": "dev-only-change-in-production",
         "DATABASE_URL": "sqlite:///./energy_calc.db",
+        "STRIPE_SECRET_KEY": "",
+        "STRIPE_WEBHOOK_SECRET": "",
+        "STRIPE_PRICE_ID_ENERGY": "",
+        "STRIPE_PRICE_ID_PROJECT_PASS": "",
     }
     base.update(overrides)
     return Settings(**base)
@@ -46,6 +50,10 @@ def test_evaluate_production_readiness_passes_with_production_inputs(tmp_path: P
         _prod_settings(
             SECRET_KEY="this-is-a-strong-production-secret-key-2026",
             DATABASE_URL="postgresql://user:pass@db.example.com:5432/energy",
+            STRIPE_SECRET_KEY="sk_test_abcdefgh1234567890",
+            STRIPE_WEBHOOK_SECRET="whsec_abcdefgh1234567890",
+            STRIPE_PRICE_ID_ENERGY="price_1T7wb5RpUEcUjSDNuXkUSLE2",
+            STRIPE_PRICE_ID_PROJECT_PASS="price_1T7wbCRpUEcUjSDNAJtDcdAD",
         ),
         template_path=template,
         official_api_base_url="https://api.lowenergy.jp/model/1/v380",
@@ -106,6 +114,10 @@ def test_cli_exit_code(tmp_path: Path) -> None:
             **base_env,
             "SECRET_KEY": "this-is-a-strong-production-secret-key-2026",
             "DATABASE_URL": "postgresql://user:pass@db.example.com:5432/energy",
+            "STRIPE_SECRET_KEY": "sk_test_abcdefgh1234567890",
+            "STRIPE_WEBHOOK_SECRET": "whsec_abcdefgh1234567890",
+            "STRIPE_PRICE_ID_ENERGY": "price_1T7wb5RpUEcUjSDNuXkUSLE2",
+            "STRIPE_PRICE_ID_PROJECT_PASS": "price_1T7wbCRpUEcUjSDNAJtDcdAD",
         },
         check=False,
         capture_output=True,

@@ -285,3 +285,138 @@
   recommended_zones: [5, 6, 7, 8]
   recommended_uses: ["factory", "assembly"]
   catalog_url: "https://alumi.st-grp.co.jp/"
+
+- id: lixil-thermosx-sliding
+  manufacturer: "LIXIL"
+  series: "サーモスX"
+  name: "サーモスX 引違い窓"
+  window_type: "アルミ樹脂複合"
+  frame_type: "引違い"
+  glass_type: "Low-E複層"
+  u_value: 1.90
+  eta_c: 0.49
+  eta_h: 0.60
+  partner: false
+  recommended_zones: [5, 6, 7, 8]
+  recommended_uses: ["office", "assembly"]
+  catalog_url: "https://www.lixil.co.jp/lineup/window/"
+
+- id: lixil-thermosx-fix
+  manufacturer: "LIXIL"
+  series: "サーモスX"
+  name: "サーモスX FIX窓"
+  window_type: "アルミ樹脂複合"
+  frame_type: "FIX"
+  glass_type: "Low-E複層"
+  u_value: 1.52
+  eta_c: 0.42
+  eta_h: 0.54
+  partner: false
+  recommended_zones: [4, 5, 6, 7]
+  recommended_uses: ["office", "hotel"]
+  catalog_url: "https://www.lixil.co.jp/lineup/window/"
+
+- id: lixil-thermosx-casement-vertical
+  manufacturer: "LIXIL"
+  series: "サーモスX"
+  name: "サーモスX 縦すべり出し窓"
+  window_type: "アルミ樹脂複合"
+  frame_type: "縦すべり出し"
+  glass_type: "Low-E複層"
+  u_value: 1.68
+  eta_c: 0.45
+  eta_h: 0.57
+  partner: false
+  recommended_zones: [4, 5, 6, 7]
+  recommended_uses: ["office", "hospital"]
+  catalog_url: "https://www.lixil.co.jp/lineup/window/"
+
+- id: lixil-ew-sliding
+  manufacturer: "LIXIL"
+  series: "EW"
+  name: "EW 引違い窓"
+  window_type: "樹脂"
+  frame_type: "引違い"
+  glass_type: "トリプル"
+  u_value: 1.03
+  eta_c: 0.32
+  eta_h: 0.42
+  partner: false
+  recommended_zones: [1, 2, 3, 4, 5]
+  recommended_uses: ["office", "hotel", "hospital"]
+  catalog_url: "https://www.lixil.co.jp/lineup/window/"
+
+- id: lixil-ew-casement-vertical
+  manufacturer: "LIXIL"
+  series: "EW"
+  name: "EW 縦すべり出し窓"
+  window_type: "樹脂"
+  frame_type: "縦すべり出し"
+  glass_type: "トリプル"
+  u_value: 0.89
+  eta_c: 0.30
+  eta_h: 0.39
+  partner: false
+  recommended_zones: [1, 2, 3, 4]
+  recommended_uses: ["office", "hospital"]
+  catalog_url: "https://www.lixil.co.jp/lineup/window/"
+
+- id: lixil-tw-casement-vertical
+  manufacturer: "LIXIL"
+  series: "TW"
+  name: "TW 縦すべり出し窓"
+  window_type: "樹脂"
+  frame_type: "縦すべり出し"
+  glass_type: "Low-E複層"
+  u_value: 1.36
+  eta_c: 0.40
+  eta_h: 0.52
+  partner: false
+  recommended_zones: [3, 4, 5, 6, 7]
+  recommended_uses: ["office", "hospital"]
+  catalog_url: "https://www.lixil.co.jp/lineup/window/"
+
+- id: lixil-tw-casement-horizontal
+  manufacturer: "LIXIL"
+  series: "TW"
+  name: "TW 横すべり出し窓"
+  window_type: "樹脂"
+  frame_type: "横すべり出し"
+  glass_type: "Low-E複層"
+  u_value: 1.40
+  eta_c: 0.41
+  eta_h: 0.53
+  partner: false
+  recommended_zones: [4, 5, 6, 7, 8]
+  recommended_uses: ["office", "assembly"]
+  catalog_url: "https://www.lixil.co.jp/lineup/window/"
+
+- id: ykk-apw330-hung
+  manufacturer: "YKK AP"
+  series: "APW 330"
+  name: "APW 330 上げ下げ窓"
+  window_type: "樹脂"
+  frame_type: "上げ下げ"
+  glass_type: "Low-E複層"
+  u_value: 1.55
+  eta_c: 0.45
+  eta_h: 0.57
+  partner: true
+  recommended_zones: [3, 4, 5, 6, 7]
+  recommended_uses: ["office", "hotel", "school_small"]
+  catalog_url: "https://www.ykkap.co.jp/apw/"
+
+- id: ykk-apw430-terrace
+  manufacturer: "YKK AP"
+  series: "APW 430"
+  name: "APW 430 テラスドア"
+  window_type: "樹脂"
+  frame_type: "引違い"
+  glass_type: "トリプル"
+  u_value: 1.15
+  eta_c: 0.37
+  eta_h: 0.49
+  partner: true
+  recommended_zones: [1, 2, 3, 4, 5, 6]
+  recommended_uses: ["office", "hotel", "school_small"]
+  catalog_url: "https://www.ykkap.co.jp/apw/"

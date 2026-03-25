@@ -6,8 +6,10 @@ import {
   FaClock,
   FaFileAlt,
   FaFileDownload,
+  FaRocket,
   FaShieldAlt,
   FaUpload,
+  FaChartBar,
 } from 'react-icons/fa';
 
 import Layout from '../components/Layout';
@@ -15,369 +17,472 @@ import { useAuth } from '../contexts/FirebaseAuthContext';
 
 const painPoints = [
   {
-    icon: FaFileAlt,
-    title: '制度対応で急に案件化する',
+    icon: FaClock,
+    title: '手計算や外注に時間がかかる',
     body:
-      '省エネ適判や説明用の提出物が必要になると、普段の設計業務の流れだけでは回しにくくなります。',
+      '省エネ計算は1件5万円〜の外注が相場。やり取りだけで数日失われ、軽微な修正も頼みにくい。',
   },
   {
-    icon: FaClock,
-    title: '外注は早いが、たびたび頼みにくい',
+    icon: FaFileAlt,
+    title: 'WEBPROの操作が複雑',
     body:
-      '単発なら外注で回せても、軽微な修正や比較検討のたびに依頼するのはコストも時間もかかります。',
+      '国交省の公式ツール WEBPROは網羅的ですが、操作が複雑で学習コストが高い。',
   },
   {
     icon: FaCalculator,
-    title: '社内で触れる形にしたい',
+    title: '2025年4月から全建物が対象に',
     body:
-      '詳細な制度知識がなくても、入力漏れに戻りやすく、公式出力まで前に進める導線が必要です。',
+      '4号特例が縮小され、ほぼすべての建物に省エネ計算が必須に。今後、案件数が大幅に増える。',
   },
 ];
 
-const paidFeatures = [
+const features = [
   {
     icon: FaCalculator,
-    title: '公式BEIワークフロー',
+    title: 'BEI自動計算',
     body:
-      '必要な入力を順番に整理しながら、提出前提のBEI計算へ進めます。',
-    points: ['公式ルートの計算', '入力不足の差し戻し', '結果の見直し'],
+      'モデル建物法に基づくBEI値を選択入力だけで算出。難しい計算ロジックは隠して、必要な情報だけを聞きます。',
+    highlights: ['選択式で直感的', '国交省v3.8準拠', '計算結果はすぐに反映'],
   },
   {
     icon: FaFileDownload,
-    title: 'PDF出力',
+    title: '公式PDF出力',
     body:
-      '申請や説明に回しやすい形で、必要なPDFをまとめて出力できます。',
-    points: ['提出用PDF', '説明用の出力', '案件ごとの保存'],
+      '国交省v3.8 APIに直接連携。計算結果から確認申請に使える公式様式PDFを自動生成します。',
+    highlights: ['確認申請に直結', '手作業の書類作成が不要', '出力フォーマットは検証済み'],
   },
   {
     icon: FaUpload,
-    title: '住宅の公式検証',
+    title: 'Excelアップロード',
     body:
-      '住宅側はライブプレビューを無料に保ちつつ、公式検証とPDF出力だけを有料機能に絞っています。',
-    points: ['UA値・ηAC値の確認', '公式検証の実行', '住宅PDFの出力'],
+      '手持ちの公式入力シートをアップロードして、公式PDFに変換。既存の入力データを流用できます。',
+    highlights: ['既存データの再利用', '検証も同時実行', 'PDF化は数秒'],
+  },
+];
+
+const workflowSteps = [
+  {
+    number: '1',
+    title: '建物情報を入力',
+    description: '用途・地域・面積を選択。複雑な計算知識は不要です。',
+  },
+  {
+    number: '2',
+    title: '設備情報を選択',
+    description: '空調・照明・給湯のタイプを選ぶだけ。表形式で迷いなく進みます。',
+  },
+  {
+    number: '3',
+    title: 'PDF出力 → 申請',
+    description: '計算実行 → 公式PDFダウンロード → 確認申請へ。5-10分で完了。',
   },
 ];
 
 const faqs = [
   {
-    q: '無料で使える範囲はどこまでですか？',
+    q: '本当に無料ですか？',
     a:
-      '住宅のライブプレビュー、エネルギー計算、料金比較は無料です。公式BEIワークフローとPDF出力、住宅の公式検証は有料です。',
+      'はい、すべての機能を無料でお使いいただけます。クレジットカード登録も不要です。',
   },
   {
-    q: '月額と1案件パスはどう使い分けますか？',
+    q: '計算結果は確認申請に使えますか？',
     a:
-      '継続的に案件を回すなら月額、単発案件だけ進めたいなら1案件パスが向いています。1案件パスは選んだ1プロジェクトだけを30日間アンロックします。2案件以上なら月額の方が運用しやすいです。',
+      '公式PDF出力機能で国交省v3.8 APIから生成された様式は確認申請に使用可能です。ただし画面上の参考計算は社内検討用です。',
   },
   {
-    q: '決済後はどこに戻りますか？',
+    q: 'WEBPROとの違いは何ですか？',
     a:
-      '料金ページから決済した場合は、もともと開こうとしていたツール画面へ戻れるようにしています。',
+      'WEBPROは国交省の公式ツールで網羅的ですが操作が複雑です。楽々省エネ計算はモデル建物法に特化し、選択式の簡単入力で同等の計算結果が得られます。',
   },
   {
-    q: 'AI建築サークル会員は別途契約が必要ですか？',
+    q: '計算精度は信頼できますか？',
     a:
-      '既存のAI建築サークル会員は、そのまま有料ワークフロー機能を利用できます。',
+      '国交省モデル建物法の計算ロジックに基づいて実装しています。計算結果は参考値として、最終確認は専門家の判断をお願いします。',
+  },
+  {
+    q: 'データは安全ですか？',
+    a:
+      'SSL暗号化通信を使用し、Firebase認証で安全に管理しています。通信内容は第三者に見られません。',
+  },
+  {
+    q: '商用利用できますか？',
+    a:
+      'はい、設計業務でご自由にお使いください。事務所のツールとして導入いただけます。',
+  },
+];
+
+const comparisonData = [
+  {
+    category: '時間',
+    traditional: '1-3日',
+    solution: '5-10分',
+  },
+  {
+    category: '費用',
+    traditional: '5万円〜/件',
+    solution: '無料',
+  },
+  {
+    category: '出力',
+    traditional: '手作業で書類作成',
+    solution: '公式PDF自動出力',
+  },
+  {
+    category: '学習',
+    traditional: 'マニュアル読み込み必要',
+    solution: '選択式で直感的',
   },
 ];
 
 export default function Campaign() {
   const { isAuthenticated } = useAuth();
-  const pricingHref = '/pricing?redirect=%2Ftools%2Fofficial-bei';
 
   return (
     <Layout
-      title="導入案内 | 楽々省エネ計算"
-      description="公式BEIワークフローと住宅の公式検証を、社内で扱いやすい形へ寄せる導入案内です。"
-      keywords="省エネ計算 導入, BEI 計算, 住宅省エネ"
+      title="楽々省エネ計算 | 無料のBEI計算ツール"
+      description="2025年法改正で省エネ計算が必須化。選択式で5-10分、確認申請用の公式PDFも自動出力。無料で今すぐ始められます。"
+      keywords="省エネ計算, BEI計算, 公式BEI, 建築物省エネ法, モデル建物法"
       url="/campaign"
     >
-      <div className="max-w-5xl mx-auto">
-        <section className="bg-warm-50 py-20 rounded-lg mb-20">
-          <div className="max-w-3xl mx-auto text-center px-6">
-            <p className="text-accent-500 font-semibold text-sm tracking-wide mb-4">
-              導入案内
-            </p>
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-900 leading-tight mb-6">
-              公式BEIの提出作業を、
-              <br className="hidden md:block" />
-              社内で回せる形に寄せる
+      <div className="max-w-6xl mx-auto">
+        {/* ヒーローセクション */}
+        <section className="py-16 md:py-24 px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 bg-accent-100 text-accent-700 text-xs font-semibold px-4 py-2 rounded-full mb-6">
+              <FaRocket className="text-sm" />
+              2025年4月法改正対応
+            </div>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-900 leading-tight mb-6">
+              省エネ計算を
+              <br className="hidden sm:block" />
+              5分で終わらせる
             </h1>
-            <p className="text-lg md:text-xl text-primary-700 leading-relaxed mb-4">
-              無料の住宅プレビューや料金比較はそのまま残しつつ、
-              お金をいただく範囲は「公式出力が必要なところ」に限定しています。
+
+            <p className="text-lg md:text-xl text-primary-700 mb-4 max-w-2xl mx-auto leading-relaxed">
+              確認申請に使える公式PDF、最短5-10分で自動出力。選択式の簡単入力で、難しい計算知識は不要です。
             </p>
-            <p className="text-primary-500 text-sm mb-10">
-              公式BEIワークフロー、提出用PDF、住宅の公式検証だけを有料化しています。
+
+            <p className="text-primary-600 text-sm md:text-base mb-8 max-w-2xl mx-auto">
+              国交省モデル建物法 v3.8 対応 • SSL暗号化 • クレジットカード登録不要
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               {isAuthenticated ? (
                 <>
                   <Link
-                    href="/tools/official-bei"
-                    className="bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-10 rounded-lg shadow-lg transition-all duration-300 text-lg"
+                    href="/tools/bei-calculator"
+                    className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-all duration-300 text-lg"
                   >
-                    公式BEI計算を開く
+                    計算ツールを使う
+                    <FaArrowRight className="text-sm" />
                   </Link>
                   <Link
-                    href={pricingHref}
-                    className="border-2 border-primary-700 text-primary-700 hover:bg-primary-700 hover:text-white font-bold py-4 px-8 rounded-lg transition-all duration-300"
+                    href="/"
+                    className="inline-flex items-center justify-center gap-2 border-2 border-primary-300 text-primary-700 hover:bg-primary-50 font-semibold py-4 px-8 rounded-lg transition-all duration-300"
                   >
-                    料金を見る
+                    ホームへ戻る
                   </Link>
                 </>
               ) : (
                 <>
                   <Link
-                    href={pricingHref}
-                    className="bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-10 rounded-lg shadow-lg transition-all duration-300 text-lg"
+                    href="/register"
+                    className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-10 rounded-lg shadow-lg transition-all duration-300 text-lg"
                   >
-                    料金を見る
+                    無料で始める
+                    <FaArrowRight className="text-sm" />
                   </Link>
                   <Link
-                    href="/register"
-                    className="border-2 border-primary-700 text-primary-700 hover:bg-primary-700 hover:text-white font-bold py-4 px-8 rounded-lg transition-all duration-300"
+                    href="/login"
+                    className="inline-flex items-center justify-center gap-2 border-2 border-primary-300 text-primary-700 hover:bg-primary-50 font-semibold py-4 px-8 rounded-lg transition-all duration-300"
                   >
-                    アカウント作成
+                    ログイン
                   </Link>
                 </>
               )}
             </div>
 
-            <p className="text-primary-400 text-xs">
-              アカウント登録は無料です。月額 9,800円、1案件パス 4,980円で使えます。
-            </p>
-          </div>
-        </section>
-
-        <section className="mb-20 px-4">
-          <h2 className="text-3xl font-bold text-primary-800 text-center mb-4">
-            こんな詰まり方を減らすためのツールです
-          </h2>
-          <p className="text-primary-600 text-center mb-12 max-w-2xl mx-auto">
-            申請や提出の手前で止まりやすい部分だけを切り出して、前に進めやすい形にしています。
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {painPoints.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={item.title}
-                  className="bg-white rounded-xl p-8 shadow-sm border border-primary-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-                >
-                  <div className="text-primary-300 text-3xl mb-4">
-                    <Icon />
-                  </div>
-                  <h3 className="text-lg font-bold text-primary-900 mb-3">
-                    {item.title}
-                  </h3>
-                  <p className="text-primary-600 text-sm leading-relaxed">
-                    {item.body}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="mb-20 px-4">
-          <h2 className="text-3xl font-bold text-primary-800 text-center mb-4">
-            有料範囲でできること
-          </h2>
-          <p className="text-primary-600 text-center mb-12 max-w-2xl mx-auto">
-            汎用計算ではなく、提出や説明に直結する作業へ価値を寄せています。
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {paidFeatures.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={feature.title}
-                  className="bg-white rounded-xl p-8 shadow-sm border-l-4 border-accent-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-                >
-                  <div className="text-accent-500 text-4xl mb-6">
-                    <Icon />
-                  </div>
-                  <h3 className="text-xl font-bold text-primary-800 mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-primary-600 text-sm mb-4">{feature.body}</p>
-                  <ul className="text-sm text-primary-600 space-y-2">
-                    {feature.points.map((point) => (
-                      <li key={point} className="flex items-start">
-                        <FaCheckCircle className="text-accent-400 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>{point}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="bg-warm-50 rounded-lg py-16 px-6 mb-20">
-          <h2 className="text-3xl font-bold text-primary-800 text-center mb-4">
-            使い方は3ステップ
-          </h2>
-          <p className="text-primary-600 text-center mb-12">
-            アカウント作成から提出前の確認まで、順に進められる導線です。
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="bg-accent-500 text-white w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                1
-              </div>
-              <h3 className="text-lg font-bold text-primary-800 mb-2">
-                条件を入力する
-              </h3>
-              <p className="text-primary-600 text-sm">
-                用途、面積、設備条件などを画面に沿って入力します。
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-accent-500 text-white w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                2
-              </div>
-              <h3 className="text-lg font-bold text-primary-800 mb-2">
-                不足を埋めながら確認する
-              </h3>
-              <p className="text-primary-600 text-sm">
-                入力不足があれば該当ステップへ戻り、その場で補えます。
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-accent-500 text-white w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                3
-              </div>
-              <h3 className="text-lg font-bold text-primary-800 mb-2">
-                結果とPDFを出力する
-              </h3>
-              <p className="text-primary-600 text-sm">
-                計算結果を確認し、そのままPDF出力まで進められます。
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="mb-20 px-4">
-          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white border-2 border-primary-200 rounded-xl p-8">
-              <span className="bg-primary-100 text-primary-600 text-sm font-semibold px-4 py-1 rounded-full">
-                月額プラン
-              </span>
-              <div className="mt-6 flex items-center gap-3">
-                <FaClock className="text-primary-400 text-2xl" />
-                <span className="text-3xl font-bold text-primary-800">9,800円 / 月</span>
-              </div>
-              <p className="text-primary-600 text-sm mt-4">
-                月に複数案件を回す事務所向けです。提出前チェックや再計算を含めて使いやすい形です。
-              </p>
-            </div>
-
-            <div className="bg-warm-50 border-2 border-accent-300 rounded-xl p-8">
-              <span className="bg-accent-100 text-accent-600 text-sm font-semibold px-4 py-1 rounded-full">
-                1案件パス
-              </span>
-              <div className="mt-6 flex items-center gap-3">
-                <FaCheckCircle className="text-accent-500 text-2xl" />
-                <span className="text-3xl font-bold text-accent-600">4,980円 / 回</span>
-              </div>
-              <p className="text-primary-700 text-sm mt-4">
-                単発案件だけ進めたいとき向けです。選んだ1プロジェクトだけ30日間使えます。
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="mb-20 px-4">
-          <h2 className="text-3xl font-bold text-primary-800 text-center mb-12">
-            よくある質問
-          </h2>
-
-          <div className="max-w-3xl mx-auto space-y-6">
-            {faqs.map((item) => (
-              <div
-                key={item.q}
-                className="bg-white rounded-xl p-6 shadow-sm border border-primary-100"
-              >
-                <h3 className="font-bold text-primary-900 mb-2">Q. {item.q}</h3>
-                <p className="text-primary-700 text-sm leading-relaxed">A. {item.a}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="bg-primary-800 rounded-lg py-16 px-6 mb-12">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              まずは料金と導線を確認してください
-            </h2>
-            <p className="text-lg text-primary-300 mb-10">
-              無料範囲と有料範囲を分けたうえで、必要なところだけ導入できます。
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Link
-                href={pricingHref}
-                className="bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-12 rounded-lg shadow-xl transition-all duration-300 text-lg"
-              >
-                料金を見る
-              </Link>
-              <Link
-                href={isAuthenticated ? '/tools/official-bei' : '/register'}
-                className="border-2 border-white text-white hover:bg-white hover:text-primary-800 font-bold py-4 px-8 rounded-lg transition-all duration-300"
-              >
-                {isAuthenticated ? '公式BEI計算を開く' : 'アカウント作成'}
-              </Link>
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-6 text-primary-300 text-sm mb-6">
-              <div className="flex items-center">
-                <FaShieldAlt className="mr-1.5" />
+            <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-primary-600 text-xs md:text-sm">
+              <div className="flex items-center gap-1.5">
+                <FaShieldAlt className="text-primary-400" />
                 <span>通信は暗号化</span>
               </div>
-              <div className="flex items-center">
-                <FaCheckCircle className="mr-1.5" />
-                <span>月額または1案件パス</span>
+              <div className="hidden sm:block text-primary-300">|</div>
+              <div className="flex items-center gap-1.5">
+                <FaCheckCircle className="text-accent-500" />
+                <span>完全無料</span>
               </div>
-              <div className="flex items-center">
-                <FaCheckCircle className="mr-1.5" />
-                <span>住宅プレビューは無料</span>
+              <div className="hidden sm:block text-primary-300">|</div>
+              <div className="flex items-center gap-1.5">
+                <FaCheckCircle className="text-accent-500" />
+                <span>カード登録不要</span>
               </div>
             </div>
+          </div>
+        </section>
 
-            <p className="text-primary-400 text-xs">
-              AI建築サークル会員は、既存プランのまま有料機能を継続利用できます。
+        {/* 課題提起セクション */}
+        <section className="py-16 md:py-20 px-4 border-y border-warm-200">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary-900 text-center mb-4">
+              こんな悩みはありませんか？
+            </h2>
+            <p className="text-primary-600 text-center mb-12 max-w-2xl mx-auto">
+              2025年4月から4号特例が縮小され、ほぼすべての建物に省エネ計算が必須化します。
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {painPoints.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.title}
+                    className="bg-white rounded-xl p-8 border border-warm-200 hover:border-accent-300 hover:shadow-lg transition-all duration-300"
+                  >
+                    <div className="text-accent-500 text-3xl mb-4">
+                      <Icon />
+                    </div>
+                    <h3 className="text-lg font-bold text-primary-900 mb-3">
+                      {item.title}
+                    </h3>
+                    <p className="text-primary-600 text-sm leading-relaxed">
+                      {item.body}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* 機能紹介セクション */}
+        <section className="py-16 md:py-20 px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary-900 text-center mb-4">
+              楽々省エネ計算でできること
+            </h2>
+            <p className="text-primary-600 text-center mb-12 max-w-2xl mx-auto">
+              難しい計算知識を隠して、必要な情報だけを聞くシンプル設計。
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {features.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={feature.title}
+                    className="bg-gradient-to-br from-white to-warm-50 rounded-xl p-8 border border-warm-200 shadow-sm hover:shadow-md transition-all duration-300"
+                  >
+                    <div className="text-accent-500 text-4xl mb-6">
+                      <Icon />
+                    </div>
+                    <h3 className="text-xl font-bold text-primary-900 mb-3">
+                      {feature.title}
+                    </h3>
+                    <p className="text-primary-600 text-sm mb-5 leading-relaxed">
+                      {feature.body}
+                    </p>
+                    <ul className="text-xs text-primary-700 space-y-2">
+                      {feature.highlights.map((highlight) => (
+                        <li key={highlight} className="flex items-start gap-2">
+                          <span className="text-accent-500 mt-0.5">✓</span>
+                          <span>{highlight}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* 使い方セクション */}
+        <section className="py-16 md:py-20 px-4 bg-warm-50 rounded-2xl">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary-900 text-center mb-4">
+              3ステップで申請書類まで完成
+            </h2>
+            <p className="text-primary-600 text-center mb-12">
+              誰でも迷わず進められる導線に設計。
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+              {workflowSteps.map((step, index) => (
+                <div key={step.number} className="relative">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-accent-500 text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4 shadow-md">
+                      {step.number}
+                    </div>
+                    <h3 className="text-lg font-bold text-primary-900 mb-2">
+                      {step.title}
+                    </h3>
+                    <p className="text-primary-600 text-sm leading-relaxed">
+                      {step.description}
+                    </p>
+                  </div>
+                  {index < workflowSteps.length - 1 && (
+                    <div className="hidden md:block absolute top-8 right-0 translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-accent-500 to-transparent" />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-12 text-center">
+              <p className="text-primary-700 font-semibold mb-4">
+                <FaClock className="inline-block mr-2 text-accent-500" />
+                5-10分で完了 • 確認申請への直結
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Before/After比較セクション */}
+        <section className="py-16 md:py-20 px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary-900 text-center mb-12">
+              従来との比較
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              {/* 従来 */}
+              <div className="bg-white rounded-xl border-2 border-primary-200 p-8">
+                <p className="text-xs font-bold text-primary-500 uppercase tracking-wider mb-6">
+                  従来の方法
+                </p>
+                <div className="space-y-6">
+                  {comparisonData.map((item) => (
+                    <div key={item.category}>
+                      <p className="text-xs font-semibold text-primary-500 uppercase mb-1">
+                        {item.category}
+                      </p>
+                      <p className="text-lg font-semibold text-primary-700">
+                        {item.traditional}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 楽々省エネ計算 */}
+              <div className="bg-gradient-to-br from-accent-50 to-white rounded-xl border-2 border-accent-300 p-8 shadow-md">
+                <p className="text-xs font-bold text-accent-600 uppercase tracking-wider mb-6">
+                  楽々省エネ計算
+                </p>
+                <div className="space-y-6">
+                  {comparisonData.map((item) => (
+                    <div key={item.category}>
+                      <p className="text-xs font-semibold text-primary-500 uppercase mb-1">
+                        {item.category}
+                      </p>
+                      <p className="text-lg font-bold text-accent-600 flex items-center gap-2">
+                        <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                        {item.solution}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ セクション */}
+        <section className="py-16 md:py-20 px-4 border-y border-warm-200">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary-900 text-center mb-12">
+              よくある質問
+            </h2>
+
+            <div className="space-y-4">
+              {faqs.map((item) => (
+                <details
+                  key={item.q}
+                  className="bg-white rounded-lg border border-warm-200 hover:border-accent-300 hover:shadow-sm transition-all duration-300 group"
+                >
+                  <summary className="cursor-pointer p-6 font-semibold text-primary-900 flex items-center justify-between">
+                    <span className="text-left">{item.q}</span>
+                    <span className="text-accent-500 group-open:rotate-180 transition-transform duration-300">
+                      ▼
+                    </span>
+                  </summary>
+                  <div className="px-6 pb-6 border-t border-warm-100 text-primary-700 text-sm leading-relaxed">
+                    {item.a}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 最終CTA */}
+        <section className="py-16 md:py-20 px-4">
+          <div className="max-w-3xl mx-auto text-center bg-primary-900 rounded-2xl p-8 md:p-12 text-white shadow-lg">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              今すぐ無料で始めましょう
+            </h2>
+            <p className="text-lg text-primary-300 mb-8 leading-relaxed">
+              {isAuthenticated
+                ? '計算ツールへ進んで、省エネ計算を体験してください。'
+                : '難しい知識は不要。選択式で5-10分、完成します。'}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/tools/bei-calculator"
+                    className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-12 rounded-lg shadow-xl transition-all duration-300 text-lg"
+                  >
+                    計算ツールを開く
+                    <FaArrowRight className="text-sm" />
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-bold py-4 px-12 rounded-lg shadow-xl transition-all duration-300 text-lg"
+                  >
+                    無料で始める
+                    <FaArrowRight className="text-sm" />
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center justify-center gap-2 border-2 border-white text-white hover:bg-white hover:text-primary-900 font-bold py-4 px-8 rounded-lg transition-all duration-300"
+                  >
+                    ログイン
+                  </Link>
+                </>
+              )}
+            </div>
+
+            <p className="text-primary-400 text-xs mt-8">
+              クレジットカード登録は不要です。
+              {!isAuthenticated && ' アカウントは1分で作成できます。'}
             </p>
           </div>
         </section>
 
-        <section className="mb-12 px-4">
-          <div className="bg-warm-100 rounded-xl p-8 max-w-3xl mx-auto text-center">
-            <p className="text-primary-500 text-sm mb-2">
-              AI建築サークルの方へ
-            </p>
-            <p className="text-primary-800 font-semibold mb-3">
-              サークル会員は、引き続き有料ワークフロー機能を利用できます。
-            </p>
-            <p className="text-primary-600 text-sm mb-5">
-              会員向けの継続提供は維持したまま、非会員向けに単独の料金導線を追加しています。
+        {/* サークル導線 */}
+        <section className="py-16 md:py-20 px-4 text-center">
+          <div className="max-w-3xl mx-auto bg-warm-100 rounded-xl p-8 border border-warm-200">
+            <p className="text-primary-600 text-sm mb-2">さらに詳しく学びたい方へ</p>
+            <h3 className="text-lg md:text-xl font-bold text-primary-900 mb-4">
+              AI建築サークル
+            </h3>
+            <p className="text-primary-700 text-sm mb-6 leading-relaxed">
+              省エネ計算だけでなく、構造計算・確認申請・AI活用など、建築テックの最新情報を月額5,000円で学べるコミュニティ。楽々省エネ計算を含む複数のツール開発も進行中です。
             </p>
             <a
               href="https://ai-architecture-circle.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center text-accent-500 hover:text-accent-600 font-semibold text-sm transition-colors duration-300"
+              className="inline-flex items-center gap-2 text-accent-600 hover:text-accent-700 font-semibold text-sm transition-colors duration-300"
             >
-              AI建築サークルの案内を見る
-              <FaArrowRight className="ml-2 text-xs" />
+              AI建築サークルの詳細を見る
+              <FaArrowRight className="text-xs" />
             </a>
           </div>
         </section>

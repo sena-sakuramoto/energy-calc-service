@@ -141,3 +141,59 @@
   recommended_zones: [1, 2, 3, 4, 5, 6, 7, 8]
   recommended_uses: ["office", "hotel", "hospital", "shop_department"]
   catalog_url: "https://www.mitsubishielectric.co.jp/air/"
+
+- id: daikin-vrv-x
+  manufacturer: "ダイキン"
+  series: "VRV X"
+  name: "VRV X"
+  equipment_type: "マルチエアコン"
+  capacity_kw: 28.0
+  cop_cooling: 4.1
+  cop_heating: 4.6
+  apf: 7.3
+  partner: false
+  recommended_zones: [1, 2, 3, 4, 5, 6, 7, 8]
+  recommended_uses: ["office", "hotel", "hospital"]
+  catalog_url: "https://www.daikin.co.jp/products/ac/"
+
+- id: daikin-skyair-eco
+  manufacturer: "ダイキン"
+  series: "スカイエア"
+  name: "スカイエア Ecoタイプ"
+  equipment_type: "パッケージエアコン"
+  capacity_kw: 5.6
+  cop_cooling: 3.8
+  cop_heating: 4.3
+  apf: 7.0
+  partner: false
+  recommended_zones: [4, 5, 6, 7, 8]
+  recommended_uses: ["office", "restaurant", "shop_supermarket"]
+  catalog_url: "https://www.daikin.co.jp/products/ac/"
+
+- id: mitsubishi-mrslim-zw
+  manufacturer: "三菱電機"
+  series: "Mr.Slim ZW"
+  name: "Mr.Slim ZW"
+  equipment_type: "パッケージエアコン"
+  capacity_kw: 5.6
+  cop_cooling: 3.7
+  cop_heating: 4.2
+  apf: 6.8
+  partner: false
+  recommended_zones: [4, 5, 6, 7, 8]
+  recommended_uses: ["office", "restaurant", "shop_supermarket"]
+  catalog_url: "https://www.mitsubishielectric.co.jp/air/"
+
+- id: mitsubishi-citymulti-puhy
+  manufacturer: "三菱電機"
+  series: "シティマルチ PUHY"
+  name: "シティマルチ PUHY"
+  equipment_type: "マルチエアコン"
+  capacity_kw: 28.0
+  cop_cooling: 3.8
+  cop_heating: 4.2
+  apf: 6.6
+  partner: false
+  recommended_zones: [3, 4, 5, 6, 7]
+  recommended_uses: ["office", "hotel", "hospital"]
+  catalog_url: "https://www.mitsubishielectric.co.jp/air/"

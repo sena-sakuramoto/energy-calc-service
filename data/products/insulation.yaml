@@ -71,3 +71,73 @@
   lambda_value: 0.020
   typical_thickness_mm: [25, 30, 40, 50, 60]
   recommended_zones: [1, 2, 3, 4]
+
+- id: asahi-fiber-acria-next-14k
+  manufacturer: "旭ファイバーグラス"
+  series: "アクリアネクスト"
+  name: "アクリアネクスト 14K"
+  category: "A-2"
+  material_type: "グラスウール（14K相当）"
+  lambda_value: 0.038
+  typical_thickness_mm: [89, 105, 120]
+  recommended_zones: [5, 6, 7, 8]
+
+- id: asahi-fiber-acria-wool-20k
+  manufacturer: "旭ファイバーグラス"
+  series: "アクリアウール α"
+  name: "アクリアウール α 20K"
+  category: "B"
+  material_type: "高性能グラスウール（20K相当）"
+  lambda_value: 0.036
+  typical_thickness_mm: [75, 100, 105]
+  recommended_zones: [4, 5, 6, 7]
+
+- id: isover-standard
+  manufacturer: "マグ・イゾベール"
+  series: "イゾベール"
+  name: "イゾベール・スタンダード"
+  category: "B"
+  material_type: "グラスウール"
+  lambda_value: 0.038
+  typical_thickness_mm: [75, 100, 105]
+  recommended_zones: [4, 5, 6, 7]
+
+- id: isover-comfort
+  manufacturer: "マグ・イゾベール"
+  series: "イゾベール"
+  name: "イゾベール・コンフォート"
+  category: "C"
+  material_type: "グラスウール"
+  lambda_value: 0.035
+  typical_thickness_mm: [75, 100, 105, 140]
+  recommended_zones: [3, 4, 5, 6]
+
+- id: dupont-styrofoam-ex
+  manufacturer: "デュポン・スタイロ"
+  series: "スタイロフォーム"
+  name: "スタイロフォーム EX"
+  category: "D"
+  material_type: "押出法ポリスチレンフォーム"
+  lambda_value: 0.028
+  typical_thickness_mm: [25, 30, 40, 50, 60]
+  recommended_zones: [2, 3, 4, 5, 6]
+
+- id: japan-aqua-aquaform
+  manufacturer: "日本アクア"
+  series: "アクアフォーム"
+  name: "アクアフォーム"
+  category: "E"
+  material_type: "硬質ウレタンフォーム"
+  lambda_value: 0.034
+  typical_thickness_mm: [80, 90, 100, 105]
+  recommended_zones: [3, 4, 5, 6]
+
+- id: asahi-kasei-neomaform
+  manufacturer: "旭化成建材"
+  series: "ネオマフォーム"
+  name: "ネオマフォーム"
+  category: "F"
+  material_type: "フェノールフォーム"
+  lambda_value: 0.020
+  typical_thickness_mm: [20, 25, 30, 40, 50, 60]
+  recommended_zones: [1, 2, 3, 4]

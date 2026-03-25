@@ -25,7 +25,16 @@ class Settings(BaseSettings):
 
     # Feature defaults
     DEFAULT_TARIFF_PER_KWH: float = 25.0
-    PRODUCTION_ENFORCE_READINESS: bool = False
+    PRODUCTION_ENFORCE_READINESS: bool = True
+
+    # Stripe billing
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_ID_ENERGY: str = ""
+    STRIPE_PRICE_ID_PROJECT_PASS: str = ""
+
+    # Upload limits
+    MAX_UPLOAD_SIZE_BYTES: int = 10 * 1024 * 1024  # 10MB
 
     # CORS
     CORS_ORIGINS: List[str] = [

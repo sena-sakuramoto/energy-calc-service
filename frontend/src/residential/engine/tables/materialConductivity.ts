@@ -2,6 +2,38 @@
  * Material thermal conductivity [W/(m*K)] lookup.
  */
 
+/** Human-readable Japanese labels for each material key. */
+export const MATERIAL_LABELS: Record<string, string> = {
+  hgw10k: 'グラスウール 10K',
+  hgw16k: 'グラスウール 16K',
+  hgw24k: '高性能GW 24K',
+  hgw32k: '高性能GW 32K',
+  rw: 'ロックウール',
+  cellulose: 'セルロースファイバー',
+  xps1: '押出法ポリスチレン 1種',
+  xps2: '押出法ポリスチレン 2種',
+  xps3: '押出法ポリスチレン 3種',
+  eps: 'ビーズ法ポリスチレン',
+  urethane_board: '硬質ウレタンフォーム（ボード）',
+  urethane_spray: '硬質ウレタンフォーム（吹付）',
+  phenol: 'フェノールフォーム',
+  wood_fiber: '木質繊維断熱材',
+  concrete: 'コンクリート',
+  mortar: 'モルタル',
+  gypsum_board: '石膏ボード',
+  plywood: '合板',
+  osb: 'OSB',
+  steel: '鋼材',
+  aluminum: 'アルミニウム',
+  glass: 'ガラス',
+  air_layer: '空気層',
+};
+
+export function getMaterialLabel(key?: string): string {
+  if (!key) return '';
+  return MATERIAL_LABELS[key] ?? key;
+}
+
 export const MATERIAL_CONDUCTIVITY: Record<string, number> = {
   hgw10k: 0.05,
   hgw16k: 0.045,

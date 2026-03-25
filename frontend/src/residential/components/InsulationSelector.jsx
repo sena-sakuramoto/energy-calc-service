@@ -1,8 +1,11 @@
 import { useState } from 'react';
 
-import { MATERIAL_CONDUCTIVITY } from '../engine/tables/materialConductivity';
+import { MATERIAL_CONDUCTIVITY, MATERIAL_LABELS } from '../engine/tables/materialConductivity';
 
-const MATERIAL_OPTIONS = Object.keys(MATERIAL_CONDUCTIVITY).map((key) => ({ value: key, label: key }));
+const MATERIAL_OPTIONS = Object.keys(MATERIAL_CONDUCTIVITY).map((key) => ({
+  value: key,
+  label: MATERIAL_LABELS[key] || key,
+}));
 
 export default function InsulationSelector({ walls, onChange }) {
   const [material, setMaterial] = useState('hgw16k');

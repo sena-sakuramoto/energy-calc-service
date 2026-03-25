@@ -11,29 +11,46 @@ from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
+class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
+    """Reject requests whose Content-Length exceeds the configured limit."""
+
+    def __init__(self, app, max_bytes: int = 10 * 1024 * 1024):
+        super().__init__(app)
+        self.max_bytes = max_bytes
+
+    async def dispatch(self, request: Request, call_next):
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > self.max_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"リクエストサイズが上限（{self.max_bytes // (1024 * 1024)}MB）を超えています。",
+            )
+        return await call_next(request)
+
+
 class SecurityMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
         self.rate_limit_storage: Dict[str, dict] = defaultdict(lambda: {"count": 0, "reset_time": time.time() + 60})
-        
+
     async def dispatch(self, request: Request, call_next):
         # リクエスト開始時間
         start_time = time.time()
-        
+
         # セキュリティヘッダー追加
         response = await call_next(request)
-        
+
         # レスポンスにセキュリティヘッダーを追加
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
-        
+
         # 処理時間をヘッダーに追加（開発用）
         process_time = time.time() - start_time
         response.headers["X-Process-Time"] = str(process_time)
-        
+
         return response
 
 class RateLimitMiddleware(BaseHTTPMiddleware):

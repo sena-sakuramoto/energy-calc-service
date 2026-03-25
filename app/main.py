@@ -16,7 +16,7 @@ from app.api.v1.residential import router as residential_router
 from app.api.v1.contact import router as contact_router
 from app.db.base import Base
 from app.db.session import engine
-from app.middleware.security import SecurityMiddleware, RateLimitMiddleware, LoggingMiddleware
+from app.middleware.security import SecurityMiddleware, RateLimitMiddleware, LoggingMiddleware, RequestSizeLimitMiddleware
 from app.services.readiness import evaluate_production_readiness
 
 load_dotenv()
@@ -79,6 +79,7 @@ app.add_middleware(
 
 # Security-oriented middleware stack
 app.add_middleware(SecurityMiddleware)
+app.add_middleware(RequestSizeLimitMiddleware, max_bytes=settings.MAX_UPLOAD_SIZE_BYTES)
 app.add_middleware(RateLimitMiddleware, calls=100, period=60)
 app.add_middleware(LoggingMiddleware)
 

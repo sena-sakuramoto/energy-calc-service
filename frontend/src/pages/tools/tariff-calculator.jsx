@@ -151,21 +151,6 @@ export default function TariffCalculator() {
       <div className="min-h-screen bg-warm-50 py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto">
-            {/* ヘッダー */}
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-4">
-                <div className="bg-accent-50 p-4 rounded-full">
-                  <FaDollarSign className="text-3xl text-accent-500" />
-                </div>
-              </div>
-              <h1 className="text-4xl font-bold mb-4 text-primary-800">
-                電力料金見積もりツール
-              </h1>
-              <p className="text-lg text-primary-500 max-w-2xl mx-auto">
-                フラット・段階制・時間帯別料金に対応した詳細な電力料金計算
-              </p>
-            </div>
-
             <div className="grid lg:grid-cols-3 gap-8">
               {/* 料金体系設定 */}
               <div className="lg:col-span-2">

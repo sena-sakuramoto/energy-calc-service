@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 
 import { calcEnvelopeAreasFromSegments } from '../engine/calcAreas';
 import { ORIENTATIONS } from '../engine/types';
-import { MATERIAL_CONDUCTIVITY } from '../engine/tables/materialConductivity';
+import { MATERIAL_CONDUCTIVITY, MATERIAL_LABELS } from '../engine/tables/materialConductivity';
 
 const ORIENTATION_LABELS = {
   N: '北', NE: '北東', E: '東', SE: '南東',
@@ -27,7 +27,10 @@ const ADJ_OPTIONS = [
   { value: 'underfloor', label: '床下' },
 ];
 
-const MATERIAL_OPTIONS = Object.keys(MATERIAL_CONDUCTIVITY).map((key) => ({ value: key, label: key }));
+const MATERIAL_OPTIONS = Object.keys(MATERIAL_CONDUCTIVITY).map((key) => ({
+  value: key,
+  label: MATERIAL_LABELS[key] || key,
+}));
 
 function createWall(orientation) {
   return {
@@ -71,7 +74,7 @@ function WallCard({ wall, isExpanded, onToggle, onUpdate, onRemove }) {
         </span>
 
         <span className="text-xs text-primary-500 flex-1">
-          {wall.insulation_type} {Number(wall.insulation_thickness || 0)}mm
+          {MATERIAL_LABELS[wall.insulation_type] || wall.insulation_type} {Number(wall.insulation_thickness || 0)}mm
           {wall.u_value != null ? ` (U=${wall.u_value})` : ''}
           {wall.adjacency !== 'exterior' ? ` [${adjacencyLabel}]` : ''}
         </span>

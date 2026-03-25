@@ -9,9 +9,11 @@ See: https://api.lowenergy.jp/model/1/v380/
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Set
 import io
 import logging
+import time
+import random
 
 import openpyxl
 import requests
@@ -511,8 +513,22 @@ def _post_to_api(
     excel_buffer: io.BytesIO,
     timeout: float | Tuple[float, float] = (10, 30),
     max_retries: int = 3,
+    retry_on_status_codes: Optional[Set[int]] = None,
 ) -> requests.Response:
-    """POST an Excel buffer to a lowenergy.jp endpoint with retry."""
+    """POST an Excel buffer to a lowenergy.jp endpoint with exponential backoff and jitter.
+
+    Args:
+        url: The API endpoint URL
+        excel_buffer: Buffer containing the Excel file data
+        timeout: Request timeout (connect, read) tuple or single value
+        max_retries: Maximum number of retries
+        retry_on_status_codes: Set of HTTP status codes to retry on (e.g., {500, 502, 503, 504}).
+                              Defaults to {500, 502, 503, 504} for server errors only.
+                              Client errors (4xx) will fail immediately.
+    """
+    if retry_on_status_codes is None:
+        retry_on_status_codes = {500, 502, 503, 504}
+
     headers = {"Content-Type": EXCEL_CONTENT_TYPE}
     excel_buffer.seek(0)
     payload = excel_buffer.read()
@@ -530,9 +546,35 @@ def _post_to_api(
                 attempt, max_retries, url, exc,
             )
             if attempt < max_retries:
-                import time
+                _apply_exponential_backoff_with_jitter(attempt)
+        except (ConnectionError, ConnectionResetError) as exc:
+            last_exc = exc
+            logger.warning(
+                "API call attempt %d/%d connection error (%s): %s",
+                attempt, max_retries, url, exc,
+            )
+            if attempt < max_retries:
+                _apply_exponential_backoff_with_jitter(attempt)
+        except requests.exceptions.HTTPError as exc:
+            # Check the status code to determine if we should retry
+            status_code = exc.response.status_code if getattr(exc, "response", None) is not None else None
+            detail = exc.response.text if getattr(exc, "response", None) is not None else ""
 
-                time.sleep(min(2 ** attempt, 10))
+            if status_code in retry_on_status_codes:
+                last_exc = exc
+                logger.warning(
+                    "API call attempt %d/%d failed with status %d (%s): %s",
+                    attempt, max_retries, status_code, url, detail,
+                )
+                if attempt < max_retries:
+                    _apply_exponential_backoff_with_jitter(attempt)
+            else:
+                # Don't retry on client errors (4xx) - fail immediately
+                logger.warning(
+                    "API call failed with status %d (not retrying) (%s): %s",
+                    status_code, url, detail,
+                )
+                raise
         except requests.exceptions.RequestException as exc:
             last_exc = exc
             detail = exc.response.text if getattr(exc, "response", None) is not None else ""
@@ -541,9 +583,7 @@ def _post_to_api(
                 attempt, max_retries, url, detail,
             )
             if attempt < max_retries:
-                import time
-
-                time.sleep(min(2 ** attempt, 10))
+                _apply_exponential_backoff_with_jitter(attempt)
 
     if isinstance(last_exc, requests.exceptions.Timeout):
         logger.exception("API call timed out after %d retries (%s)", max_retries, url)
@@ -552,6 +592,26 @@ def _post_to_api(
     detail = last_exc.response.text if getattr(last_exc, "response", None) is not None else ""
     logger.exception("API call failed after %d retries (%s): %s", max_retries, url, detail)
     raise Exception(f"API request failed: {last_exc} {detail}") from last_exc
+
+
+def _apply_exponential_backoff_with_jitter(attempt: int, base_delay: float = 1.0, max_delay: float = 10.0) -> None:
+    """Apply exponential backoff with jitter to prevent thundering herd.
+
+    Args:
+        attempt: The current attempt number (1-indexed)
+        base_delay: Base delay in seconds (default 1)
+        max_delay: Maximum delay cap in seconds (default 10)
+    """
+    # Exponential backoff: base_delay * (2 ^ attempt)
+    exponential_delay = base_delay * (2 ** attempt)
+    capped_delay = min(exponential_delay, max_delay)
+
+    # Add jitter: random value between 0 and capped_delay
+    jitter = random.uniform(0, capped_delay)
+
+    logger.debug("Backoff with jitter: %.3f seconds (exponential: %.3f, max: %.3f)",
+                 jitter, exponential_delay, max_delay)
+    time.sleep(jitter)
 
 
 def _extract_api_error_message(payload: Dict[str, Any]) -> str:
