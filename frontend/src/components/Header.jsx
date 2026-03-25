@@ -68,6 +68,13 @@ export default function Header() {
             <span>楽々省エネ計算</span>
           </Link>
 
+          {isAuthenticated && isAdmin && (
+            <span className="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-accent-500 text-white tracking-wide">
+              <FaShieldAlt className="mr-1 text-[10px]" />
+              管理者
+            </span>
+          )}
+
           <nav className="hidden md:flex items-center space-x-6">
             {isAuthenticated && (
               <li className="list-none">
