@@ -1017,6 +1017,24 @@ export default function OfficialBEI() {
     };
   };
 
+  const parseBlobErrorDetail = async (error) => {
+    const data = error?.response?.data;
+    if (data instanceof Blob) {
+      try {
+        const text = await data.text();
+        if (!text) return error?.message || '不明なエラー';
+        try {
+          const parsed = JSON.parse(text);
+          return parsed?.detail || text;
+        } catch { return text; }
+      } catch { return error?.message || '不明なエラー'; }
+    }
+    if (typeof data === 'object' && data !== null) {
+      return data.detail || error?.message || '不明なエラー';
+    }
+    return error?.message || '不明なエラー';
+  };
+
   const normalizeOfficialError = (detail, status) => {
     const timeoutMessage = '公式APIの応答がタイムアウトしました。時間をおいて再実行してください。';
     const detailText = typeof detail === 'string' ? detail : String(detail || '');
@@ -1036,7 +1054,11 @@ export default function OfficialBEI() {
     ) {
       return SMALLMODEL_UPLOAD_MESSAGE;
     }
-    return detail;
+    let cleaned = detail;
+    cleaned = cleaned.replace(/^公式レポート生成に失敗しました:\s*/, '');
+    cleaned = cleaned.replace(/^公式計算に失敗しました:\s*/, '');
+    cleaned = cleaned.replace(/^Official report API returned error:\s*/, '');
+    return cleaned;
   };
 
   const moveToStepFromApiError = useCallback((detail) => {
@@ -1158,7 +1180,7 @@ export default function OfficialBEI() {
       URL.revokeObjectURL(url);
     } catch (e) {
       const status = e.response?.status;
-      const detail = e.response?.data?.detail || e.message;
+      const detail = await parseBlobErrorDetail(e);
       moveToStepFromApiError(String(detail || ''));
       setError(`公式PDF生成エラー: ${normalizeOfficialError(detail, status)}`);
     } finally {
@@ -1181,7 +1203,7 @@ export default function OfficialBEI() {
       URL.revokeObjectURL(url);
     } catch (e2) {
       const status = e2.response?.status;
-      const detail = e2.response?.data?.detail || e2.message;
+      const detail = await parseBlobErrorDetail(e2);
       setError(`Excelアップロードエラー: ${normalizeOfficialError(detail, status)}`);
     } finally {
       setIsLoading(false);
@@ -1446,7 +1468,18 @@ export default function OfficialBEI() {
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-2">
             <FaExclamationTriangle className="text-red-500 mt-0.5 flex-shrink-0" />
-            <span className="text-sm text-red-800">{error}</span>
+            <div className="text-sm text-red-800">
+              {error.includes(' / ') ? (
+                <>
+                  <p className="font-medium mb-1">{error.split(':')[0]}:</p>
+                  <ul className="list-disc list-inside space-y-0.5 ml-1">
+                    {error.substring(error.indexOf(':') + 1).split(' / ').map((msg, i) => (
+                      <li key={i}>{msg.trim()}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : error}
+            </div>
           </div>
         )}
 
@@ -1773,7 +1806,18 @@ export default function OfficialBEI() {
         {error && (
           <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-2">
             <FaExclamationTriangle className="text-red-500 mt-0.5 flex-shrink-0" />
-            <span className="text-sm text-red-800">{error}</span>
+            <div className="text-sm text-red-800">
+              {error.includes(' / ') ? (
+                <>
+                  <p className="font-medium mb-1">{error.split(':')[0]}:</p>
+                  <ul className="list-disc list-inside space-y-0.5 ml-1">
+                    {error.substring(error.indexOf(':') + 1).split(' / ').map((msg, i) => (
+                      <li key={i}>{msg.trim()}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : error}
+            </div>
           </div>
         )}
 
