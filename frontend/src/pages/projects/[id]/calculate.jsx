@@ -221,8 +221,8 @@ export default function Calculate() {
     return (
       <CalculatorLayout>
         <div className="text-center py-8">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>プロジェクトを読み込み中...</p>
+          <div className="animate-spin w-8 h-8 border-4 border-accent-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-primary-500">プロジェクトを読み込み中...</p>
         </div>
       </CalculatorLayout>
     );
@@ -265,24 +265,24 @@ export default function Calculate() {
         {({ isSubmitting, values }) => (
           <Form className="bg-white shadow-md rounded-lg overflow-hidden">
             {/* タブナビゲーション */}
-            <div className="flex border-b">
+            <div className="flex flex-wrap border-b border-warm-200">
               <button
                 type="button"
-                className={`py-3 px-6 ${activeTab === 'building' ? 'bg-primary text-white' : 'bg-warm-100'}`}
+                className={`py-3 px-4 sm:px-6 text-sm sm:text-base font-medium transition-colors duration-200 ${activeTab === 'building' ? 'text-accent-500 border-b-2 border-accent-500 bg-accent-50' : 'text-primary-500 hover:text-primary-800 hover:bg-warm-50'}`}
                 onClick={() => setActiveTab('building')}
               >
                 1. 建物情報
               </button>
               <button
                 type="button"
-                className={`py-3 px-6 ${activeTab === 'envelope' ? 'bg-primary text-white' : 'bg-warm-100'}`}
+                className={`py-3 px-4 sm:px-6 text-sm sm:text-base font-medium transition-colors duration-200 ${activeTab === 'envelope' ? 'text-accent-500 border-b-2 border-accent-500 bg-accent-50' : 'text-primary-500 hover:text-primary-800 hover:bg-warm-50'}`}
                 onClick={() => setActiveTab('envelope')}
               >
                 2. 外皮情報
               </button>
               <button
                 type="button"
-                className={`py-3 px-6 ${activeTab === 'systems' ? 'bg-primary text-white' : 'bg-warm-100'}`}
+                className={`py-3 px-4 sm:px-6 text-sm sm:text-base font-medium transition-colors duration-200 ${activeTab === 'systems' ? 'text-accent-500 border-b-2 border-accent-500 bg-accent-50' : 'text-primary-500 hover:text-primary-800 hover:bg-warm-50'}`}
                 onClick={() => setActiveTab('systems')}
               >
                 3. 設備情報
@@ -410,7 +410,7 @@ export default function Calculate() {
                   <div className="mt-6 flex justify-end">
                     <button
                       type="button"
-                      className="bg-primary hover:bg-primary-dark text-white py-2 px-6 rounded-md"
+                      className="bg-accent-500 hover:bg-accent-600 text-white py-2.5 px-6 rounded-lg font-medium transition-colors duration-200"
                       onClick={() => setActiveTab('envelope')}
                     >
                       次へ (外皮情報)
@@ -555,7 +555,7 @@ name={`envelope.parts.${index}.area`}
                     </button>
                     <button
                       type="button"
-                      className="bg-primary hover:bg-primary-dark text-white py-2 px-6 rounded-md"
+                      className="bg-accent-500 hover:bg-accent-600 text-white py-2.5 px-6 rounded-lg font-medium transition-colors duration-200"
                       onClick={() => setActiveTab('systems')}
                     >
                       次へ (設備情報)
@@ -915,7 +915,7 @@ name={`envelope.parts.${index}.area`}
                     <button
                       type="submit"
                       disabled={isSubmitting || calculating}
-                      className="bg-primary hover:bg-primary-dark text-white py-2 px-6 rounded-md"
+                      className="bg-accent-500 hover:bg-accent-600 text-white py-2.5 px-6 rounded-lg font-medium transition-colors duration-200"
                     >
                       {calculating ? '計算中...' : '計算実行'}
                     </button>

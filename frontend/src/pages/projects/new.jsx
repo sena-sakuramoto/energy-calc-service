@@ -1,11 +1,14 @@
 // frontend/src/pages/projects/new.jsx
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
+import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/FirebaseAuthContext';
 import { projectsAPI } from '../../utils/api';
 import { createProjectData, saveProject } from '../../utils/projectStorage';
 import { useNotification } from '../../components/ErrorAlert';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { FaArrowLeft } from 'react-icons/fa';
 
 const NewProject = () => {
   const router = useRouter();
@@ -75,12 +78,12 @@ const NewProject = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-warm-50">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>認証確認中...</p>
+      <Layout title="新規プロジェクト - 楽々省エネ計算">
+        <div className="text-center py-16">
+          <div className="animate-spin w-8 h-8 border-4 border-accent-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-primary-500">認証確認中...</p>
         </div>
-      </div>
+      </Layout>
     );
   }
 
@@ -90,18 +93,21 @@ const NewProject = () => {
   }
 
   return (
-    <div className="min-h-screen bg-warm-50 py-8">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-primary-900 mb-2">
-              新規プロジェクト作成
-            </h1>
-            <p className="text-primary-600">
-              省エネ法計算の新しいプロジェクトを作成します
-            </p>
-          </div>
+    <Layout title="新規プロジェクト - 楽々省エネ計算">
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-6">
+          <Link href="/projects" className="inline-flex items-center gap-1.5 text-sm text-primary-400 hover:text-accent-500 transition-colors mb-3">
+            <FaArrowLeft className="text-xs" /> プロジェクト一覧に戻る
+          </Link>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary-800">
+            新規プロジェクト作成
+          </h1>
+          <p className="text-primary-400 text-sm mt-1">
+            省エネ法計算の新しいプロジェクトを作成します
+          </p>
+        </div>
 
+        <div className="bg-white border border-warm-200 rounded-xl shadow-sm p-6 md:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-primary-700 mb-2">
@@ -115,7 +121,7 @@ const NewProject = () => {
                 onChange={handleChange}
                 required
                 placeholder="例: オフィスビル A棟 省エネ計算"
-                className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400 focus:border-accent-400 transition-colors"
+                className="w-full px-4 py-3 border border-warm-200 rounded-lg focus:ring-2 focus:ring-accent-400 focus:border-accent-400 transition-colors"
               />
             </div>
 
@@ -130,24 +136,24 @@ const NewProject = () => {
                 onChange={handleChange}
                 rows="4"
                 placeholder="プロジェクトの詳細説明を入力してください（任意）"
-                className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:ring-2 focus:ring-accent-400 focus:border-accent-400 transition-colors resize-vertical"
+                className="w-full px-4 py-3 border border-warm-200 rounded-lg focus:ring-2 focus:ring-accent-400 focus:border-accent-400 transition-colors resize-vertical"
               />
             </div>
 
-            <div className="flex space-x-4 pt-6">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
               <button
                 type="button"
                 onClick={() => router.push('/projects')}
-                className="flex-1 bg-primary-700 text-white py-3 px-6 rounded-lg hover:bg-primary-800 transition-colors font-medium"
+                className="flex-1 bg-white border border-warm-200 text-primary-700 py-3 px-6 rounded-lg hover:bg-warm-50 hover:border-primary-300 transition-colors font-medium"
                 disabled={loading}
               >
                 キャンセル
               </button>
-              
+
               <button
                 type="submit"
                 disabled={loading || !formData.name.trim()}
-                className="flex-1 bg-accent-500 text-white py-3 px-6 rounded-lg hover:bg-accent-600 disabled:bg-primary-400 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center"
+                className="flex-1 bg-accent-500 text-white py-3 px-6 rounded-lg hover:bg-accent-600 disabled:bg-primary-300 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center shadow-sm"
               >
                 {loading ? (
                   <>
@@ -162,7 +168,7 @@ const NewProject = () => {
           </form>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

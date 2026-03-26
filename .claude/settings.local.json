@@ -28,7 +28,12 @@
       "Bash(nslookup:*)",
       "WebFetch(domain:rakuraku-energy.archi-prisma.co.jp)",
       "Bash(gh run list:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(xargs ls:*)",
+      "WebFetch(domain:superset.sh)",
+      "Bash(git worktree:*)",
+      "Bash(git branch:*)",
+      "WebFetch(domain:ui-ux-pro-max-skill.nextlevelbuilder.io)"
     ],
     "additionalDirectories": [
       "C:\\temp",

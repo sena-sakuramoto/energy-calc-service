@@ -43,12 +43,12 @@ export default function Footer() {
             <h4 className="text-lg font-semibold mb-4 text-accent-400">主要リンク</h4>
             <ul className="space-y-2">
               <li>
-                <Link
-                  href="/pricing"
+                <a
+                  href="https://rakuraku-energy.archi-prisma.co.jp/pricing"
                   className="text-warm-300 hover:text-accent-400 transition-colors text-sm"
                 >
                   料金プラン
-                </Link>
+                </a>
               </li>
               <li>
                 <Link
@@ -59,20 +59,20 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/campaign"
+                <a
+                  href="https://rakuraku-energy.archi-prisma.co.jp/campaign"
                   className="text-warm-300 hover:text-accent-400 transition-colors text-sm"
                 >
                   導入案内
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  href="/contact"
+                <a
+                  href="https://rakuraku-energy.archi-prisma.co.jp/contact"
                   className="text-warm-300 hover:text-accent-400 transition-colors text-sm"
                 >
                   お問い合わせ
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -122,12 +122,12 @@ export default function Footer() {
             Next.jsで構築 | 省エネ計算の実務で使いやすい形へ改善を続けています
           </p>
           <div className="text-xs text-warm-400 mt-3 space-x-4">
-            <Link href="/privacy" className="hover:text-warm-200 underline">
+            <a href="https://rakuraku-energy.archi-prisma.co.jp/privacy" className="hover:text-warm-200 underline">
               プライバシーポリシー
-            </Link>
-            <Link href="/legal" className="hover:text-warm-200 underline">
+            </a>
+            <a href="https://rakuraku-energy.archi-prisma.co.jp/legal" className="hover:text-warm-200 underline">
               特定商取引法に基づく表記
-            </Link>
+            </a>
           </div>
         </div>
       </div>

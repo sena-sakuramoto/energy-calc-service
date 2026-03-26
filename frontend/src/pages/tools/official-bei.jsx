@@ -1017,6 +1017,7 @@ export default function OfficialBEI() {
     };
   };
 
+  // Blob レスポンス時のエラー詳細を解析するヘルパー
   const parseBlobErrorDetail = async (error) => {
     const data = error?.response?.data;
     if (data instanceof Blob) {
@@ -1026,8 +1027,12 @@ export default function OfficialBEI() {
         try {
           const parsed = JSON.parse(text);
           return parsed?.detail || text;
-        } catch { return text; }
-      } catch { return error?.message || '不明なエラー'; }
+        } catch {
+          return text;
+        }
+      } catch {
+        return error?.message || '不明なエラー';
+      }
     }
     if (typeof data === 'object' && data !== null) {
       return data.detail || error?.message || '不明なエラー';
@@ -1054,6 +1059,7 @@ export default function OfficialBEI() {
     ) {
       return SMALLMODEL_UPLOAD_MESSAGE;
     }
+    // バックエンドの prefix を除去して、公式APIからの実際のエラーメッセージを表示
     let cleaned = detail;
     cleaned = cleaned.replace(/^公式レポート生成に失敗しました:\s*/, '');
     cleaned = cleaned.replace(/^公式計算に失敗しました:\s*/, '');

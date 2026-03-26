@@ -199,19 +199,19 @@ export default function EnergyCalculator() {
           <div className="max-w-6xl mx-auto">
             {/* タブナビゲーション */}
             <div className="bg-white rounded-xl shadow-lg mb-8">
-              <div className="flex border-b border-primary-200">
+              <div className="flex flex-wrap border-b border-warm-200">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center px-6 py-4 font-medium transition-colors ${
+                    className={`flex items-center px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-medium transition-colors duration-200 ${
                       activeTab === tab.id
                         ? 'text-accent-500 border-b-2 border-accent-500 bg-accent-50'
                         : 'text-primary-500 hover:text-primary-800 hover:bg-warm-50'
                     }`}
                   >
-                    <tab.icon className="mr-2" />
-                    {tab.name}
+                    <tab.icon className="mr-1.5 sm:mr-2 text-sm" />
+                    <span className="whitespace-nowrap">{tab.name}</span>
                   </button>
                 ))}
               </div>

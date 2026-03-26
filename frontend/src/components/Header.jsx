@@ -5,8 +5,6 @@ import {
   FaBars,
   FaCalculator,
   FaChevronDown,
-  FaCreditCard,
-  FaGift,
   FaShieldAlt,
   FaSignOutAlt,
   FaTimes,
@@ -86,26 +84,6 @@ export default function Header() {
                 </Link>
               </li>
             )}
-
-            <li className="list-none">
-              <Link
-                href="/pricing"
-                className="flex items-center hover:text-warm-300 transition-colors"
-              >
-                <FaCreditCard className="mr-2" />
-                料金
-              </Link>
-            </li>
-
-            <li className="list-none">
-              <Link
-                href="/campaign"
-                className="flex items-center hover:text-warm-300 transition-colors"
-              >
-                <FaGift className="mr-2 text-accent-300" />
-                導入案内
-              </Link>
-            </li>
 
             {isAuthenticated && isAdmin && (
               <li className="list-none">
@@ -193,24 +171,6 @@ export default function Header() {
                   プロジェクト
                 </Link>
               )}
-
-              <Link
-                href="/pricing"
-                className="flex items-center hover:text-warm-300 transition-colors"
-                onClick={closeMenus}
-              >
-                <FaCreditCard className="mr-2" />
-                料金
-              </Link>
-
-              <Link
-                href="/campaign"
-                className="flex items-center hover:text-warm-300 transition-colors"
-                onClick={closeMenus}
-              >
-                <FaGift className="mr-2 text-accent-300" />
-                導入案内
-              </Link>
 
               {isAuthenticated && isAdmin && (
                 <Link

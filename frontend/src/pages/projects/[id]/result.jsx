@@ -213,8 +213,8 @@ export default function Result() {
     return (
       <CalculatorLayout>
         <div className="text-center py-8">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>結果を読み込み中...</p>
+          <div className="animate-spin w-8 h-8 border-4 border-accent-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-primary-500">結果を読み込み中...</p>
         </div>
       </CalculatorLayout>
     );
@@ -228,7 +228,7 @@ export default function Result() {
           <div className="mt-4">
             <Link
               href={`/projects/${id}/calculate`}
-              className="bg-primary hover:bg-primary-dark text-white py-2 px-4 rounded-md"
+              className="bg-accent-500 hover:bg-accent-600 text-white py-2.5 px-5 rounded-lg font-medium transition-colors duration-200"
             >
               計算ページへ
             </Link>
@@ -304,28 +304,31 @@ export default function Result() {
 
   return (
     <CalculatorLayout>
-      <div className="mb-6 flex flex-wrap justify-between items-center">
-        <h1 className="text-2xl font-bold">計算結果 - {project.name}</h1>
-        <div className="flex space-x-2 mt-2 sm:mt-0">
+      <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary-800">計算結果</h1>
+          <p className="text-primary-400 text-sm mt-1">{project.name}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <Link
             href="/projects"
-            className="bg-primary-200 hover:bg-primary-300 py-2 px-3 rounded-md flex items-center"
+            className="bg-white border border-warm-200 hover:border-primary-300 text-primary-700 py-2 px-4 rounded-lg flex items-center gap-1.5 text-sm font-medium transition-colors duration-200"
           >
-            <FaHome className="mr-1" /> 一覧へ
+            <FaHome className="text-xs" /> 一覧へ
           </Link>
           <button
             onClick={handleDownloadPDF}
             disabled={downloadingPDF}
-            className="bg-accent-500 hover:bg-accent-600 text-white py-2 px-3 rounded-md flex items-center"
+            className="bg-accent-500 hover:bg-accent-600 disabled:bg-primary-300 text-white py-2 px-4 rounded-lg flex items-center gap-1.5 text-sm font-medium transition-colors duration-200 shadow-sm"
           >
-            <FaFileDownload className="mr-1" /> {downloadingPDF ? 'ダウンロード中...' : 'PDF出力'}
+            <FaFileDownload className="text-xs" /> {downloadingPDF ? 'ダウンロード中...' : 'PDF出力'}
           </button>
           <button
             onClick={handleDownloadExcel}
             disabled={downloadingExcel}
-            className="bg-primary-700 hover:bg-primary-800 text-white py-2 px-3 rounded-md flex items-center"
+            className="bg-primary-700 hover:bg-primary-800 disabled:bg-primary-300 text-white py-2 px-4 rounded-lg flex items-center gap-1.5 text-sm font-medium transition-colors duration-200 shadow-sm"
           >
-            <FaFileExcel className="mr-1" /> {downloadingExcel ? 'ダウンロード中...' : 'Excel出力'}
+            <FaFileExcel className="text-xs" /> {downloadingExcel ? 'ダウンロード中...' : 'Excel出力'}
           </button>
         </div>
       </div>
