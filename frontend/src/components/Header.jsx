@@ -12,6 +12,8 @@ import {
 
 import { useAuth } from '../contexts/FirebaseAuthContext';
 
+const LP_URL = 'https://rakuraku-energy.archi-prisma.co.jp';
+
 const TOOL_LINKS = [
   { href: '/tools/official-bei', label: '公式BEI計算' },
   { href: '/residential', label: '住宅省エネ計算' },
@@ -133,6 +135,11 @@ export default function Header() {
             ) : (
               <>
                 <li className="list-none">
+                  <a href={`${LP_URL}/pricing`} className="hover:text-warm-300 transition-colors text-sm">
+                    料金
+                  </a>
+                </li>
+                <li className="list-none">
                   <Link href="/login" className="hover:text-warm-300 transition-colors">
                     ログイン
                   </Link>
@@ -206,6 +213,12 @@ export default function Header() {
                 </button>
               ) : (
                 <>
+                  <a
+                    href={`${LP_URL}/pricing`}
+                    className="hover:text-warm-300 transition-colors text-sm"
+                  >
+                    料金を見る
+                  </a>
                   <Link
                     href="/login"
                     className="hover:text-warm-300 transition-colors"

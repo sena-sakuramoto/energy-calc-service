@@ -60,10 +60,10 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://rakuraku-energy.archi-prisma.co.jp/campaign"
+                  href="https://rakuraku-energy.archi-prisma.co.jp"
                   className="text-warm-300 hover:text-accent-400 transition-colors text-sm"
                 >
-                  導入案内
+                  サービスサイト
                 </a>
               </li>
               <li>
