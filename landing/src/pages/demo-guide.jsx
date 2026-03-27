@@ -7,7 +7,7 @@ const APP_URL = 'https://app.rakuraku-energy.archi-prisma.co.jp';
 export default function DemoGuide() {
   return (
     <Layout title="体験ガイド - 楽々省エネ計算" path="/demo-guide">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto pt-24 pb-12 px-6">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-primary-900 mb-4">
             <FaPlay className="inline mr-3 text-accent-500" />

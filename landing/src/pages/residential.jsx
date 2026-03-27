@@ -10,7 +10,7 @@ export default function ResidentialPage() {
       keywords="住宅,UA値,ηAC,外皮計算,省エネ"
       path="/residential"
     >
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto pt-24 pb-12 px-6">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-primary-900 mb-4">住宅外皮計算</h1>
           <p className="text-lg text-primary-600">

@@ -84,7 +84,7 @@ export default function Campaign() {
       keywords="省エネ計算, BEI計算, 公式BEI, 建築物省エネ法, モデル建物法"
       path="/campaign"
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto pt-20">
         {/* ヒーロー */}
         <section className="py-16 md:py-24 px-4">
           <div className="max-w-3xl mx-auto text-center">

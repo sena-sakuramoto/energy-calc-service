@@ -45,7 +45,7 @@ export default function TechnoLandingPage() {
       description="テクノストラクチャーの構造計算と楽々省エネ計算の公式BEI計算をワンストップで連携。加盟店は無料導入。"
       path="/techno"
     >
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto pt-24 pb-12 px-6 space-y-8">
         <section className="bg-white border border-amber-200 rounded-2xl p-8 shadow-sm">
           <p className="text-xs tracking-widest text-amber-700 font-semibold">PANASONIC TECHNOSTRUCTURE PARTNER PROGRAM</p>
           <h1 className="text-3xl font-bold text-primary-900 mt-2">テクノストラクチャー加盟店向け 無料オンボーディング</h1>

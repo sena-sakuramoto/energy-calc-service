@@ -4,7 +4,7 @@ import { contactConfig } from '../config/contact';
 export default function Legal() {
   return (
     <Layout title="特定商取引法に基づく表記 - 楽々省エネ計算" path="/legal">
-      <div className="max-w-3xl mx-auto py-10 space-y-8 text-primary-800">
+      <div className="max-w-3xl mx-auto pt-24 pb-10 px-6 space-y-8 text-slate-700">
         <h1 className="text-3xl font-bold text-primary-900">特定商取引法に基づく表記</h1>
 
         <section className="space-y-1">

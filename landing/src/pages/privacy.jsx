@@ -4,7 +4,7 @@ import { contactConfig } from '../config/contact';
 export default function Privacy() {
   return (
     <Layout title="プライバシーポリシー - 楽々省エネ計算" path="/privacy">
-      <div className="max-w-3xl mx-auto py-10 space-y-8 text-primary-800">
+      <div className="max-w-3xl mx-auto pt-24 pb-10 px-6 space-y-8 text-slate-700">
         <h1 className="text-3xl font-bold text-primary-900">プライバシーポリシー</h1>
         <p>Archi-Prisma Design works 株式会社（以下「当社」）は、当社が提供する「楽々省エネ計算」（以下「本サービス」）におけるユーザーの個人情報の取り扱いについて、以下のとおり方針を定め、適切に保護・管理いたします。</p>
 

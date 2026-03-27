@@ -5,7 +5,7 @@ import { FaGoogle, FaCloud, FaShieldAlt, FaCog, FaExclamationTriangle } from 're
 export default function SetupGuide() {
   return (
     <Layout title="本格運用ガイド - 楽々省エネ計算" path="/setup-guide">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto pt-24 pb-12 px-6">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-primary-900 mb-4">本格運用セットアップガイド</h1>
           <p className="text-xl text-primary-600">

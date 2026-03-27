@@ -91,7 +91,7 @@ export default function Contact() {
   if (submitted) {
     return (
       <Layout title="お問い合わせ - 楽々省エネ計算" path="/contact">
-        <div className="max-w-2xl mx-auto text-center py-16">
+        <div className="max-w-2xl mx-auto text-center pt-24 pb-16">
           <div className="bg-accent-100 p-6 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
             <FaCheckCircle className="text-accent-600 text-4xl" />
           </div>
@@ -109,9 +109,9 @@ export default function Contact() {
 
   return (
     <Layout title="お問い合わせ - 楽々省エネ計算" path="/contact">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto pt-24 pb-16 px-6">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-primary-900 mb-4">お問い合わせ・サポート</h1>
+          <h1 className="text-3xl font-extrabold text-slate-900 mb-3 tracking-tight">お問い合わせ</h1>
           <p className="text-xl text-primary-600 max-w-3xl mx-auto">ご質問・ご要望・不具合報告など、お気軽にお問い合わせください。</p>
         </div>
 
