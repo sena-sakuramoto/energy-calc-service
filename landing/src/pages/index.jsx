@@ -5,6 +5,7 @@ import Layout from '../components/Layout';
 import useReveal from '../components/useReveal';
 import CountUp from '../components/CountUp';
 import HeroBg from '../components/HeroBg';
+import AppDemoScene from '../components/AppDemoScene';
 
 const APP = 'https://app.rakuraku-energy.archi-prisma.co.jp';
 
@@ -157,7 +158,7 @@ export default function Home() {
           <div className="relative z-10 max-w-5xl mx-auto px-6 pt-28 text-center">
             <div className="reveal inline-flex items-center gap-2 bg-orange-50 text-orange-600 text-[11px] font-medium px-4 py-1.5 rounded-full mb-8 border border-orange-100">
               <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
-              2025年4月 省エネ法改正対応
+              2025年4月施行の省エネ基準適合義務に対応
             </div>
 
             <h1 className="reveal reveal-d1 text-4xl sm:text-5xl md:text-[3.5rem] font-extrabold text-slate-900 leading-[1.1] tracking-tight mb-6">
@@ -165,8 +166,8 @@ export default function Home() {
               <span className="text-gradient">5分</span>で終わらせる。
             </h1>
 
-            <p className="reveal reveal-d2 text-[15px] text-slate-400 mb-10 max-w-md mx-auto leading-relaxed">
-              選択式の入力で公式PDFを自動出力。<br className="hidden sm:block" />外注不要。専門知識不要。
+            <p className="reveal reveal-d2 text-[15px] text-slate-400 mb-10 max-w-xl mx-auto leading-relaxed">
+              選択式の入力で公式PDFまで一直線。<br className="hidden sm:block" />基本機能は無料、申請用の公式出力だけ必要な分だけ課金。
             </p>
 
             <div className="reveal reveal-d3 flex gap-3 justify-center mb-16">
@@ -252,6 +253,38 @@ export default function Home() {
           </div>
         </section>
 
+        {/* ═══ DEMO ═══ */}
+        <section className="py-24 px-6 bg-slate-50/50">
+          <div className="max-w-4xl mx-auto">
+            <p className="reveal text-[10px] font-semibold text-orange-600 uppercase tracking-[.2em] mb-3">Live Demo</p>
+            <h2 className="reveal reveal-d1 text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">実際の操作画面</h2>
+            <p className="reveal reveal-d2 text-[14px] text-slate-400 mb-12">建物情報を選んで設備を選択するだけ。5分でBEI計算が完了します。</p>
+
+            <div className="reveal reveal-d3 grid md:grid-cols-2 gap-10 items-center">
+              <div className="space-y-6">
+                {[
+                  { n: '01', title: '建物情報を入力', desc: '用途・地域・延床面積を選択。プルダウン式で迷わない。' },
+                  { n: '02', title: '設備を選択', desc: '空調・照明・給湯・換気を一覧から選ぶだけ。' },
+                  { n: '03', title: 'BEI値と省エネ率が即表示', desc: '国交省v3.8 APIで正確に計算。公式PDFを即出力。' },
+                ].map((s) => (
+                  <div key={s.n} className="flex items-start gap-4">
+                    <span className="text-2xl font-bold text-slate-100 font-mono leading-none w-10 flex-shrink-0">{s.n}</span>
+                    <div>
+                      <p className="text-[14px] font-bold text-slate-800 mb-1">{s.title}</p>
+                      <p className="text-[12px] text-slate-400">{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+                <a href={`${APP}/register`} className="inline-flex items-center gap-2 text-[13px] font-semibold text-white bg-slate-900 hover:bg-slate-800 px-6 py-3 rounded-xl transition-colors shadow-sm">
+                  無料で試してみる →
+                </a>
+              </div>
+
+              <AppDemoScene />
+            </div>
+          </div>
+        </section>
+
         {/* ═══ COMPARISON ═══ */}
         <section className="py-24 px-6 bg-slate-50/50">
           <div className="max-w-3xl mx-auto">
@@ -265,7 +298,7 @@ export default function Home() {
               </div>
               {[
                 { l: '所要時間', b: '1〜3日', a: '5〜10分' },
-                { l: '費用', b: '5万円〜/件', a: '無料〜' },
+                { l: '費用', b: '5万円〜/件', a: '0円〜 必要時のみ課金' },
                 { l: '出力', b: '手作業で作成', a: '自動PDF出力' },
                 { l: '学習コスト', b: 'マニュアル必須', a: '選択式で直感的' },
               ].map((r, i) => (
