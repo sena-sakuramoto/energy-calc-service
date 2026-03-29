@@ -28,8 +28,8 @@ const painPoints = [
   },
   {
     icon: FaCalculator,
-    title: '2025年4月から全建物が対象に',
-    body: '4号特例が縮小され、ほぼすべての建物に省エネ計算が必須に。今後、案件数が大幅に増える。',
+    title: '2025年4月施行後は対応が常態化',
+    body: '4号特例の縮小以降、ほぼすべての建物で省エネ計算対応が必要に。案件ごとに素早く回せる体制が重要です。',
   },
 ];
 
@@ -61,7 +61,7 @@ const workflowSteps = [
 ];
 
 const faqs = [
-  { q: '本当に無料ですか？', a: 'はい、すべての機能を無料でお使いいただけます。クレジットカード登録も不要です。' },
+  { q: '本当に無料ですか？', a: '住宅のライブ計算や各種試算は無料です。公式BEI計算や確認申請用PDFなど、公式ワークフローだけが有料です。' },
   { q: '計算結果は確認申請に使えますか？', a: '公式PDF出力機能で国交省v3.8 APIから生成された様式は確認申請に使用可能です。ただし画面上の参考計算は社内検討用です。' },
   { q: 'WEBPROとの違いは何ですか？', a: 'WEBPROは国交省の公式ツールで網羅的ですが操作が複雑です。楽々省エネ計算はモデル建物法に特化し、選択式の簡単入力で同等の計算結果が得られます。' },
   { q: '計算精度は信頼できますか？', a: '国交省モデル建物法の計算ロジックに基づいて実装しています。計算結果は参考値として、最終確認は専門家の判断をお願いします。' },
@@ -71,7 +71,7 @@ const faqs = [
 
 const comparisonData = [
   { category: '時間', traditional: '1-3日', solution: '5-10分' },
-  { category: '費用', traditional: '5万円〜/件', solution: '無料' },
+  { category: '費用', traditional: '5万円〜/件', solution: '0円〜 必要時のみ課金' },
   { category: '出力', traditional: '手作業で書類作成', solution: '公式PDF自動出力' },
   { category: '学習', traditional: 'マニュアル読み込み必要', solution: '選択式で直感的' },
 ];
@@ -79,8 +79,8 @@ const comparisonData = [
 export default function Campaign() {
   return (
     <Layout
-      title="楽々省エネ計算 | 無料のBEI計算ツール"
-      description="2025年法改正で省エネ計算が必須化。選択式で5-10分、確認申請用の公式PDFも自動出力。無料で今すぐ始められます。"
+      title="楽々省エネ計算 | BEI計算と公式PDF出力"
+      description="2025年4月施行の省エネ基準適合義務に対応。選択式で5-10分、確認申請用の公式PDFも自動出力。基本機能は無料で始められます。"
       keywords="省エネ計算, BEI計算, 公式BEI, 建築物省エネ法, モデル建物法"
       path="/campaign"
     >
@@ -90,7 +90,7 @@ export default function Campaign() {
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-accent-100 text-accent-700 text-xs font-semibold px-4 py-2 rounded-full mb-6">
               <FaRocket className="text-sm" />
-              2025年4月法改正対応
+              2025年4月施行の義務化に対応
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-900 leading-tight mb-6">
               省エネ計算を
@@ -101,7 +101,7 @@ export default function Campaign() {
               確認申請に使える公式PDF、最短5-10分で自動出力。選択式の簡単入力で、難しい計算知識は不要です。
             </p>
             <p className="text-primary-600 text-sm md:text-base mb-8 max-w-2xl mx-auto">
-              国交省モデル建物法 v3.8 対応 ・ SSL暗号化 ・ クレジットカード登録不要
+              国交省モデル建物法 v3.8 対応 ・ SSL暗号化 ・ 基本機能は無料
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <a
@@ -126,7 +126,7 @@ export default function Campaign() {
               <div className="hidden sm:block text-primary-300">|</div>
               <div className="flex items-center gap-1.5">
                 <FaCheckCircle className="text-accent-500" />
-                <span>完全無料</span>
+                <span>基本機能は無料</span>
               </div>
               <div className="hidden sm:block text-primary-300">|</div>
               <div className="flex items-center gap-1.5">
@@ -141,7 +141,7 @@ export default function Campaign() {
         <section className="py-16 md:py-20 px-4 border-y border-warm-200">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-primary-900 text-center mb-4">こんな悩みはありませんか？</h2>
-            <p className="text-primary-600 text-center mb-12 max-w-2xl mx-auto">2025年4月から4号特例が縮小され、ほぼすべての建物に省エネ計算が必須化します。</p>
+            <p className="text-primary-600 text-center mb-12 max-w-2xl mx-auto">2025年4月の制度改正以降、確認申請に向けた省エネ計算を社内で素早く回せる体制が必要になっています。</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {painPoints.map((item) => {
                 const Icon = item.icon;
@@ -268,9 +268,9 @@ export default function Campaign() {
         {/* 最終CTA */}
         <section className="py-16 md:py-20 px-4">
           <div className="max-w-3xl mx-auto text-center bg-primary-900 rounded-2xl p-8 md:p-12 text-white shadow-lg">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">今すぐ無料で始めましょう</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">今すぐ始めましょう</h2>
             <p className="text-lg text-primary-300 mb-8 leading-relaxed">
-              難しい知識は不要。選択式で5-10分、完成します。
+              難しい知識は不要。試算は無料、提出用の公式出力は必要な案件だけ。
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
@@ -288,7 +288,7 @@ export default function Campaign() {
               </a>
             </div>
             <p className="text-primary-400 text-xs mt-8">
-              クレジットカード登録は不要です。アカウントは1分で作成できます。
+              アカウントは1分で作成できます。無料範囲からそのまま試せます。
             </p>
           </div>
         </section>
@@ -302,7 +302,7 @@ export default function Campaign() {
               省エネ計算だけでなく、構造計算・確認申請・AI活用など、建築テックの最新情報を月額5,000円で学べるコミュニティ。楽々省エネ計算を含む複数のツール開発も進行中です。
             </p>
             <a
-              href="https://ai-architecture-circle.com"
+              href="https://ai-archi-circle.archi-prisma.co.jp/"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-accent-600 hover:text-accent-700 font-semibold text-sm transition-colors duration-300"

@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/FirebaseAuthContext';
+import { getProjects as getLocalProjects } from '../utils/projectStorage';
 import {
   FaBuilding, FaCheckCircle, FaCalendarAlt, FaPlus, FaCalculator,
   FaBolt, FaYenSign, FaArrowRight, FaFolder, FaInfoCircle,
@@ -30,11 +31,7 @@ export default function Dashboard() {
       const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
       setCurrentDate(now.toLocaleDateString('ja-JP', options));
       try {
-        const stored = localStorage.getItem('projects');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          setProjects(Array.isArray(parsed) ? parsed : []);
-        }
+        setProjects(getLocalProjects());
       } catch (e) {
         console.warn('Failed to load projects from localStorage:', e);
       }
@@ -51,9 +48,27 @@ export default function Dashboard() {
     );
   }
 
+  const extractProjectBei = (project) => {
+    const candidates = [
+      project.bei,
+      project.beiResult,
+      project.result?.bei,
+      project.result?.bei?.value,
+      project.result_data?.bei,
+      project.result_data?.bei?.value,
+    ];
+
+    for (const candidate of candidates) {
+      if (candidate === null || candidate === undefined) continue;
+      const parsed = typeof candidate === 'number' ? candidate : parseFloat(candidate);
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+    return null;
+  };
+
   const displayName = user?.displayName || user?.full_name || 'ユーザー';
-  const completedProjects = projects.filter(
-    (p) => p.status === 'completed' || p.status === '完了'
+  const completedProjects = projects.filter((p) =>
+    Boolean(p.result || p.result_data || p.status === 'completed' || p.status === 'calculated' || p.status === '完了')
   );
   const completedCount = completedProjects.length;
   const isFirstTime = projects.length === 0;
@@ -61,10 +76,9 @@ export default function Dashboard() {
   const getBestBei = () => {
     let best = null;
     for (const p of completedProjects) {
-      const bei = p.bei ?? p.beiResult ?? p.result?.bei ?? null;
+      const bei = extractProjectBei(p);
       if (bei !== null && bei !== undefined) {
-        const val = typeof bei === 'number' ? bei : parseFloat(bei);
-        if (!isNaN(val) && (best === null || val < best)) best = val;
+        if (!isNaN(bei) && (best === null || bei < best)) best = bei;
       }
     }
     return best;
@@ -82,11 +96,10 @@ export default function Dashboard() {
   const recentProjects = projects.slice(0, 5);
 
   const getBeiStatus = (project) => {
-    const bei = project.bei ?? project.beiResult ?? project.result?.bei ?? null;
+    const bei = extractProjectBei(project);
     if (bei === null || bei === undefined) return null;
-    const val = typeof bei === 'number' ? bei : parseFloat(bei);
-    if (isNaN(val)) return null;
-    return { value: val, compliant: val <= 1.0 };
+    if (isNaN(bei)) return null;
+    return { value: bei, compliant: bei <= 1.0 };
   };
 
   const getBeiColor = (val) => { if (val <= 0.8) return 'text-green-600'; if (val <= 1.0) return 'text-accent-500'; return 'text-red-500'; };
@@ -335,7 +348,7 @@ export default function Dashboard() {
               <h3 className="text-white font-bold text-base md:text-lg mb-1">省エネ計算の先へ。全ツール使い放題。</h3>
               <p className="text-primary-400 text-sm">Compass・KOZO・KAKOME・AICommander、月額¥5,000ですべて利用可能</p>
             </div>
-            <a href="https://ai-architecture-circle.com" target="_blank" rel="noopener noreferrer"
+            <a href="https://ai-archi-circle.archi-prisma.co.jp/" target="_blank" rel="noopener noreferrer"
               className="flex-shrink-0 inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-bold px-6 py-3 rounded-lg transition-colors duration-200 text-sm whitespace-nowrap">
               サークルを見る <FaArrowRight className="text-xs" />
             </a>

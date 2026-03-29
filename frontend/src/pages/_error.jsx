@@ -59,12 +59,12 @@ function Error({ statusCode }) {
                 無料でアカウント作成
               </Link>
             )}
-            <Link
-              href="/campaign"
+            <a
+              href="https://rakuraku-energy.archi-prisma.co.jp/campaign"
               className="block w-full bg-primary-600 text-white py-3 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
             >
               導入案内
-            </Link>
+            </a>
           </div>
         </div>
       </div>

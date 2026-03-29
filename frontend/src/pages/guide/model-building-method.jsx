@@ -39,14 +39,14 @@ export default function ModelBuildingMethodGuide() {
       "name": "建築物省エネ計算システム",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://sena-sakuramoto.github.io/energy-calc-service/logo.png"
+        "url": "https://app.rakuraku-energy.archi-prisma.co.jp/logo.png"
       }
     },
     "datePublished": "2025-08-30",
     "dateModified": "2025-08-30",
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://sena-sakuramoto.github.io/energy-calc-service/guide/model-building-method"
+      "@id": "https://app.rakuraku-energy.archi-prisma.co.jp/guide/model-building-method"
     },
     "articleSection": "建築物省エネ法",
     "keywords": "モデル建物法,BEI計算,建築物省エネ法,適合性判定,標準入力法,省エネ基準"
@@ -116,8 +116,8 @@ export default function ModelBuildingMethodGuide() {
         <meta property="og:title" content="モデル建物法とは？適用条件から計算方法まで完全解説【2025年最新版】" />
         <meta property="og:description" content="建築物省エネ法のモデル建物法について建築士向けに詳しく解説。BEI計算が5分で完了する理由とは？" />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content="https://sena-sakuramoto.github.io/energy-calc-service/guide/model-building-method" />
-        <meta property="og:image" content="https://sena-sakuramoto.github.io/energy-calc-service/og-model-building.png" />
+        <meta property="og:url" content="https://app.rakuraku-energy.archi-prisma.co.jp/guide/model-building-method" />
+        <meta property="og:image" content="https://rakuraku-energy.archi-prisma.co.jp/og-model-building.png" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -135,7 +135,7 @@ export default function ModelBuildingMethodGuide() {
         />
 
         {/* 正規URL */}
-        <link rel="canonical" href="https://sena-sakuramoto.github.io/energy-calc-service/guide/model-building-method" />
+        <link rel="canonical" href="https://app.rakuraku-energy.archi-prisma.co.jp/guide/model-building-method" />
       </Head>
 
       <Layout>

@@ -227,7 +227,7 @@ function CompletionModal({ onClose, beiValue }) {
               <p className="text-primary-400 text-xs">外注1件分以下で全ツール使い放題</p>
             </div>
             <div className="p-6 space-y-3">
-              <a href="https://ai-architecture-circle.com" target="_blank" rel="noopener noreferrer"
+              <a href="https://ai-archi-circle.archi-prisma.co.jp/" target="_blank" rel="noopener noreferrer"
                 className="w-full flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-bold py-3 rounded-xl transition-colors duration-200">
                 サークルを見てみる <FaExternalLinkAlt className="text-xs" />
               </a>
