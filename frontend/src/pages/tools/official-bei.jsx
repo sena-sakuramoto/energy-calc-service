@@ -297,41 +297,24 @@ const SAMPLE_DATA = {
     non_ac_core_direction: '北',
     non_ac_core_length: '8',
   },
-  windows: [{
-    name: '窓-1',
-    width: '1.6',
-    height: '1.8',
-    area: '2.88',
-    window_type: '金属製(二層以上の複層ガラス)',
-    glass_type: '',
-    glass_u_value: '',
-    glass_shgc: '',
-    window_u_value: '2.3',
-    window_shgc: '0.55',
-  }],
-  insulations: [{
-    name: '断熱-1',
-    part_class: '外壁',
-    input_method: '熱貫流率を入力する',
-    material_category: '',
-    material_detail: '',
-    conductivity: '',
-    thickness: '',
-    u_value: '0.65',
-  }],
-  envelopes: [{
-    name: '北面壁-1',
-    direction: '北',
-    width: '12',
-    height: '4',
-    area: '48',
-    insulation_name: '断熱-1',
-    window_name: '窓-1',
-    window_count: '2',
-    has_blind: '無',
-    shade_coeff_cooling: '1',
-    shade_coeff_heating: '1',
-  }],
+  windows: [
+    { name: '窓-S', width: '1.8', height: '1.8', area: '3.24', window_type: '金属製(二層以上の複層ガラス)', glass_type: '高透過Low-E複層(12A)', glass_u_value: '', glass_shgc: '', window_u_value: '2.33', window_shgc: '0.55' },
+    { name: '窓-N', width: '1.5', height: '1.5', area: '2.25', window_type: '金属製(二層以上の複層ガラス)', glass_type: '複層(12A)', glass_u_value: '', glass_shgc: '', window_u_value: '2.81', window_shgc: '0.42' },
+    { name: '窓-EW', width: '1.6', height: '1.5', area: '2.40', window_type: '金属製(二層以上の複層ガラス)', glass_type: '遮熱Low-E複層(12A)', glass_u_value: '', glass_shgc: '', window_u_value: '2.33', window_shgc: '0.30' },
+  ],
+  insulations: [
+    { name: '断熱-外壁', part_class: '外壁', input_method: '熱貫流率を入力する', material_category: '', material_detail: '', conductivity: '', thickness: '', u_value: '0.65' },
+    { name: '断熱-屋根', part_class: '屋根', input_method: '熱貫流率を入力する', material_category: '', material_detail: '', conductivity: '', thickness: '', u_value: '0.34' },
+    { name: '断熱-地面床', part_class: '地面床', input_method: '熱貫流率を入力する', material_category: '', material_detail: '', conductivity: '', thickness: '', u_value: '0.48' },
+  ],
+  envelopes: [
+    { name: '南面壁', direction: '南', width: '20', height: '3.5', area: '70', insulation_name: '断熱-外壁', window_name: '窓-S', window_count: '12', has_blind: '無', shade_coeff_cooling: '1', shade_coeff_heating: '1' },
+    { name: '北面壁', direction: '北', width: '20', height: '3.5', area: '70', insulation_name: '断熱-外壁', window_name: '窓-N', window_count: '8', has_blind: '無', shade_coeff_cooling: '1', shade_coeff_heating: '1' },
+    { name: '東面壁', direction: '東', width: '10', height: '3.5', area: '35', insulation_name: '断熱-外壁', window_name: '窓-EW', window_count: '4', has_blind: '無', shade_coeff_cooling: '1', shade_coeff_heating: '1' },
+    { name: '西面壁', direction: '西', width: '10', height: '3.5', area: '35', insulation_name: '断熱-外壁', window_name: '窓-EW', window_count: '4', has_blind: '有', shade_coeff_cooling: '0.70', shade_coeff_heating: '0.90' },
+    { name: '屋根', direction: '上部水平', width: '20', height: '10', area: '200', insulation_name: '断熱-屋根', window_name: '', window_count: '0', has_blind: '無', shade_coeff_cooling: '1', shade_coeff_heating: '1' },
+    { name: '最下階床', direction: '下部水平(地面床)', width: '20', height: '10', area: '200', insulation_name: '断熱-地面床', window_name: '', window_count: '0', has_blind: '無', shade_coeff_cooling: '1', shade_coeff_heating: '1' },
+  ],
   heatSources: [{
     name: 'PAC-1',
     type: 'パッケージエアコンディショナ(空冷式)',
@@ -1558,8 +1541,13 @@ export default function OfficialBEI() {
                 onSelect={applyWindowProduct}
               />
             </FormSection>
+            <div className="mb-3 p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-700 leading-relaxed">
+              <strong>ポイント：</strong>方位・ガラス仕様が異なる窓は別の行で定義してください。
+              例）南面高透過Low-E・北面通常複層・東西遮熱Low-E など。
+              ここで定義した名称を、次の <strong>外皮仕様（様式B3）</strong> で方位ごとに参照します。
+            </div>
             {renderTableForm('様式B1: 開口部仕様', FaThermometerHalf, windows, setWindows, emptyWindow, [
-              { key: 'name', label: '建具仕様名称', type: 'text', placeholder: '窓-1' },
+              { key: 'name', label: '建具仕様名称', type: 'text', placeholder: '窓-S（南面）' },
               { key: 'width', label: '幅 W', type: 'number', unit: 'm' },
               { key: 'height', label: '高さ H', type: 'number', unit: 'm' },
               { key: 'area', label: '窓面積', type: 'number', unit: 'm2' },
@@ -1581,8 +1569,12 @@ export default function OfficialBEI() {
                 onSelect={applyInsulationProduct}
               />
             </FormSection>
+            <div className="mb-3 p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-700 leading-relaxed">
+              <strong>ポイント：</strong>外壁・屋根・地面床など部位ごとにU値が異なる場合は別行で定義してください。
+              ここで定義した名称を <strong>外皮仕様（様式B3）</strong> の「断熱仕様名称」欄で参照します。
+            </div>
             {renderTableForm('様式B2: 断熱仕様', FaThermometerHalf, insulations, setInsulations, emptyInsulation, [
-              { key: 'name', label: '断熱仕様名称', type: 'text', placeholder: '断熱-1' },
+              { key: 'name', label: '断熱仕様名称', type: 'text', placeholder: '断熱-外壁' },
               { key: 'part_class', label: '部位種別', type: 'select', options: PART_CLASSES },
               { key: 'input_method', label: '入力方法', type: 'select', options: INSULATION_INPUT_METHODS },
               { key: 'material_category', label: '断熱材種類(大分類)', type: 'select', options: INSULATION_MATERIALS },
@@ -1599,8 +1591,15 @@ export default function OfficialBEI() {
             </div>
           </FormSection>
         );
-        return renderTableForm('様式B3: 外皮仕様', FaBuilding, envelopes, setEnvelopes, emptyEnvelope, [
-          { key: 'name', label: '外皮名称', type: 'text', placeholder: '北面壁-1' },
+        return (
+          <>
+            <div className="mb-3 p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-700 leading-relaxed">
+              <strong>ポイント：</strong>方位ごと・部位ごとに行を追加してください（南面壁・北面壁・屋根・床など）。
+              「断熱仕様名称」にはB2で定義した名称を、「建具仕様名称」にはB1で定義した名称をそのまま入力します。
+              屋根・床など開口部がない部位は建具仕様名称を空欄にしてください。
+            </div>
+            {renderTableForm('様式B3: 外皮仕様', FaBuilding, envelopes, setEnvelopes, emptyEnvelope, [
+          { key: 'name', label: '外皮名称', type: 'text', placeholder: '南面壁' },
           { key: 'direction', label: '方位', type: 'select', options: ENVELOPE_DIRECTIONS },
           { key: 'width', label: '幅 W', type: 'number', unit: 'm' },
           { key: 'height', label: '高さ H', type: 'number', unit: 'm' },
@@ -1611,7 +1610,9 @@ export default function OfficialBEI() {
           { key: 'has_blind', label: 'ブラインド', type: 'select', options: BOOLEAN_LIST },
           { key: 'shade_coeff_cooling', label: '日除け係数(冷房)', type: 'number' },
           { key: 'shade_coeff_heating', label: '日除け係数(暖房)', type: 'number' },
-        ], 'envelopes');
+            ], 'envelopes')}
+          </>
+        );
       case 5: return (
         <>
           <FormSection title="推奨製品選択: 空調設備" icon={FaFan}>
