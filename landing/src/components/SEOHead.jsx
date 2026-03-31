@@ -5,7 +5,7 @@ const BASE_URL = 'https://rakuraku-energy.archi-prisma.co.jp';
 
 export default function SEOHead({
   title = '楽々省エネ計算 - 建築物エネルギー消費性能計算サービス',
-  description = '建築設計者向けの省エネ法計算サービス。BEI計算、モデル建物法対応で設計業務を効率化。Archi-Prisma Design works株式会社が提供する無料ツール。',
+  description = '建築設計者向けの省エネ法計算サービス。BEI計算、モデル建物法対応で設計業務を効率化。基本機能は無料、公式出力は有料で使えるArchi-Prisma Design works株式会社のWebサービス。',
   keywords = '省エネ計算,BEI計算,建築物エネルギー消費性能,モデル建物法,建築設計,省エネ法,設計支援,建築,エネルギー計算',
   path = '',
 }) {

@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import CalculatorLayout from '../../../components/CalculatorLayout';
 import { projectsAPI, reportAPI } from '../../../utils/api';
 import { getProject } from '../../../utils/projectStorage';
+import { useNotification } from '../../../components/ErrorAlert';
 import Link from 'next/link';
 import { FaHome, FaFileDownload, FaFileExcel, FaCheckCircle, FaExclamationTriangle, FaChartPie } from 'react-icons/fa';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
@@ -12,72 +13,58 @@ import { Pie, Bar } from 'react-chartjs-2';
 // Chart.jsを初期化
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
-const LEAD_CAPTURE_KEY = 'energy_calc_lead_email';
+const normalizeResult = (rawResult) => {
+  if (!rawResult) return null;
 
-function EmailCaptureGate({ onComplete }) {
-  const [email, setEmail] = useState('');
-  const [company, setCompany] = useState('');
-  const [sending, setSending] = useState(false);
-  const [err, setErr] = useState('');
+  if (rawResult.primary_energy_result && rawResult.envelope_result) {
+    return rawResult;
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!email || !email.includes('@')) {
-      setErr('メールアドレスを入力してください');
-      return;
-    }
-    setSending(true);
-    try {
-      await fetch('https://stripe-discord-pro-417218426761.asia-northeast1.run.app/api/capture', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, company, source: 'energy_calc' })
-      }).catch(() => {});
-    } catch {}
-    localStorage.setItem(LEAD_CAPTURE_KEY, email);
-    setSending(false);
-    onComplete(email);
-  };
+  if (rawResult.energy) {
+    const totalEnergy = Number(rawResult.energy.total || 0);
+    return {
+      envelope_result: {
+        ua_value: Number(rawResult.envelope?.ua_value || rawResult.ua_value || 0),
+        eta_a_value: Number(rawResult.envelope?.eta_a_value || rawResult.eta_a_value || 0),
+        is_ua_compliant: Boolean(rawResult.envelope?.is_ua_compliant ?? true),
+        is_eta_a_compliant: Boolean(rawResult.envelope?.is_eta_a_compliant ?? true),
+      },
+      primary_energy_result: {
+        total_energy_consumption: totalEnergy,
+        standard_energy_consumption: Number(rawResult.energy.standard || totalEnergy),
+        energy_saving_rate: Number(rawResult.energy.energy_saving_rate || 0),
+        is_energy_compliant: Boolean(rawResult.energy.is_energy_compliant ?? rawResult.overall_compliance),
+        energy_by_use: {
+          heating: Number(rawResult.energy.heating || 0),
+          cooling: Number(rawResult.energy.cooling || 0),
+          ventilation: Number(rawResult.energy.ventilation || 0),
+          hot_water: Number(rawResult.energy.hot_water || 0),
+          lighting: Number(rawResult.energy.lighting || 0),
+        },
+      },
+      overall_compliance: Boolean(rawResult.overall_compliance),
+      message: rawResult.message || '計算が完了しました。',
+    };
+  }
 
-  return (
-    <div className="max-w-md mx-auto mt-12 bg-white p-8 rounded-xl shadow-lg border">
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-accent-50 rounded-full mb-4">
-          <FaCheckCircle className="text-accent-500 text-3xl" />
-        </div>
-        <h2 className="text-xl font-bold text-primary-800">計算が完了しました</h2>
-        <p className="text-sm text-primary-500 mt-2">
-          結果を表示するにはメールアドレスをご入力ください。省エネ計算に役立つ情報もお届けします。
-        </p>
-      </div>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input
-          type="email"
-          value={email}
-          onChange={e => { setEmail(e.target.value); setErr(''); }}
-          placeholder="example@company.co.jp"
-          className="w-full border border-primary-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-400"
-          required
-        />
-        <input
-          type="text"
-          value={company}
-          onChange={e => setCompany(e.target.value)}
-          placeholder="会社名（任意）"
-          className="w-full border border-primary-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-400"
-        />
-        {err && <p className="text-red-500 text-xs">{err}</p>}
-        <button
-          type="submit"
-          disabled={sending}
-          className="w-full bg-accent-500 hover:bg-accent-600 text-white py-3 rounded-lg font-bold text-sm disabled:opacity-50"
-        >
-          {sending ? '送信中...' : '結果を表示する'}
-        </button>
-      </form>
-    </div>
-  );
-}
+  return null;
+};
+
+const downloadBlob = (blob, filename) => {
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+const safePercentage = (value, total) => {
+  if (!total) return '0.0';
+  return ((value / total) * 100).toFixed(1);
+};
 
 export default function Result() {
   const [project, setProject] = useState(null);
@@ -85,15 +72,9 @@ export default function Result() {
   const [error, setError] = useState('');
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [downloadingExcel, setDownloadingExcel] = useState(false);
-  const [downloadingOfficialReport, setDownloadingOfficialReport] = useState(false);
-  const [emailCaptured, setEmailCaptured] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return !!localStorage.getItem(LEAD_CAPTURE_KEY);
-    }
-    return false;
-  });
   const router = useRouter();
   const { id } = router.query;
+  const { showError, showSuccess } = useNotification();
 
   useEffect(() => {
     if (id) {
@@ -119,7 +100,7 @@ export default function Result() {
       setProject(response.data);
 
       // 計算結果がない場合は計算ページにリダイレクト
-      if (!response.data.result_data) {
+      if (!response.data.result_data && !response.data.result) {
         router.push(`/projects/${projectId}/calculate`);
       }
     } catch (error) {
@@ -144,45 +125,14 @@ export default function Result() {
     try {
       setDownloadingPDF(true);
       const response = await reportAPI.getPDF(id);
-
-      // Blobとしてダウンロード
       const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${project.projectInfo?.name || project.name}_report.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, `${project.projectInfo?.name || project.name}_report.pdf`);
+      showSuccess('PDFをダウンロードしました');
     } catch (error) {
       console.error('PDFダウンロードエラー:', error);
-      alert('PDFのダウンロード中にエラーが発生しました。');
+      showError('PDFのダウンロード中にエラーが発生しました。');
     } finally {
       setDownloadingPDF(false);
-    }
-  };
-
-  const handleDownloadOfficialReport = async () => {
-    try {
-      setDownloadingOfficialReport(true);
-      const response = await reportAPI.getExcel(id); // Still calls getExcel which hits the /excel endpoint
-
-      // Blobとしてダウンロード (PDF用に変更)
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${project.projectInfo?.name || project.name}_official_report.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('公式帳票ダウンロードエラー:', error);
-      alert('公式帳票のダウンロード中にエラーが発生しました。');
-    } finally {
-      setDownloadingOfficialReport(false);
     }
   };
 
@@ -190,20 +140,12 @@ export default function Result() {
     try {
       setDownloadingExcel(true);
       const response = await reportAPI.getExcel(id);
-
-      // Blobとしてダウンロード
       const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${project.projectInfo?.name || project.name}_report.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, `${project.projectInfo?.name || project.name}_report.xlsx`);
+      showSuccess('Excelをダウンロードしました');
     } catch (error) {
       console.error('Excelダウンロードエラー:', error);
-      alert('Excelのダウンロード中にエラーが発生しました。');
+      showError('Excelのダウンロード中にエラーが発生しました。');
     } finally {
       setDownloadingExcel(false);
     }
@@ -238,17 +180,29 @@ export default function Result() {
     );
   }
 
-  // メアド未取得ならゲート表示
-  if (!emailCaptured) {
+  const result = normalizeResult(project.result_data || project.result);
+  if (!result) {
     return (
       <CalculatorLayout>
-        <EmailCaptureGate onComplete={() => setEmailCaptured(true)} />
+        <div className="text-center py-8">
+          <p>計算結果の形式を読み取れませんでした。再計算をお試しください。</p>
+          <div className="mt-4">
+            <Link
+              href={`/projects/${id}/calculate`}
+              className="bg-accent-500 hover:bg-accent-600 text-white py-2.5 px-5 rounded-lg font-medium transition-colors duration-200"
+            >
+              再計算する
+            </Link>
+          </div>
+        </div>
       </CalculatorLayout>
     );
   }
 
-  const result = project.result_data || project.result;
-  const inputData = project.input_data;
+  const totalEnergy = Number(result.primary_energy_result.total_energy_consumption || 0);
+  const standardEnergy = Number(result.primary_energy_result.standard_energy_consumption || 0);
+  const savingRate = Number(result.primary_energy_result.energy_saving_rate || 0);
+  const calculationMethod = result.calculation_method || 'モデル建物法';
 
   // エネルギー消費量のデータを作成（円グラフ用）
   const energyByUseData = {
@@ -293,7 +247,7 @@ export default function Result() {
     labels: ['設計値', '基準値'],
     datasets: [
       {
-        label: '一次エネルギー消費量 (MJ/年)',
+        label: '一次エネルギー消費量 (GJ/年)',
         data: [result.primary_energy_result.total_energy_consumption, result.primary_energy_result.standard_energy_consumption],
         backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(255, 99, 132, 0.6)'],
         borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
@@ -307,7 +261,7 @@ export default function Result() {
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-primary-800">計算結果</h1>
-          <p className="text-primary-400 text-sm mt-1">{project.name}</p>
+          <p className="text-primary-400 text-sm mt-1">{project.projectInfo?.name || project.name}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
@@ -399,7 +353,7 @@ export default function Result() {
                   callbacks: {
                     label: function(context) {
                       const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                      const percentage = ((context.raw / total) * 100).toFixed(1);
+                      const percentage = safePercentage(context.raw, total);
                       return `${context.label}: ${context.raw.toFixed(1)} GJ/年 (${percentage}%)`;
                     }
                   }
@@ -409,7 +363,7 @@ export default function Result() {
           </div>
           <div className="text-center">
             <p className="text-sm text-primary-600">
-              総エネルギー消費量: {result.primary_energy_result.total_energy_consumption.toFixed(1)} GJ/年
+              総エネルギー消費量: {totalEnergy.toFixed(1)} GJ/年
             </p>
           </div>
         </div>
@@ -417,6 +371,29 @@ export default function Result() {
         {/* 詳細データテーブル */}
         <div className="bg-white p-6 rounded-lg shadow-md lg:col-span-2">
           <h2 className="text-xl font-bold mb-4">詳細データ</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="rounded-lg border border-warm-200 bg-warm-50 p-4">
+              <p className="text-xs text-primary-500 mb-1">設計一次エネルギー</p>
+              <p className="text-2xl font-bold text-primary-900">{totalEnergy.toFixed(1)}</p>
+              <p className="text-xs text-primary-500 mt-1">GJ/年</p>
+            </div>
+            <div className="rounded-lg border border-warm-200 bg-warm-50 p-4">
+              <p className="text-xs text-primary-500 mb-1">基準一次エネルギー</p>
+              <p className="text-2xl font-bold text-primary-900">{standardEnergy.toFixed(1)}</p>
+              <p className="text-xs text-primary-500 mt-1">GJ/年</p>
+            </div>
+            <div className="rounded-lg border border-warm-200 bg-warm-50 p-4">
+              <p className="text-xs text-primary-500 mb-1">省エネ率</p>
+              <p className={`text-2xl font-bold ${savingRate >= 0 ? 'text-green-700' : 'text-red-700'}`}>{savingRate.toFixed(1)}%</p>
+              <p className="text-xs text-primary-500 mt-1">{result.primary_energy_result.is_energy_compliant ? '基準内' : '要見直し'}</p>
+            </div>
+            <div className="rounded-lg border border-warm-200 bg-warm-50 p-4">
+              <p className="text-xs text-primary-500 mb-1">計算方式</p>
+              <p className="text-lg font-bold text-primary-900">{calculationMethod}</p>
+              <p className="text-xs text-primary-500 mt-1">更新: {new Date(project.updatedAt || project.updated_at || project.createdAt || project.created_at).toLocaleDateString('ja-JP')}</p>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 外皮性能 */}
@@ -436,7 +413,7 @@ export default function Result() {
                     <tr>
                       <td className="py-2 px-3 border">UA値 (W/m2K)</td>
                       <td className="py-2 px-3 border">{result.envelope_result.ua_value.toFixed(2)}</td>
-                      <td className="py-2 px-3 border">{result.envelope_result.ua_value < 0.6 ? '0.60' : '-'}</td>
+                      <td className="py-2 px-3 border">0.87</td>
                       <td className={`py-2 px-3 border ${
                         result.envelope_result.is_ua_compliant
                           ? 'text-green-600'
@@ -448,7 +425,7 @@ export default function Result() {
                     <tr>
                       <td className="py-2 px-3 border">ηA値</td>
                       <td className="py-2 px-3 border">{result.envelope_result.eta_a_value.toFixed(2)}</td>
-                      <td className="py-2 px-3 border">{result.envelope_result.eta_a_value < 2.8 ? '2.80' : '-'}</td>
+                      <td className="py-2 px-3 border">2.80</td>
                       <td className={`py-2 px-3 border ${
                         result.envelope_result.is_eta_a_compliant
                           ? 'text-green-600'
@@ -476,14 +453,14 @@ export default function Result() {
                   </thead>
                   <tbody>
                     <tr>
-                      <td className="py-2 px-3 border">一次エネルギー消費量 (MJ/年)</td>
-                      <td className="py-2 px-3 border">{result.primary_energy_result.total_energy_consumption.toFixed(1)}</td>
-                      <td className="py-2 px-3 border">{result.primary_energy_result.standard_energy_consumption.toFixed(1)}</td>
+                      <td className="py-2 px-3 border">一次エネルギー消費量 (GJ/年)</td>
+                      <td className="py-2 px-3 border">{totalEnergy.toFixed(1)}</td>
+                      <td className="py-2 px-3 border">{standardEnergy.toFixed(1)}</td>
                     </tr>
                     <tr>
                       <td className="py-2 px-3 border">省エネ率 (%)</td>
                       <td className="py-2 px-3 border" colSpan="2">
-                        {result.primary_energy_result.energy_saving_rate.toFixed(2)}
+                        {savingRate.toFixed(1)}
                         <span className="ml-2 text-sm">
                           ({result.primary_energy_result.is_energy_compliant ? '適合' : '不適合'})
                         </span>
@@ -527,7 +504,7 @@ export default function Result() {
                 </thead>
                 <tbody>
                   {Object.entries(result.primary_energy_result.energy_by_use).map(([key, value]) => {
-                    const percentage = (value / result.primary_energy_result.total_energy_consumption * 100).toFixed(1);
+                    const percentage = safePercentage(value, totalEnergy);
                     return (
                       <tr key={key}>
                         <td className="py-2 px-3 border">{useTypeMap[key] || key}</td>

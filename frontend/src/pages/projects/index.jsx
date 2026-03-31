@@ -5,15 +5,17 @@ import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/FirebaseAuthContext';
 import { projectsAPI } from '../../utils/api';
 import { getProjects as getLocalProjects, deleteProject as deleteLocalProject } from '../../utils/projectStorage';
+import { useNotification } from '../../components/ErrorAlert';
 import Link from 'next/link';
-import { FaPlus, FaPencilAlt, FaTrash, FaCalculator, FaFolder, FaArrowRight } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaCalculator, FaFolder, FaEye } from 'react-icons/fa';
 
 export default function Projects() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
-  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { showError, showSuccess } = useNotification();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -60,9 +62,10 @@ export default function Projects() {
           await projectsAPI.delete(id);
           setProjects(projects.filter(project => project.id !== id));
         }
+        showSuccess('プロジェクトを削除しました。');
       } catch (error) {
         console.error('削除エラー:', error);
-        alert('削除中にエラーが発生しました。');
+        showError('削除中にエラーが発生しました。');
       }
     }
   };
@@ -176,11 +179,11 @@ export default function Projects() {
                             <FaCalculator />
                           </Link>
                           <Link
-                            href={`/projects/${project.id}/edit`}
+                            href={`/projects/${project.id}`}
                             className="text-primary-400 hover:text-accent-500 transition-colors"
-                            title="編集"
+                            title="詳細"
                           >
-                            <FaPencilAlt />
+                            <FaEye />
                           </Link>
                           <button
                             onClick={() => handleDelete(project.id, project.projectInfo?.name || project.name)}
@@ -221,8 +224,8 @@ export default function Projects() {
                     <Link href={`/projects/${project.id}/calculate`} className="text-primary-400 hover:text-accent-500 transition-colors text-sm flex items-center gap-1">
                       <FaCalculator className="text-xs" /> 計算
                     </Link>
-                    <Link href={`/projects/${project.id}/edit`} className="text-primary-400 hover:text-accent-500 transition-colors text-sm flex items-center gap-1">
-                      <FaPencilAlt className="text-xs" /> 編集
+                    <Link href={`/projects/${project.id}`} className="text-primary-400 hover:text-accent-500 transition-colors text-sm flex items-center gap-1">
+                      <FaEye className="text-xs" /> 詳細
                     </Link>
                     <button
                       onClick={() => handleDelete(project.id, project.projectInfo?.name || project.name)}

@@ -254,7 +254,7 @@ export default function Home() {
         </section>
 
         {/* ═══ DEMO ═══ */}
-        <section className="py-24 px-6 bg-slate-50/50">
+        <section className="py-24 px-6">
           <div className="max-w-4xl mx-auto">
             <p className="reveal text-[10px] font-semibold text-orange-600 uppercase tracking-[.2em] mb-3">Live Demo</p>
             <h2 className="reveal reveal-d1 text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">実際の操作画面</h2>

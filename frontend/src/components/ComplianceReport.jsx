@@ -6,6 +6,7 @@ import { exportToProfessionalExcel, exportToSimpleExcel } from '../utils/excelEx
 import { formatBEI } from '../utils/number';
 import { generateBEIReport } from '../utils/pdfExport';
 import { officialAPI } from '../utils/api';
+import { useNotification } from './ErrorAlert';
 
 // Shared BEI formatter wrapper for this component
 const formatBEIValue2 = (value) => {
@@ -112,6 +113,7 @@ const parseApiErrorDetail = async (error) => {
 export default function ComplianceReport({ result, formData, projectInfo, onDownload, onDownloadPDF }) {
   const [officialLoading, setOfficialLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
+  const { showError, showSuccess, showInfo } = useNotification();
 
   if (!result || !formData) return null;
 
@@ -148,10 +150,12 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
       a.download = `${projectInfo?.name || 'project'}_公式計算書.pdf`;
       a.click();
       URL.revokeObjectURL(url);
+      showSuccess('公式PDFをダウンロードしました。');
     } catch (error) {
       const detail = await parseApiErrorDetail(error);
       console.error('公式PDF取得エラー:', error);
-      alert(`公式PDF取得に失敗しました。\n${detail}\n\n公式入力シート(xlsx)のアップロードもお試しください。`);
+      showError(`公式PDF取得に失敗しました。${detail}`);
+      showInfo('必要であれば、公式入力シート (.xlsx / .xlsm) のアップロードもお試しください。');
     } finally {
       setOfficialLoading(false);
     }
@@ -162,7 +166,7 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xlsm')) {
-      alert('公式入力シート (.xlsx または .xlsm) をアップロードしてください。');
+      showError('公式入力シート (.xlsx または .xlsm) をアップロードしてください。');
       return;
     }
     setUploadLoading(true);
@@ -175,10 +179,11 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
       a.download = file.name.replace(/\.(xlsx|xlsm)$/, '_公式計算書.pdf');
       a.click();
       URL.revokeObjectURL(url);
+      showSuccess('Excel から公式PDFを生成してダウンロードしました。');
     } catch (error) {
       const detail = await parseApiErrorDetail(error);
       console.error('アップロードエラー:', error);
-      alert(`公式PDF取得に失敗しました。\n${detail}`);
+      showError(`公式PDF取得に失敗しました。${detail}`);
     } finally {
       setUploadLoading(false);
       event.target.value = '';
@@ -197,7 +202,7 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
         try {
           exportToExcel(result, formData, projectInfo);
         } catch (csvError) {
-          alert(`出力に失敗しました: ${csvError.message}`);
+          showError(`出力に失敗しました: ${csvError.message}`);
         }
       }
     }
@@ -207,9 +212,10 @@ export default function ComplianceReport({ result, formData, projectInfo, onDown
   const handlePDFExport = async () => {
     try {
       await generateBEIReport(result, formData, projectInfo);
+      showSuccess('参考PDFをダウンロードしました。');
     } catch (error) {
       console.error('PDF生成エラー:', error);
-      alert(`PDF生成エラー: ${error.message}`);
+      showError(`PDF生成エラー: ${error.message}`);
     }
   };
 

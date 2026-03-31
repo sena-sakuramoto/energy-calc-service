@@ -50,15 +50,13 @@ const NewProject = () => {
         const projectData = createProjectData(projectInfo, {}, null);
         const savedProject = saveProject(projectData);
         
-        console.log('Project created locally:', savedProject);
         showSuccess('プロジェクトを作成しました');
-        router.push('/projects');
+        router.push(`/projects/${savedProject.id}`);
       } else {
         // API環境での作成
         const response = await projectsAPI.create(formData);
-        console.log('Project created:', response.data);
         showSuccess('プロジェクトを作成しました');
-        router.push('/projects');
+        router.push(`/projects/${response.data.id}`);
       }
     } catch (error) {
       console.error('Project creation failed:', error);

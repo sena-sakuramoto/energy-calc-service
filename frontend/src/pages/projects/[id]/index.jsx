@@ -2,12 +2,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Layout from '../../../components/Layout';
 import { useAuth } from '../../../contexts/FirebaseAuthContext';
 import { projectsAPI } from '../../../utils/api';
 import { getProject, deleteProject as deleteLocalProject } from '../../../utils/projectStorage';
 import { useNotification } from '../../../components/ErrorAlert';
 import LoadingSpinner from '../../../components/LoadingSpinner';
-import { FaCalculator, FaEdit, FaTrash, FaArrowLeft, FaEye } from 'react-icons/fa';
+import { FaCalculator, FaEdit, FaTrash, FaArrowLeft, FaEye, FaCheckCircle, FaClock } from 'react-icons/fa';
 
 const ProjectDetail = () => {
   const router = useRouter();
@@ -86,12 +87,14 @@ const ProjectDetail = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-warm-50">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>認証確認中...</p>
+      <Layout title="プロジェクト詳細 - 楽々省エネ計算">
+        <div className="min-h-screen flex items-center justify-center bg-warm-50">
+          <div className="text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p>認証確認中...</p>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
@@ -101,32 +104,44 @@ const ProjectDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-warm-50 py-8">
-        <div className="max-w-4xl mx-auto px-4">
-          <LoadingSpinner size="large" message="プロジェクトを読み込み中..." />
+      <Layout title="プロジェクト詳細 - 楽々省エネ計算">
+        <div className="min-h-screen bg-warm-50 py-8">
+          <div className="max-w-4xl mx-auto px-4">
+            <LoadingSpinner size="large" message="プロジェクトを読み込み中..." />
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-warm-50">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-primary-900 mb-4">
-            プロジェクトが見つかりません
-          </h2>
-          <Link href="/projects" className="bg-accent-500 text-white px-4 py-2 rounded-lg hover:bg-accent-600">
-            プロジェクト一覧に戻る
-          </Link>
+      <Layout title="プロジェクト詳細 - 楽々省エネ計算">
+        <div className="min-h-screen flex items-center justify-center bg-warm-50">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-primary-900 mb-4">
+              プロジェクトが見つかりません
+            </h2>
+            <Link href="/projects" className="bg-accent-500 text-white px-4 py-2 rounded-lg hover:bg-accent-600">
+              プロジェクト一覧に戻る
+            </Link>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
+  const hasResult = Boolean(project.result || project.result_data);
+  const statusLabel = hasResult ? '計算完了' : '下書き';
+  const statusClass = hasResult ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800';
+  const statusDotClass = hasResult ? 'bg-green-500' : 'bg-amber-500';
+  const primaryActionLabel = hasResult ? '再計算する' : '計算を開始';
+  const updatedAt = project.updatedAt || project.updated_at || project.createdAt || project.created_at;
+
   return (
-    <div className="min-h-screen bg-warm-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <Layout title={`${project.projectInfo?.name || project.name} - 楽々省エネ計算`}>
+      <div className="min-h-screen bg-warm-50 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ヘッダー */}
         <div className="mb-8">
           <Link
@@ -138,8 +153,14 @@ const ProjectDetail = () => {
           </Link>
 
           <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="flex justify-between items-start">
+            <div className="flex flex-col gap-6 md:flex-row md:justify-between md:items-start">
               <div>
+                <div className="mb-3">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusClass}`}>
+                    <span className={`w-2 h-2 rounded-full mr-2 ${statusDotClass}`}></span>
+                    {statusLabel}
+                  </span>
+                </div>
                 <h1 className="text-3xl font-bold text-primary-900 mb-2">
                   {project.projectInfo?.name || project.name}
                 </h1>
@@ -153,7 +174,16 @@ const ProjectDetail = () => {
                 </div>
               </div>
 
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
+                {hasResult && (
+                  <Link
+                    href={`/projects/${id}/result`}
+                    className="bg-primary-700 text-white px-4 py-2 rounded-lg hover:bg-primary-800 flex items-center"
+                  >
+                    <FaEye className="mr-2" />
+                    結果を見る
+                  </Link>
+                )}
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
@@ -196,7 +226,7 @@ const ProjectDetail = () => {
               href={`/projects/${id}/calculate`}
               className="w-full bg-accent-500 text-white py-3 px-6 rounded-lg hover:bg-accent-600 transition-colors font-medium text-center block"
             >
-              計算を開始
+              {primaryActionLabel}
             </Link>
           </div>
 
@@ -216,7 +246,11 @@ const ProjectDetail = () => {
             </p>
             <Link
               href={`/projects/${id}/result`}
-              className="w-full bg-primary-700 text-white py-3 px-6 rounded-lg hover:bg-primary-800 transition-colors font-medium text-center block"
+              className={`w-full py-3 px-6 rounded-lg transition-colors font-medium text-center block ${
+                hasResult
+                  ? 'bg-primary-700 text-white hover:bg-primary-800'
+                  : 'bg-primary-100 text-primary-400 cursor-not-allowed pointer-events-none'
+              }`}
             >
               結果を確認
             </Link>
@@ -302,9 +336,9 @@ const ProjectDetail = () => {
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                 ステータス
               </h3>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                アクティブ
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusClass}`}>
+                <div className={`w-2 h-2 rounded-full mr-2 ${statusDotClass}`}></div>
+                {statusLabel}
               </span>
             </div>
           </div>
@@ -312,16 +346,16 @@ const ProjectDetail = () => {
           {/* 計算履歴セクション */}
           <div className="mt-8 pt-8 border-t border-primary-200">
             <h3 className="text-lg font-semibold text-primary-900 mb-4">計算履歴</h3>
-            {project.result || project.result_data ? (
+            {hasResult ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex items-center">
                   <div className="bg-green-500 p-2 rounded-full mr-3">
-                    <FaCalculator className="text-white text-sm" />
+                    <FaCheckCircle className="text-white text-sm" />
                   </div>
                   <div>
                     <p className="font-medium text-green-900">計算完了済み</p>
                     <p className="text-sm text-green-700">
-                      最新の省エネ計算結果が利用可能です。「結果を確認」ボタンから詳細をご覧いただけます。
+                      最新結果は {new Date(updatedAt).toLocaleString('ja-JP')} に更新されています。「結果を見る」から詳細を確認できます。
                     </p>
                   </div>
                 </div>
@@ -330,7 +364,7 @@ const ProjectDetail = () => {
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex items-center">
                   <div className="bg-yellow-500 p-2 rounded-full mr-3">
-                    <FaCalculator className="text-white text-sm" />
+                    <FaClock className="text-white text-sm" />
                   </div>
                   <div>
                     <p className="font-medium text-yellow-900">計算未実行</p>
@@ -344,7 +378,8 @@ const ProjectDetail = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 };
 

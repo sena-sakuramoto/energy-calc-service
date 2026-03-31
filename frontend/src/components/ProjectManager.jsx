@@ -9,6 +9,7 @@ import {
   getProjects, saveProject, deleteProject, duplicateProject,
   exportProject, importProject, searchProjects, getStorageUsage
 } from '../utils/projectStorage';
+import { useNotification } from './ErrorAlert';
 
 export default function ProjectManager({
   currentProject,
@@ -21,6 +22,7 @@ export default function ProjectManager({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [storageInfo, setStorageInfo] = useState({ projectCount: 0, sizeInKB: 0 });
+  const { showError, showSuccess } = useNotification();
 
   // プロジェクト一覧の更新
   const refreshProjects = () => {
@@ -75,10 +77,10 @@ export default function ProjectManager({
     importProject(file)
       .then(() => {
         refreshProjects();
-        alert('プロジェクトをインポートしました');
+        showSuccess('プロジェクトをインポートしました。');
       })
       .catch((error) => {
-        alert(error.message);
+        showError(error.message);
       });
 
     // ファイル入力をクリア

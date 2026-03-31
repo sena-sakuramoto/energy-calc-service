@@ -1,4 +1,4 @@
-﻿// frontend/src/pages/projects/[id]/calculate.jsx
+// frontend/src/pages/projects/[id]/calculate.jsx
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import CalculatorLayout from '../../../components/CalculatorLayout';
@@ -59,6 +59,66 @@ const CalculationSchema = Yup.object().shape({
     }),
   }),
 });
+
+const round = (value, digits = 2) => Number(value.toFixed(digits));
+
+const buildMockCalculationResult = (values) => {
+  const totalArea = Number(values?.building?.total_floor_area || 0);
+  const envelopeParts = values?.envelope?.parts || [];
+  const totalEnvelopeArea = envelopeParts.reduce((sum, part) => sum + Number(part.area || 0), 0);
+  const weightedU = totalEnvelopeArea > 0
+    ? envelopeParts.reduce((sum, part) => sum + (Number(part.area || 0) * Number(part.u_value || 0)), 0) / totalEnvelopeArea
+    : 0.87;
+  const windowParts = envelopeParts.filter((part) => part.part_type === '窓');
+  const totalWindowArea = windowParts.reduce((sum, part) => sum + Number(part.area || 0), 0);
+  const weightedEta = totalWindowArea > 0
+    ? windowParts.reduce((sum, part) => sum + (Number(part.area || 0) * Number(part.eta_value || 0)), 0) / totalWindowArea
+    : 2.6;
+
+  const heatingEfficiency = Number(values?.systems?.heating?.efficiency || 3.0);
+  const coolingEfficiency = Number(values?.systems?.cooling?.efficiency || 3.0);
+  const hotWaterEfficiency = Number(values?.systems?.hot_water?.efficiency || 2.5);
+  const ventilationPower = Number(values?.systems?.ventilation?.power_consumption || 15);
+  const lightingPowerDensity = Number(values?.systems?.lighting?.power_density || 6);
+
+  const heating = totalArea * Math.max(0.16, 0.42 - heatingEfficiency * 0.03);
+  const cooling = totalArea * Math.max(0.1, 0.28 - coolingEfficiency * 0.02);
+  const ventilation = totalArea * Math.max(0.06, ventilationPower / 300);
+  const hotWater = totalArea * Math.max(0.08, 0.33 - hotWaterEfficiency * 0.04);
+  const lighting = totalArea * Math.max(0.07, lightingPowerDensity / 45);
+  const total = heating + cooling + ventilation + hotWater + lighting;
+  const standard = totalArea * 1.18;
+  const savingRate = standard > 0 ? ((standard - total) / standard) * 100 : 0;
+  const overallCompliance = total <= standard;
+
+  return {
+    envelope_result: {
+      ua_value: round(weightedU, 2),
+      eta_a_value: round(weightedEta, 2),
+      is_ua_compliant: weightedU <= 0.87,
+      is_eta_a_compliant: weightedEta <= 2.8,
+    },
+    primary_energy_result: {
+      total_energy_consumption: round(total, 1),
+      standard_energy_consumption: round(standard, 1),
+      energy_saving_rate: round(savingRate, 1),
+      is_energy_compliant: overallCompliance,
+      energy_by_use: {
+        heating: round(heating, 1),
+        cooling: round(cooling, 1),
+        ventilation: round(ventilation, 1),
+        hot_water: round(hotWater, 1),
+        lighting: round(lighting, 1),
+      },
+    },
+    overall_compliance: overallCompliance,
+    message: overallCompliance
+      ? '省エネ基準に適合しました。'
+      : '省エネ基準を満たしていません。設備効率または外皮性能を見直してください。',
+    calculation_method: 'モデル建物法（ローカル検証）',
+    calculation_source: 'mock',
+  };
+};
 
 export default function Calculate() {
   const [project, setProject] = useState(null);
@@ -164,39 +224,20 @@ export default function Calculate() {
       
       // LocalStorage環境での計算（モック計算結果）
       if (typeof window !== 'undefined' && (window.location.hostname.includes('github.io') || window.location.hostname === 'localhost')) {
-        // モック計算結果を生成
-        const mockResult = {
-          bei: {
-            value: 0.8,
-            standard: 1.0,
-            judgment: '適合'
-          },
-          energy: {
-            total: 85.2,
-            heating: 25.1,
-            cooling: 15.3,
-            ventilation: 12.8,
-            lighting: 18.5,
-            hot_water: 13.5
-          },
-          renewable: {
-            solar: 0,
-            total: 0
-          }
-        };
+        const mockResult = buildMockCalculationResult(values);
         
         // プロジェクトデータを更新
         const updatedProject = {
           ...project,
           formData: values,
+          input_data: values,
           result: mockResult,
-          status: 'calculated',
+          result_data: mockResult,
+          status: 'completed',
           updatedAt: new Date().toISOString()
         };
         
         saveProject(updatedProject);
-        
-        console.log('計算完了（モック）:', mockResult);
         router.push(`/projects/${id}/result`);
       } else {
         // API環境での計算
