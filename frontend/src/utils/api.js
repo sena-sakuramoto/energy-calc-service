@@ -19,8 +19,6 @@ const isBillingBypass = () =>
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
 const EFFECTIVE_API_BASE_URL = isMockMode() ? 'https://mock-api.example.com/api/v1' : API_BASE_URL;
 
-console.log('API Config:', { API_BASE_URL: EFFECTIVE_API_BASE_URL, mock: isMockMode(), hostname: typeof window !== 'undefined' ? window.location.hostname : 'server' });
-
 const apiClient = axios.create({
   baseURL: EFFECTIVE_API_BASE_URL,
   timeout: 60000, // 60s timeout (Render free tier cold start)
@@ -136,7 +134,7 @@ export const authAPI = {
   login: async (credentials) => { // credentials は { email, password }
     // GitHub Pages用のモチE機E
     if (isMockMode()) {
-      console.log("GitHub Pages mode: Using mock login");
+
       await new Promise(resolve => setTimeout(resolve, 800)); // 征EE
       return {
         data: {
@@ -167,11 +165,10 @@ export const authAPI = {
     return response; // レスポンス全体を返す
   },
   register: async (userData) => { // userData は { email, password, full_name }
-    console.log("Submitting to API /users/ with data (from api.js):", JSON.stringify(userData));
     
     // GitHub Pages用のモチE機E
     if (isMockMode()) {
-      console.log("GitHub Pages mode: Using mock registration");
+
       // モチE成功レスポンス
       await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒Eフェイク征EE
       return {
@@ -193,7 +190,7 @@ export const authAPI = {
   getCurrentUser: async () => {
     // GitHub Pages用のモチE機E
     if (isMockMode()) {
-      console.log("GitHub Pages mode: Using mock getCurrentUser");
+
       await new Promise(resolve => setTimeout(resolve, 500));
       return {
         data: {
@@ -362,7 +359,7 @@ export const contactAPI = {
 export const projectsAPI = {
   getAll: async () => {
     if (isMockMode()) {
-      console.log("GitHub Pages mode: Using mock getAll projects");
+
       await new Promise(resolve => setTimeout(resolve, 600));
       return {
         data: [
@@ -388,7 +385,7 @@ export const projectsAPI = {
   },
   getById: async (id) => {
     if (isMockMode()) {
-      console.log("GitHub Pages mode: Using mock getById project");
+
       await new Promise(resolve => setTimeout(resolve, 400));
       // プロジェクチED=1の場合E計算結果を含む、それ以外E空
       const hasResults = parseInt(id) === 1;
@@ -483,7 +480,7 @@ export const projectsAPI = {
   },
   create: async (data) => {
     if (isMockMode()) {
-      console.log("GitHub Pages mode: Using mock create project");
+
       await new Promise(resolve => setTimeout(resolve, 800));
       return {
         data: {
@@ -499,7 +496,7 @@ export const projectsAPI = {
   },
   update: async (id, data) => {
     if (isMockMode()) {
-      console.log("GitHub Pages mode: Using mock update project");
+
       await new Promise(resolve => setTimeout(resolve, 600));
       return {
         data: { id: parseInt(id), ...data, updated_at: new Date().toISOString() },
@@ -510,7 +507,7 @@ export const projectsAPI = {
   },
   delete: async (id) => {
     if (isMockMode()) {
-      console.log("GitHub Pages mode: Using mock delete project");
+
       await new Promise(resolve => setTimeout(resolve, 400));
       return { status: 204 };
     }
@@ -518,7 +515,7 @@ export const projectsAPI = {
   },
   calculate: async (projectId, inputData) => {
     if (isMockMode()) {
-      console.log("GitHub Pages mode: Using mock calculate");
+
       await new Promise(resolve => setTimeout(resolve, 2000)); // 計算時間をシミュレーチE
       return {
         data: {
@@ -556,7 +553,7 @@ export const projectsAPI = {
 export const reportAPI = {
   getPDF: async (projectId) => {
     if (isMockMode()) {
-      console.log("GitHub Pages mode: Mock PDF download");
+
       // モチEPDFチEEタE空のPDF風EE
       const mockPdfData = new Blob(['%PDF-1.4 Mock PDF Content'], { type: 'application/pdf' });
       return { data: mockPdfData, status: 200 };
@@ -565,7 +562,7 @@ export const reportAPI = {
   },
   getExcel: async (projectId) => {
     if (isMockMode()) {
-      console.log("GitHub Pages mode: Mock Excel download");
+
       // モチEExcelチEEタ
       const mockExcelData = new Blob(['Mock Excel Content'], { 
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
@@ -640,7 +637,7 @@ export const beiAPI = {
   // BEI評価（本番API + フォールバック）
   evaluate: async (data) => {
     if (isMockMode()) {
-      console.log("Mock mode: Using mock BEI evaluate");
+
       await new Promise(resolve => setTimeout(resolve, 1500));
       try {
         const result = mockBEICalculation(data);
@@ -654,7 +651,6 @@ export const beiAPI = {
     try {
       const response = await apiClient.post('/bei/evaluate', data);
       response.data = enrichBEIResponse(response.data);
-      console.log('BEI計算: 正規API使用', response.data);
       return response;
     } catch (apiError) {
       console.warn('BEI API error, falling back to local calculation:', apiError.message);

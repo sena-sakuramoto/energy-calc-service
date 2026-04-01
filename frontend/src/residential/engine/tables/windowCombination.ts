@@ -14,21 +14,29 @@ export const WINDOW_TABLE: Record<string, Record<string, WindowCombo>> = {
     single: { u: 6.51, eta_d_h: 0.79, eta_d_c: 0.79 },
     double: { u: 4.65, eta_d_h: 0.73, eta_d_c: 0.73 },
     double_lowe_a12: { u: 3.49, eta_d_h: 0.59, eta_d_c: 0.41 },
+    double_lowe_a16: { u: 3.03, eta_d_h: 0.56, eta_d_c: 0.39 },
   },
   metal_resin: {
+    single: { u: 4.65, eta_d_h: 0.76, eta_d_c: 0.76 },
     double: { u: 3.49, eta_d_h: 0.68, eta_d_c: 0.52 },
     double_lowe_a12: { u: 2.91, eta_d_h: 0.56, eta_d_c: 0.4 },
+    double_lowe_a16: { u: 2.57, eta_d_h: 0.52, eta_d_c: 0.37 },
     triple_lowe_a9x2: { u: 1.9, eta_d_h: 0.4, eta_d_c: 0.29 },
+    triple_lowe_kr_a11x2: { u: 1.6, eta_d_h: 0.36, eta_d_c: 0.26 },
   },
   resin: {
+    double: { u: 2.99, eta_d_h: 0.67, eta_d_c: 0.51 },
     double_lowe_a12: { u: 2.33, eta_d_h: 0.52, eta_d_c: 0.37 },
     double_lowe_a16: { u: 1.87, eta_d_h: 0.49, eta_d_c: 0.35 },
     triple_lowe_a9x2: { u: 1.6, eta_d_h: 0.36, eta_d_c: 0.26 },
     triple_lowe_kr_a11x2: { u: 1.31, eta_d_h: 0.34, eta_d_c: 0.24 },
   },
   wood: {
+    double: { u: 2.99, eta_d_h: 0.67, eta_d_c: 0.51 },
     double_lowe_a12: { u: 2.33, eta_d_h: 0.52, eta_d_c: 0.37 },
+    double_lowe_a16: { u: 1.87, eta_d_h: 0.49, eta_d_c: 0.35 },
     triple_lowe_a9x2: { u: 1.6, eta_d_h: 0.36, eta_d_c: 0.26 },
+    triple_lowe_kr_a11x2: { u: 1.31, eta_d_h: 0.34, eta_d_c: 0.24 },
   },
 };
 
