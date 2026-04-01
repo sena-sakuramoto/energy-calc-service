@@ -920,10 +920,10 @@ export default function OfficialBEI() {
     setSolarPVs(SAMPLE_DATA.solarPVs.map((row) => ({ ...row })));
     setCogenerations(SAMPLE_DATA.cogenerations.map((row) => ({ ...row })));
     setSelectedProducts({
-      windows: null,
-      insulation: null,
-      hvac: null,
-      lighting: null,
+      windows: [],
+      insulation: [],
+      hvac: [],
+      lighting: [],
     });
     setFieldErrors({});
     setComputeResult(null);
