@@ -36,16 +36,19 @@ class ClimateZone(Enum):
     ZONE_8 = 8
 
 
-# Standard intensities [MJ/m2-year]
+# Standard intensities [MJ/m2-year] — base values before zone correction.
+# Derived from 建築物省エネ法 モデル建物法 Ver.3.8 標準入力値 (zone 5 ÷ zone-5 correction factor).
+# outlet_and_others (コンセント等) = 105 MJ/m²年 for all non-residential types (官報告示値).
 STANDARD_ENERGY_CONSUMPTION: Dict[BuildingType, Dict[str, float]] = {
     BuildingType.OFFICE: {
         "heating": 38.0,
         "cooling": 38.0,
         "ventilation": 28.0,
         "hot_water": 3.0,
-        "lighting": 95.0,
+        "lighting": 70.0,
         "elevator": 14.0,
-        "total": 232.0,
+        "outlet_and_others": 105.0,
+        "total": 296.0,  # zone-6 reference total
     },
     BuildingType.HOTEL: {
         "heating": 54.0,
@@ -54,7 +57,8 @@ STANDARD_ENERGY_CONSUMPTION: Dict[BuildingType, Dict[str, float]] = {
         "hot_water": 176.0,
         "lighting": 70.0,
         "elevator": 14.0,
-        "total": 396.0,
+        "outlet_and_others": 105.0,
+        "total": 501.0,
     },
     BuildingType.HOSPITAL: {
         "heating": 72.0,
@@ -63,7 +67,8 @@ STANDARD_ENERGY_CONSUMPTION: Dict[BuildingType, Dict[str, float]] = {
         "hot_water": 176.0,
         "lighting": 98.0,
         "elevator": 14.0,
-        "total": 521.0,
+        "outlet_and_others": 105.0,
+        "total": 626.0,
     },
     BuildingType.SHOP_DEPARTMENT: {
         "heating": 20.0,
@@ -72,7 +77,8 @@ STANDARD_ENERGY_CONSUMPTION: Dict[BuildingType, Dict[str, float]] = {
         "hot_water": 3.0,
         "lighting": 126.0,
         "elevator": 14.0,
-        "total": 211.0,
+        "outlet_and_others": 105.0,
+        "total": 316.0,
     },
     BuildingType.SHOP_SUPERMARKET: {
         "heating": 20.0,
@@ -81,7 +87,8 @@ STANDARD_ENERGY_CONSUMPTION: Dict[BuildingType, Dict[str, float]] = {
         "hot_water": 3.0,
         "lighting": 140.0,
         "elevator": 14.0,
-        "total": 225.0,
+        "outlet_and_others": 105.0,
+        "total": 330.0,
     },
     BuildingType.SCHOOL_SMALL: {
         "heating": 58.0,
@@ -90,7 +97,58 @@ STANDARD_ENERGY_CONSUMPTION: Dict[BuildingType, Dict[str, float]] = {
         "hot_water": 17.0,
         "lighting": 49.0,
         "elevator": 2.0,
-        "total": 163.0,
+        "outlet_and_others": 105.0,
+        "total": 268.0,
+    },
+    BuildingType.SCHOOL_HIGH: {
+        "heating": 58.0,
+        "cooling": 30.0,
+        "ventilation": 14.0,
+        "hot_water": 17.0,
+        "lighting": 49.0,
+        "elevator": 2.0,
+        "outlet_and_others": 105.0,
+        "total": 275.0,
+    },
+    BuildingType.SCHOOL_UNIVERSITY: {
+        "heating": 43.0,
+        "cooling": 30.0,
+        "ventilation": 14.0,
+        "hot_water": 17.0,
+        "lighting": 49.0,
+        "elevator": 14.0,
+        "outlet_and_others": 105.0,
+        "total": 272.0,
+    },
+    BuildingType.RESTAURANT: {
+        "heating": 54.0,
+        "cooling": 54.0,
+        "ventilation": 117.0,
+        "hot_water": 105.0,
+        "lighting": 105.0,
+        "elevator": 14.0,
+        "outlet_and_others": 105.0,
+        "total": 554.0,
+    },
+    BuildingType.ASSEMBLY: {
+        "heating": 38.0,
+        "cooling": 38.0,
+        "ventilation": 28.0,
+        "hot_water": 17.0,
+        "lighting": 70.0,
+        "elevator": 14.0,
+        "outlet_and_others": 105.0,
+        "total": 310.0,
+    },
+    BuildingType.FACTORY: {
+        "heating": 72.0,
+        "cooling": 20.0,
+        "ventilation": 28.0,
+        "hot_water": 17.0,
+        "lighting": 70.0,
+        "elevator": 14.0,
+        "outlet_and_others": 105.0,
+        "total": 326.0,
     },
     BuildingType.RESIDENTIAL_COLLECTIVE: {
         "heating": 38.0,
@@ -99,6 +157,7 @@ STANDARD_ENERGY_CONSUMPTION: Dict[BuildingType, Dict[str, float]] = {
         "hot_water": 105.0,
         "lighting": 42.0,
         "elevator": 14.0,
+        "outlet_and_others": 0.0,  # 住宅はコンセント等を別計算
         "total": 251.0,
     },
 }
@@ -187,15 +246,19 @@ def calculate_standard_primary_energy(
     Applies regional correction to heating/cooling and a simple scale factor.
     Returns total and per-use breakdown in MJ/year.
     """
-    base = STANDARD_ENERGY_CONSUMPTION[building_type].copy()
+    base = STANDARD_ENERGY_CONSUMPTION.get(
+        building_type,
+        STANDARD_ENERGY_CONSUMPTION[BuildingType.OFFICE],
+    ).copy()
     # Apply zone correction
     corr = REGIONAL_CORRECTION_FACTORS[climate_zone]
     base["heating"] *= corr["heating"]
     base["cooling"] *= corr["cooling"]
-    # Recompute total intensity
+    # Recompute total intensity (include outlet_and_others if present)
+    _ENERGY_KEYS = ["heating", "cooling", "ventilation", "hot_water", "lighting", "elevator", "outlet_and_others"]
     total_intensity = sum(
         base.get(k, 0.0)
-        for k in ["heating", "cooling", "ventilation", "hot_water", "lighting", "elevator"]
+        for k in _ENERGY_KEYS
     )
     # Scale by area factor
     sf = _scale_factor(building_type, total_floor_area)
@@ -203,8 +266,10 @@ def calculate_standard_primary_energy(
 
     # Build per-use MJ contributions with same scale
     per_use = {}
-    for k in ["heating", "cooling", "ventilation", "hot_water", "lighting", "elevator"]:
-        per_use[k] = base.get(k, 0.0) * sf * total_floor_area
+    for k in _ENERGY_KEYS:
+        v = base.get(k, 0.0)
+        if v:
+            per_use[k] = v * sf * total_floor_area
 
     total_mj = total_intensity * total_floor_area
     return {

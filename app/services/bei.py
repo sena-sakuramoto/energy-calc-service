@@ -1,6 +1,10 @@
 """BEI (Building Energy Index) calculation services."""
 
+import logging
+import math
 from typing import Dict, Any, List, Optional, Union
+
+logger = logging.getLogger(__name__)
 from app.schemas.bei import (
     BEIRequest, BEIResponse, StandardIntensity,
     CatalogUsesResponse, CatalogZonesResponse, CatalogIntensityResponse,
@@ -32,6 +36,10 @@ def _use_label(use: str) -> str:
 def evaluate_bei(request: BEIRequest) -> BEIResponse:
     """Evaluate Building Energy Index (BEI)."""
     notes = []
+
+    # Validate that design energy was provided
+    if not request.design_energy and not request.official_input:
+        raise ValueError("設計一次エネルギー消費量のデータが入力されていません")
     
     # Calculate design primary energy
     design_primary_energy_mj = 0.0
@@ -60,9 +68,11 @@ def evaluate_bei(request: BEIRequest) -> BEIResponse:
             "primary_energy_mj": primary_energy
         })
     
-    # Apply renewable energy deduction
-    design_primary_energy_mj -= request.renewable_energy_deduction_mj
-    
+    # Apply renewable energy deduction (floor at 0 — cannot go negative)
+    design_primary_energy_mj = max(
+        0.0, design_primary_energy_mj - request.renewable_energy_deduction_mj
+    )
+
     # Calculate standard primary energy
     if request.usage_mix:
         # Complex building with usage mix
@@ -85,7 +95,8 @@ def evaluate_bei(request: BEIRequest) -> BEIResponse:
         raise ValueError("基準一次エネルギー消費量は 0 より大きい必要があります")
     
     bei_raw = design_primary_energy_mj / standard_primary_energy_mj
-    bei = round(bei_raw, request.bei_round_digits)
+    scale = 10 ** request.bei_round_digits
+    bei = math.ceil(bei_raw * scale) / scale
     
     # Check compliance (use raw value for accurate comparison)
     is_compliant = bei_raw <= request.compliance_threshold
@@ -118,7 +129,8 @@ def get_catalog_uses() -> CatalogUsesResponse:
         catalog = load_yaml("data/bei/standard_intensities.yaml")
         uses = list(catalog.get("uses", {}).keys()) if catalog.get("uses") else []
         return CatalogUsesResponse(uses=uses)
-    except Exception:
+    except Exception as exc:
+        logger.warning("基準原単位カタログの読み込みに失敗しました: %s", exc)
         return CatalogUsesResponse(uses=[])
 
 

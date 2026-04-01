@@ -24,15 +24,22 @@ def get_climate_zone_standards(climate_zone: int) -> Dict[str, Any]:
 
 
 def calculate_envelope_performance(envelope_parts, standards) -> EnvelopeResult:
+    if not envelope_parts:
+        raise ValueError("外皮部位が入力されていません")
+
     total_area = sum(part.area for part in envelope_parts)
-    ua_numerator = sum(part.area * part.u_value for part in envelope_parts)
+    # 省エネ法告示: UA = Σ(U値 × 面積 × 温度差係数) / 外皮面積
+    ua_numerator = sum(
+        part.area * part.u_value * getattr(part, "h_value", 1.0)
+        for part in envelope_parts
+    )
     ua_value = ua_numerator / total_area if total_area > 0 else 0.0
 
     opening_parts = [p for p in envelope_parts if getattr(p, "eta_value", None) is not None]
     if opening_parts:
-        opening_area = sum(p.area for p in opening_parts)
+        # 省エネ法告示: ηA = Σ(η値 × 面積 × 方位係数) / 外皮全体面積
         eta_numerator = sum(p.area * float(p.eta_value) for p in opening_parts)
-        eta_a_value = eta_numerator / opening_area if opening_area > 0 else 0.0
+        eta_a_value = eta_numerator / total_area if total_area > 0 else 0.0
     else:
         eta_a_value = 0.0
 
@@ -94,7 +101,6 @@ def perform_energy_calculation(input_data: CalculationInput) -> CalculationResul
         primary_energy_result=primary_energy_result,
         overall_compliance=overall,
         message=(
-            "Compliant with standards" if overall else "Does not meet one or more standards"
+            "基準に適合しています" if overall else "一つ以上の基準を満たしていません"
         ),
     )
-

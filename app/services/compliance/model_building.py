@@ -22,6 +22,8 @@ def get_model_building_standards(building_type: str, climate_zone: int, total_fl
         "共同住宅": BuildingType.RESIDENTIAL_COLLECTIVE,
         "shop_department": BuildingType.SHOP_DEPARTMENT,
         "shop_supermarket": BuildingType.SHOP_SUPERMARKET,
+        "school_high": BuildingType.SCHOOL_HIGH,
+        "school_university": BuildingType.SCHOOL_UNIVERSITY,
         "restaurant": BuildingType.RESTAURANT,
         "assembly": BuildingType.ASSEMBLY,
         "factory": BuildingType.FACTORY,
@@ -149,4 +151,3 @@ def _detailed_lighting_energy(lighting_system, building_type: str, floor_area: f
 def _elevator_energy(floor_area: float) -> float:
     # Simple proportional model
     return max(0.0, 14.0 * floor_area)  # 14 MJ/m2-year baseline
-
