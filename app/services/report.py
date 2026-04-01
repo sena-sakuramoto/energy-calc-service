@@ -1,9 +1,9 @@
 """Utilities for generating official compliance reports via the lowenergy.jp API.
 
-Uses the official v380 (Ver.3.8) endpoints:
+Uses the official v390 (Ver.3.9) endpoints:
   - reportFromInputSheets  → 公式様式PDF
   - computeFromInputSheets → 公式計算結果JSON
-See: https://api.lowenergy.jp/model/1/v380/
+See: https://api.lowenergy.jp/model/1/v390/
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 # ── API settings ────────────────────────────────────────────────────────────
-API_BASE = "https://api.lowenergy.jp/model/1/v380"
+API_BASE = "https://api.lowenergy.jp/model/1/v390"
 API_REPORT = f"{API_BASE}/reportFromInputSheets"
 API_COMPUTE = f"{API_BASE}/computeFromInputSheets"
 EXCEL_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -473,7 +473,7 @@ def _write_data_to_workbook(workbook: openpyxl.Workbook, input_data: Dict[str, A
 def _select_template(total_floor_area: float) -> Path:
     """Return the appropriate Excel template path based on floor area."""
     # NOTE:
-    # As of 2026-02-09 verification against /model/1/v380, SMALLMODEL template uploads
+    # As of 2026-02-09 verification against /model/1/v390, SMALLMODEL template uploads
     # return "様式A 基本情報 は必ずアップロードしてください。".
     # To keep small-area requests functional, submit MODEL template for all areas.
     if total_floor_area < 300:
@@ -676,7 +676,7 @@ def _is_smallmodel_original_upload(excel_bytes: bytes) -> bool:
 
 
 def get_official_report_from_api(input_data: Dict[str, Any]) -> bytes:
-    """Fill the official Excel template and submit to the v380 API → 公式様式PDF."""
+    """Fill the official Excel template and submit to the v390 API → 公式様式PDF."""
     buf = _build_excel_buffer(input_data)
     response = _post_to_api(API_REPORT, buf)
     pdf = _extract_pdf_content_or_raise(response)
@@ -685,7 +685,7 @@ def get_official_report_from_api(input_data: Dict[str, Any]) -> bytes:
 
 
 def get_official_compute_from_api(input_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Fill the official Excel template and submit to the v380 API → 公式計算結果JSON."""
+    """Fill the official Excel template and submit to the v390 API → 公式計算結果JSON."""
     buf = _build_excel_buffer(input_data)
     response = _post_to_api(API_COMPUTE, buf)
     logger.info("Received compute result from %s", API_COMPUTE)
@@ -693,7 +693,7 @@ def get_official_compute_from_api(input_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def get_official_report_from_excel(excel_bytes: bytes) -> bytes:
-    """Submit a user-uploaded Excel input sheet directly to the v380 API → 公式様式PDF."""
+    """Submit a user-uploaded Excel input sheet directly to the v390 API → 公式様式PDF."""
     if _is_smallmodel_original_upload(excel_bytes):
         raise ValueError(SMALLMODEL_UPLOAD_UNSUPPORTED_MESSAGE)
     buf = io.BytesIO(excel_bytes)
@@ -704,7 +704,7 @@ def get_official_report_from_excel(excel_bytes: bytes) -> bytes:
 
 
 def get_official_compute_from_excel(excel_bytes: bytes) -> Dict[str, Any]:
-    """Submit a user-uploaded Excel input sheet directly to the v380 API → 公式計算結果JSON."""
+    """Submit a user-uploaded Excel input sheet directly to the v390 API → 公式計算結果JSON."""
     if _is_smallmodel_original_upload(excel_bytes):
         raise ValueError(SMALLMODEL_UPLOAD_UNSUPPORTED_MESSAGE)
     buf = io.BytesIO(excel_bytes)
