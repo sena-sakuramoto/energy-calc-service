@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { FaCheckCircle, FaExternalLinkAlt, FaRegCircle } from 'react-icons/fa';
 
 import { productsAPI } from '../utils/api';
@@ -218,7 +218,13 @@ export default function ProductSelector({
   const [loading, setLoading] = useState(true);
   const [showManual, setShowManual] = useState(false);
   const [error, setError] = useState(null);
+  const onSelectRef = useRef(onSelect);
+  useEffect(() => { onSelectRef.current = onSelect; }, [onSelect]);
+  // Keep a ref for selected so Effect 2 can read the current value without re-firing on changes
+  const selectedRef = useRef(selected);
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
 
+  // Effect 1: fetch only — onSelect を依存に入れず不要な再fetchを防ぐ
   useEffect(() => {
     let mounted = true;
 
@@ -243,14 +249,7 @@ export default function ProductSelector({
       try {
         const data = await fetcher();
         if (!mounted) return;
-
-        const loaded = data?.products || [];
-        setProducts(loaded);
-
-        if (!selected && loaded.length > 0) {
-          const partner = loaded.find((p) => p.partner);
-          if (partner) onSelect(partner);
-        }
+        setProducts(data?.products || []);
       } catch (err) {
         if (!mounted) return;
         setError('製品データの読み込みに失敗しました');
@@ -261,10 +260,17 @@ export default function ProductSelector({
 
     fetchProducts();
 
-    return () => {
-      mounted = false;
-    };
-  }, [category, onSelect, selected, use, zone]);
+    return () => { mounted = false; };
+  }, [category, zone, use]);
+
+  // Effect 2: products が新しくロードされたときだけ自動選択
+  // selected を deps に入れると手動解除後に再選択されてしまうため、ref で最新値を参照する
+  useEffect(() => {
+    if (!selectedRef.current && products.length > 0) {
+      const partner = products.find((p) => p.partner);
+      if (partner) onSelectRef.current(partner);
+    }
+  }, [products]); // intentionally excludes 'selected' — read via ref above
 
   const renderSpec = (product) => {
     switch (category) {
