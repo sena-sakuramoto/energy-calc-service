@@ -843,6 +843,10 @@ export default function OfficialBEI() {
         { key: 'name', label: '外皮名称' },
         { key: 'direction', label: '方位' },
       ]);
+      // 外皮の建具参照名が様式B1に存在するか事前チェック
+      const definedWindowNames = new Set(
+        windows.filter(w => w.name || w.window_type).map(w => (w.name || '').trim()).filter(Boolean)
+      );
       envelopes.forEach((row, index) => {
         if (!hasAnyRowValue(row)) return;
         const area = parseFloat(row.area);
@@ -852,6 +856,10 @@ export default function OfficialBEI() {
         const hasWidthHeight = !Number.isNaN(width) && width > 0 && !Number.isNaN(height) && height > 0;
         if (!hasArea && !hasWidthHeight) {
           appendError(errors, `envelopes.${index}.area`, '外皮面積、または幅・高さを入力してください。');
+        }
+        const wn = (row.window_name || '').trim();
+        if (wn && !definedWindowNames.has(wn)) {
+          appendError(errors, `envelopes.${index}.window_name`, `建具仕様「${wn}」が様式B1に定義されていません。`);
         }
       });
     }
@@ -1133,12 +1141,15 @@ export default function OfficialBEI() {
   }, []);
 
   const fetchAiRecommendations = useCallback(async (beiValue) => {
+    // beiValueがNaN/null/'-'のとき（計算エラー時）はレコメンドAPIを呼ばない
+    const numBei = Number(beiValue);
+    if (beiValue === null || beiValue === undefined || isNaN(numBei)) return;
     try {
       const response = await productsAPI.recommend(
         productFilterZone,
         productFilterUse,
         Number(building.calc_floor_area || 0) || 1,
-        beiValue
+        numBei
       );
       setAiRecommendations(response?.recommendations || []);
     } catch {
@@ -1590,11 +1601,13 @@ export default function OfficialBEI() {
 
         {computeResult && (() => {
           // API returns BEIm as a string (e.g. "0.47"). Fall back to BEI/bei for legacy responses.
+          // '-' is returned on calculation errors; guard against NaN.
           const beiRaw = computeResult.BEIm ?? computeResult.BEI ?? computeResult.bei ?? null;
-          const bei = beiRaw !== null ? Number(beiRaw) : 0;
+          const beiNum = beiRaw !== null ? Number(beiRaw) : NaN;
+          const bei = isNaN(beiNum) ? 0 : beiNum;
           const apiStatus = computeResult.Status ?? computeResult.status ?? null;
           // BEI=0 is valid when solar PV offsets all energy consumption
-          const isCompliant = apiStatus === 'OK' ? bei <= 1.0 : bei > 0 && bei <= 1.0;
+          const isCompliant = apiStatus === 'OK' && !isNaN(beiNum) ? bei <= 1.0 : false;
 
           // Try multiple field name patterns for partial BEI (API may vary, values may be strings)
           const tryBEI = (...keys) => {
