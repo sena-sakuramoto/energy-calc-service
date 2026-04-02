@@ -298,9 +298,9 @@ const SAMPLE_DATA = {
     non_ac_core_length: '8',
   },
   windows: [
-    { name: '窓-S', width: '1.8', height: '1.8', area: '3.24', window_type: '樹脂製(二層複層ガラス)', glass_type: '遮熱Low-E複層(16A)', glass_u_value: '', glass_shgc: '', window_u_value: '1.87', window_shgc: '0.28' },
-    { name: '窓-N', width: '1.5', height: '1.5', area: '2.25', window_type: '樹脂製(二層複層ガラス)', glass_type: 'Low-E複層(16A)', glass_u_value: '', glass_shgc: '', window_u_value: '1.87', window_shgc: '0.40' },
-    { name: '窓-EW', width: '1.6', height: '1.5', area: '2.40', window_type: '樹脂製(二層複層ガラス)', glass_type: '遮熱Low-E複層(16A)', glass_u_value: '', glass_shgc: '', window_u_value: '1.87', window_shgc: '0.28' },
+    { name: '窓-S', width: '1.8', height: '1.8', area: '3.24', window_type: '樹脂製(二層複層ガラス)', glass_type: '遮熱Low-E複層(12A)', glass_u_value: '', glass_shgc: '', window_u_value: '1.87', window_shgc: '0.35' },
+    { name: '窓-N', width: '1.5', height: '1.5', area: '2.25', window_type: '樹脂製(二層複層ガラス)', glass_type: '高透過Low-E複層(12A)', glass_u_value: '', glass_shgc: '', window_u_value: '1.87', window_shgc: '0.55' },
+    { name: '窓-EW', width: '1.6', height: '1.5', area: '2.40', window_type: '樹脂製(二層複層ガラス)', glass_type: '遮熱Low-E複層(12A)', glass_u_value: '', glass_shgc: '', window_u_value: '1.87', window_shgc: '0.35' },
   ],
   insulations: [
     { name: '断熱-外壁', part_class: '外壁', input_method: '熱貫流率を入力する', material_category: '', material_detail: '', conductivity: '', thickness: '', u_value: '0.35' },
