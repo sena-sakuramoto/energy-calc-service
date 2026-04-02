@@ -26,7 +26,7 @@ const BUILDING_TYPES = [
   '講堂モデル','大規模物販モデル','小規模物販モデル','飲食店モデル','集会所モデル','工場モデル',
 ];
 const DIRECTIONS = ['北','東','南','西','なし'];
-const ENVELOPE_DIRECTIONS = ['北','北東','東','南東','南','南西','西','北西','上部水平','下部水平(地面床)','下部水平(外気)'];
+const ENVELOPE_DIRECTIONS = ['北','東','西','南','屋根','床'];
 const WINDOW_TYPES = [
   '樹脂製(単板ガラス)','樹脂製(二層複層ガラス)','樹脂製(三層以上の複層ガラス)',
   '木製(単板ガラス)','木製(二層複層ガラス)','木製(三層以上の複層ガラス)',
@@ -1171,7 +1171,7 @@ export default function OfficialBEI() {
 
         setComputeResult(res.data);
         setFieldErrors({});
-        const beiValue = res.data?.BEI ?? res.data?.bei ?? null;
+        const beiValue = res.data?.BEIm ?? res.data?.BEI ?? res.data?.bei ?? null;
         await fetchAiRecommendations(beiValue);
       } catch (e) {
         if (canceled) return;
@@ -1202,7 +1202,7 @@ export default function OfficialBEI() {
       const res = await officialAPI.getCompute(payload);
       setComputeResult(res.data);
       setFieldErrors({});
-      const beiValue = res.data?.BEI ?? res.data?.bei ?? null;
+      const beiValue = res.data?.BEIm ?? res.data?.BEI ?? res.data?.bei ?? null;
       await fetchAiRecommendations(beiValue);
     } catch (e) {
       const status = e.response?.status;
@@ -1551,24 +1551,29 @@ export default function OfficialBEI() {
         )}
 
         {computeResult && (() => {
-          const bei = Number(computeResult.BEI ?? computeResult.bei ?? 0);
-          const isCompliant = bei > 0 && bei <= 1.0;
+          // API returns BEIm as a string (e.g. "0.47"). Fall back to BEI/bei for legacy responses.
+          const beiRaw = computeResult.BEIm ?? computeResult.BEI ?? computeResult.bei ?? null;
+          const bei = beiRaw !== null ? Number(beiRaw) : 0;
+          const apiStatus = computeResult.Status ?? computeResult.status ?? null;
+          // BEI=0 is valid when solar PV offsets all energy consumption
+          const isCompliant = apiStatus === 'OK' ? bei <= 1.0 : bei > 0 && bei <= 1.0;
 
-          // Try multiple field name patterns for partial BEI (API may vary)
+          // Try multiple field name patterns for partial BEI (API may vary, values may be strings)
           const tryBEI = (...keys) => {
             for (const k of keys) {
               const v = computeResult[k];
-              if (typeof v === 'number' && v > 0) return v;
+              const n = Number(v);
+              if (!isNaN(n) && n > 0) return n;
             }
             return null;
           };
 
           const partialRows = [
-            { key: 'ac', label: '空調', icon: <FaThermometerHalf />, bei: tryBEI('AirConditioningBEI','BEIAirConditioning','BEIm_AC') },
-            { key: 'v',  label: '換気', icon: <FaFan />,             bei: tryBEI('VentilationBEI','BEIVentilation','BEIm_V') },
-            { key: 'l',  label: '照明', icon: <FaLightbulb />,       bei: tryBEI('LightingBEI','BEILighting','BEIm_L') },
-            { key: 'hw', label: '給湯', icon: <FaShower />,          bei: tryBEI('HotWaterBEI','BEIHotWater','BEIm_HW') },
-            { key: 'ev', label: '昇降機', icon: <FaArrowsAltV />,    bei: tryBEI('ElevatorBEI','BEIElevator','BEIm_EV') },
+            { key: 'ac', label: '空調', icon: <FaThermometerHalf />, bei: tryBEI('BEImAC','AirConditioningBEI','BEIAirConditioning','BEIm_AC') },
+            { key: 'v',  label: '換気', icon: <FaFan />,             bei: tryBEI('BEImV','VentilationBEI','BEIVentilation','BEIm_V') },
+            { key: 'l',  label: '照明', icon: <FaLightbulb />,       bei: tryBEI('BEImL','LightingBEI','BEILighting','BEIm_L') },
+            { key: 'hw', label: '給湯', icon: <FaShower />,          bei: tryBEI('BEImHW','HotWaterBEI','BEIHotWater','BEIm_HW') },
+            { key: 'ev', label: '昇降機', icon: <FaArrowsAltV />,    bei: tryBEI('BEImEV','ElevatorBEI','BEIElevator','BEIm_EV') },
           ].filter(r => r.bei !== null);
 
           const validationDefs = [
