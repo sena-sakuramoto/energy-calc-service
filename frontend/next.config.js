@@ -8,7 +8,7 @@ const cnameExists = fs.existsSync('../CNAME');
 module.exports = {
     reactStrictMode: true,
     env: {
-        API_URL: process.env.API_URL || 'http://localhost:8000/api/v1',
+        API_URL: process.env.API_URL || 'https://energy-saving.onrender.com/api/v1',
     },
     // 本番ビルド最適化
     swcMinify: true,
