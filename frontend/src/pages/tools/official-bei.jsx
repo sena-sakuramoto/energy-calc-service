@@ -542,6 +542,7 @@ export default function OfficialBEI() {
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [computeResult, setComputeResult] = useState(null);
+  const [serverWarm, setServerWarm] = useState(false);
 
   // ── 完了モーダル ──
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -1156,6 +1157,14 @@ export default function OfficialBEI() {
     setPendingRecommendation(rec);
   }, [applyHvacProduct, applyInsulationProduct, applyLightingProduct, applyWindowProduct]);
 
+  // ページ読み込み時にRenderサーバーを起こしておく（コールドスタート対策）
+  useEffect(() => {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+    fetch(`${baseUrl}/healthz`, { method: 'GET' })
+      .then(() => setServerWarm(true))
+      .catch(() => setServerWarm(false));
+  }, []);
+
   useEffect(() => {
     if (!pendingRecommendation) return;
 
@@ -1197,18 +1206,33 @@ export default function OfficialBEI() {
     setError(null);
     if (!validateBeforeSubmit()) return;
     setIsLoading(true);
+    const payload = buildPayload();
+    const attempt = async (retry) => {
+      try {
+        const res = await officialAPI.getCompute(payload);
+        setComputeResult(res.data);
+        setFieldErrors({});
+        setServerWarm(true);
+        const beiValue = res.data?.BEIm ?? res.data?.BEI ?? res.data?.bei ?? null;
+        await fetchAiRecommendations(beiValue);
+      } catch (e) {
+        const isNetworkError = !e.response || e.response?.status === 502 || e.response?.status === 503;
+        if (retry && isNetworkError) {
+          // Renderのコールドスタート: 最大35秒待ってリトライ
+          setError('サーバーが起動中です（初回アクセス時は約30秒かかります）。自動的に再試行します...');
+          await new Promise(r => setTimeout(r, 35000));
+          setError(null);
+          await attempt(false);
+          return;
+        }
+        const status = e.response?.status;
+        const detail = e.response?.data?.detail || e.message;
+        moveToStepFromApiError(String(detail || ''));
+        setError(`公式計算エラー: ${normalizeOfficialError(detail, status)}`);
+      }
+    };
     try {
-      const payload = buildPayload();
-      const res = await officialAPI.getCompute(payload);
-      setComputeResult(res.data);
-      setFieldErrors({});
-      const beiValue = res.data?.BEIm ?? res.data?.BEI ?? res.data?.bei ?? null;
-      await fetchAiRecommendations(beiValue);
-    } catch (e) {
-      const status = e.response?.status;
-      const detail = e.response?.data?.detail || e.message;
-      moveToStepFromApiError(String(detail || ''));
-      setError(`公式計算エラー: ${normalizeOfficialError(detail, status)}`);
+      await attempt(true);
     } finally {
       setIsLoading(false);
     }
@@ -1218,20 +1242,34 @@ export default function OfficialBEI() {
     setError(null);
     if (!validateBeforeSubmit()) return;
     setIsLoading(true);
+    const payload = buildPayload();
+    const attempt = async (retry) => {
+      try {
+        const res = await officialAPI.getReport(payload);
+        const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `official_report_${building.building_name || 'output'}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        setServerWarm(true);
+      } catch (e) {
+        const isNetworkError = !e.response || e.response?.status === 502 || e.response?.status === 503;
+        if (retry && isNetworkError) {
+          setError('サーバーが起動中です（初回アクセス時は約30秒かかります）。自動的に再試行します...');
+          await new Promise(r => setTimeout(r, 35000));
+          setError(null);
+          await attempt(false);
+          return;
+        }
+        const status = e.response?.status;
+        const detail = await parseBlobErrorDetail(e);
+        moveToStepFromApiError(String(detail || ''));
+        setError(`公式PDF生成エラー: ${normalizeOfficialError(detail, status)}`);
+      }
+    };
     try {
-      const payload = buildPayload();
-      const res = await officialAPI.getReport(payload);
-      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `official_report_${building.building_name || 'output'}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      const status = e.response?.status;
-      const detail = await parseBlobErrorDetail(e);
-      moveToStepFromApiError(String(detail || ''));
-      setError(`公式PDF生成エラー: ${normalizeOfficialError(detail, status)}`);
+      await attempt(true);
     } finally {
       setIsLoading(false);
     }
