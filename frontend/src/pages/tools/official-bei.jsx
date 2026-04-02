@@ -1159,7 +1159,7 @@ export default function OfficialBEI() {
 
   // ページ読み込み時にRenderサーバーを起こしておく（コールドスタート対策）
   useEffect(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://energy-saving.onrender.com/api/v1';
     fetch(`${baseUrl}/healthz`, { method: 'GET' })
       .then(() => setServerWarm(true))
       .catch(() => setServerWarm(false));

@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Layout from '../../components/Layout';
 import { FaCheckCircle, FaExclamationTriangle, FaTimesCircle, FaSync, FaChartLine, FaDatabase, FaCloud, FaShieldAlt, FaCog, FaInfoCircle } from 'react-icons/fa';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://energy-calc-service.onrender.com/api/v1';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://energy-saving.onrender.com/api/v1';
 
 export default function SystemStatus() {
   const [checks, setChecks] = useState([]);

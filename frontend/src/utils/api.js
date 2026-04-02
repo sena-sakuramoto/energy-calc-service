@@ -16,7 +16,7 @@ const isBillingBypass = () =>
   process.env.NODE_ENV !== 'production';
 
 // API base URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://energy-saving.onrender.com/api/v1';
 const EFFECTIVE_API_BASE_URL = isMockMode() ? 'https://mock-api.example.com/api/v1' : API_BASE_URL;
 
 const apiClient = axios.create({
