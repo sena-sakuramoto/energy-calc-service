@@ -1577,14 +1577,20 @@ export default function OfficialBEI() {
           ].filter(r => r.bei !== null);
 
           const validationDefs = [
-            { key: 'BasicInformationValidationResult', label: '基本情報' },
-            { key: 'AirConditioningValidationResult',  label: '空調設備' },
-            { key: 'VentilationValidationResult',      label: '換気設備' },
-            { key: 'LightingValidationResult',         label: '照明設備' },
-            { key: 'HotWaterValidationResult',         label: '給湯設備' },
-            { key: 'ElevatorValidationResult',         label: '昇降機' },
-            { key: 'EnvelopeValidationResult',         label: '外皮' },
-            { key: 'RenewableEnergyValidationResult',  label: '再エネ' },
+            { key: 'BasicInformationValidationResult',       label: '基本情報' },
+            { key: 'HeatSourceValidationResult',             label: '空調設備' },
+            { key: 'OutsideAirProcessingUnitValidationResult', label: '外気処理' },
+            { key: 'SecondaryPumpValidationResult',          label: 'ポンプ' },
+            { key: 'BlowerValidationResult',                 label: '送風機' },
+            { key: 'VentilationValidationResult',            label: '換気設備' },
+            { key: 'LightingValidationResult',               label: '照明設備' },
+            { key: 'HotwaterValidationResult',               label: '給湯設備' },
+            { key: 'ElevatorValidationResult',               label: '昇降機' },
+            { key: 'WindowValidationResult',                 label: '開口部' },
+            { key: 'InsulatorValidationResult',              label: '断熱' },
+            { key: 'EnvelopeValidationResult',               label: '外皮' },
+            { key: 'PhotovoltaicGenerationValidationResult', label: '太陽光' },
+            { key: 'CogenerationValidationResult',           label: 'コージェネ' },
           ].map(d => ({ ...d, data: computeResult[d.key] || null }))
            .filter(d => d.data);
 
