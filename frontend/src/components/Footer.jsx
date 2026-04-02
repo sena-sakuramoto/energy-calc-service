@@ -43,12 +43,12 @@ export default function Footer() {
             <h4 className="text-lg font-semibold mb-4 text-accent-400">主要リンク</h4>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="https://rakuraku-energy.archi-prisma.co.jp/pricing"
+                <Link
+                  href="/pricing"
                   className="text-warm-300 hover:text-accent-400 transition-colors text-sm"
                 >
                   料金プラン
-                </a>
+                </Link>
               </li>
               <li>
                 <Link

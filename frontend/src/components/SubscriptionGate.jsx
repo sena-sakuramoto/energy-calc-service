@@ -233,12 +233,12 @@ export default function SubscriptionGate({
             )}
 
             <div className="mt-5 flex flex-col gap-3">
-              <a
-                href={`https://rakuraku-energy.archi-prisma.co.jp/pricing`}
+              <Link
+                href={`/pricing?redirect=${encodeURIComponent(currentPath)}`}
                 className="inline-flex items-center justify-center gap-2 bg-accent-500 hover:bg-accent-600 text-white font-semibold px-5 py-3 rounded-lg transition-colors"
               >
                 料金を見る <FaArrowRight className="text-xs" />
-              </a>
+              </Link>
               <Link
                 href="/contact"
                 className="inline-flex items-center justify-center gap-2 border border-primary-300 text-primary-700 hover:bg-warm-50 font-semibold px-5 py-3 rounded-lg transition-colors"

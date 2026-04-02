@@ -218,7 +218,7 @@ export default function ResidentialCalc() {
       router.push(`/login?redirect=${redirect}`);
       return;
     }
-    window.location.href = 'https://rakuraku-energy.archi-prisma.co.jp/pricing';
+    router.push(`/pricing?redirect=${redirect}`);
   };
 
   const patchProject = (patch) => {

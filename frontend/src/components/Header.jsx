@@ -135,9 +135,9 @@ export default function Header() {
             ) : (
               <>
                 <li className="list-none">
-                  <a href={`${LP_URL}/pricing`} className="hover:text-warm-300 transition-colors text-sm">
+                  <Link href="/pricing" className="hover:text-warm-300 transition-colors text-sm">
                     料金
-                  </a>
+                  </Link>
                 </li>
                 <li className="list-none">
                   <Link href="/login" className="hover:text-warm-300 transition-colors">
@@ -213,12 +213,12 @@ export default function Header() {
                 </button>
               ) : (
                 <>
-                  <a
-                    href={`${LP_URL}/pricing`}
+                  <Link
+                    href="/pricing"
                     className="hover:text-warm-300 transition-colors text-sm"
                   >
                     料金を見る
-                  </a>
+                  </Link>
                   <Link
                     href="/login"
                     className="hover:text-warm-300 transition-colors"
