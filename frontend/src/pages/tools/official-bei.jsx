@@ -397,22 +397,11 @@ const SAMPLE_DATA = {
     system_name: 'PV-1',
     cell_type: '結晶系太陽電池',
     installation_mode: '屋根置き形',
-    capacity_kw: '30',
+    capacity_kw: '10',
     panel_direction: '0度(南)',
     panel_angle: '30度',
   }],
-  cogenerations: [{
-    name: 'CGS-1',
-    rated_output: '30',
-    count: 1,
-    gen_eff_100: '30',
-    gen_eff_75: '28',
-    gen_eff_50: '25',
-    heat_eff_100: '',
-    heat_eff_75: '',
-    heat_eff_50: '',
-    heat_recovery_for: '給湯のみ',
-  }],
+  cogenerations: [],
 };
 
 // ── ヘルパーコンポーネント ──────────────────────────────────────────
