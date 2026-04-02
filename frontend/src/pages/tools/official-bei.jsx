@@ -308,10 +308,10 @@ const SAMPLE_DATA = {
     { name: '断熱-地面床', part_class: '地面床', input_method: '熱貫流率を入力する', material_category: '', material_detail: '', conductivity: '', thickness: '', u_value: '0.30' },
   ],
   envelopes: [
-    { name: '南面壁', direction: '南', width: '20', height: '3.5', area: '70', insulation_name: '断熱-外壁', window_name: '窓-S', window_count: '12', has_blind: '有', shade_coeff_cooling: '0.60', shade_coeff_heating: '0.90' },
+    { name: '南面壁', direction: '南', width: '20', height: '3.5', area: '70', insulation_name: '断熱-外壁', window_name: '窓-S', window_count: '12', has_blind: '無', shade_coeff_cooling: '1', shade_coeff_heating: '1' },
     { name: '北面壁', direction: '北', width: '20', height: '3.5', area: '70', insulation_name: '断熱-外壁', window_name: '窓-N', window_count: '8', has_blind: '無', shade_coeff_cooling: '1', shade_coeff_heating: '1' },
-    { name: '東面壁', direction: '東', width: '10', height: '3.5', area: '35', insulation_name: '断熱-外壁', window_name: '窓-EW', window_count: '4', has_blind: '有', shade_coeff_cooling: '0.65', shade_coeff_heating: '0.90' },
-    { name: '西面壁', direction: '西', width: '10', height: '3.5', area: '35', insulation_name: '断熱-外壁', window_name: '窓-EW', window_count: '4', has_blind: '有', shade_coeff_cooling: '0.65', shade_coeff_heating: '0.90' },
+    { name: '東面壁', direction: '東', width: '10', height: '3.5', area: '35', insulation_name: '断熱-外壁', window_name: '窓-EW', window_count: '4', has_blind: '無', shade_coeff_cooling: '1', shade_coeff_heating: '1' },
+    { name: '西面壁', direction: '西', width: '10', height: '3.5', area: '35', insulation_name: '断熱-外壁', window_name: '窓-EW', window_count: '4', has_blind: '有', shade_coeff_cooling: '0.70', shade_coeff_heating: '0.90' },
     { name: '屋根', direction: '上部水平', width: '20', height: '10', area: '200', insulation_name: '断熱-屋根', window_name: '', window_count: '0', has_blind: '無', shade_coeff_cooling: '1', shade_coeff_heating: '1' },
     { name: '最下階床', direction: '下部水平(地面床)', width: '20', height: '10', area: '200', insulation_name: '断熱-地面床', window_name: '', window_count: '0', has_blind: '無', shade_coeff_cooling: '1', shade_coeff_heating: '1' },
   ],
